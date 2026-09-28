@@ -257,6 +257,14 @@ async def _filter_candidates(docs, target_region: str, exclude_places: List[str]
             
     return candidates
 
+def _extract_reviews(doc) -> List[str]:
+    """추천 장소의 근거 리뷰. (기존 코드는 page_content를 줄 단위로 찾았으나 한 줄 포맷이라 항상 빈 리스트였음)"""
+    md = doc.metadata
+    if isinstance(md.get("reviews"), list):
+        return [str(r) for r in md["reviews"][:3]]
+    return [md["리뷰"]] if md.get("리뷰") else []
+
+
 async def retrieve_candidates(query: str, destination: str, category_filter: str = "",
                               anchor: str = "", exclude_places: List[str] | None = None,
                               user_info: str = "") -> Dict[str, Any]:
@@ -359,7 +367,7 @@ async def retrieve_candidates(query: str, destination: str, category_filter: str
 async def find_and_select_best_place(query: str,
                                     destination: str,
                                     anchor: str = "",
-                                    exclude_places: List[str] = [],
+                                    exclude_places: List[str] | None = None,
                                     user_info: str = "", 
                                     category_filter: str = "") -> str:
     """
@@ -389,31 +397,7 @@ async def find_and_select_best_place(query: str,
         "place_data": best_doc.page_content[:400]
     })
 
-    reviews = []
-    try:
-        if 'reviews' in best_doc.metadata:
-            reviews_data = best_doc.metadata.get('reviews', [])
-            if isinstance(reviews_data, list):
-                reviews = reviews_data[:3]
-            elif isinstance(reviews_data, str):
-                reviews = [r.strip() for r in reviews_data.split('\n') if r.strip()][:3]
-        
-        if not reviews and best_doc.page_content:
-            content = best_doc.page_content
-            if '리뷰' in content or 'review' in content.lower():
-                lines = content.split('\n')
-                review_start = False
-                temp_reviews = []
-                for line in lines:
-                    if '리뷰' in line or 'review' in line.lower():
-                        review_start = True
-                        continue
-                    if review_start and line.strip():
-                        temp_reviews.append(line.strip())
-                        if len(temp_reviews) >= 2: break
-                reviews = temp_reviews
-    except Exception as e:
-        reviews = []
+    reviews = _extract_reviews(best_doc)
 
     result_data = {
         "name": best_name,
