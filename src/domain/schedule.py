@@ -1,6 +1,7 @@
 """일정 도메인 로직 (외부 의존 없음)."""
 from datetime import datetime, timedelta
 
+from src.domain.geo import calculate_haversine_distance
 from src.domain.models import ItineraryItem, Place, Slot
 
 
@@ -20,15 +21,47 @@ def build_slots(days: int) -> list[Slot]:
     return slots
 
 
-def assign_places(slots: list[Slot], candidates: dict[str, list[Place]]) -> dict[str, Place | None]:
-    """슬롯 순서대로 카테고리 후보의 앞에서부터 배정. 한 일정 안에서 같은 장소는 한 번만."""
-    used, out = set(), {}
+MAX_KM = {"transit": 8.0, "driving": 15.0}   # 직전 장소에서 이 거리(직선) 안의 후보만 — 없으면 해제
+RANK_KM = 0.3                                # 검색 순위 한 칸 = 0.3km: 순위를 조금 양보하고 가까운 곳을 고르는 비율
+N_ALTERNATIVES = 3
+
+
+def _km(a: tuple[float, float] | None, p: Place, unknown: float) -> float:
+    """직전 위치 → 후보 직선 거리. 어느 쪽이든 좌표가 없으면 unknown(반경 경계로 취급)."""
+    if a is None or p.lat is None or p.lng is None:
+        return unknown
+    return calculate_haversine_distance(a[0], a[1], p.lat, p.lng)
+
+
+def assign_places(slots: list[Slot], candidates: dict[str, list[Place]],
+                  anchors: dict[int, tuple[float, float]] | None = None,
+                  max_km: float = MAX_KM["transit"]) -> tuple[dict[str, Place | None], dict[str, list[Place]]]:
+    """슬롯 순서대로 장소 배정 → (slot_id → 장소, slot_id → 대안 후보).
+
+    anchors(일차 → 출발 좌표)가 있으면 동선 기준: 직전 장소(하루 시작은 앵커)에서 max_km 안의 후보 중
+    `순위 × RANK_KM + 거리`가 가장 작은 곳. 반경 안에 없으면 전체에서 고른다. 없으면 검색 순위순.
+    한 일정 안에서 같은 장소는 한 번만.
+    """
+    used, picks, alts = set(), {}, {}
+    prev, day = None, None
     for s in slots:
-        pick = next((p for p in candidates.get(s.category, []) if (p.name, p.region) not in used), None)
+        if s.day != day:
+            day = s.day
+            prev = (anchors or {}).get(day)
+        pool = [(i, p) for i, p in enumerate(candidates.get(s.category, [])) if (p.name, p.region) not in used]
+        if anchors is None:
+            ranked = [p for _, p in pool]
+        else:
+            scored = sorted(((i * RANK_KM + _km(prev, p, max_km), _km(prev, p, max_km) <= max_km, p) for i, p in pool),
+                            key=lambda x: (not x[1], x[0]))
+            ranked = [p for *_, p in scored]
+        pick = ranked[0] if ranked else None
+        picks[s.slot_id], alts[s.slot_id] = pick, ranked[1:1 + N_ALTERNATIVES]
         if pick:
             used.add((pick.name, pick.region))
-        out[s.slot_id] = pick
-    return out
+            if pick.lat is not None:
+                prev = (pick.lat, pick.lng)
+    return picks, alts
 
 
 STAY_MIN = {"식당": 90, "카페": 60, "관광지": 120}

@@ -1,0 +1,43 @@
+from src.domain.models import Place, Slot
+from src.domain.schedule import assign_places
+
+# 위도 0.01° ≈ 1.1km
+ANCHOR = (35.0, 129.0)
+
+
+def P(name, cat, lat=None, lng=129.0):
+    return Place(name=name, region="부산광역시 중구", category=cat, lat=lat, lng=lng if lat is not None else None)
+
+
+def slot(sid, day, order, cat):
+    return Slot(slot_id=sid, day=day, order=order, category=cat)
+
+
+def test_without_coords_keeps_rank_order():
+    slots = [slot("d1-s1", 1, 1, "식당"), slot("d1-s2", 1, 2, "식당")]
+    picks, _ = assign_places(slots, {"식당": [P("A", "식당"), P("B", "식당")]})
+    assert [picks[s].name for s in ("d1-s1", "d1-s2")] == ["A", "B"]
+
+
+def test_prefers_near_candidate_over_slightly_better_ranked_far_one():
+    slots = [slot("d1-s1", 1, 1, "식당")]
+    cands = {"식당": [P("먼1위", "식당", 35.5), P("가까운2위", "식당", 35.01)]}   # 55km vs 1km
+    picks, alts = assign_places(slots, cands, anchors={1: ANCHOR})
+    assert picks["d1-s1"].name == "가까운2위"
+    assert [p.name for p in alts["d1-s1"]] == ["먼1위"]      # 반경 밖은 대안에서도 뒤로
+
+
+def test_chains_from_previous_place_not_only_anchor():
+    slots = [slot("d1-s1", 1, 1, "식당"), slot("d1-s2", 1, 2, "카페")]
+    cands = {"식당": [P("북쪽식당", "식당", 35.05)],
+             "카페": [P("앵커옆카페", "카페", 35.0), P("식당옆카페", "카페", 35.051)]}
+    picks, _ = assign_places(slots, cands, anchors={1: ANCHOR})
+    assert picks["d1-s2"].name == "식당옆카페"
+
+
+def test_relaxes_radius_when_nothing_is_near_and_never_duplicates():
+    slots = [slot("d1-s1", 1, 1, "관광지"), slot("d2-s1", 2, 1, "관광지"), slot("d2-s2", 2, 2, "관광지")]
+    cands = {"관광지": [P("먼곳", "관광지", 36.0), P("좌표없음", "관광지")]}
+    picks, _ = assign_places(slots, cands, anchors={1: ANCHOR, 2: ANCHOR})
+    names = [picks[s].name if picks[s] else None for s in ("d1-s1", "d2-s1", "d2-s2")]
+    assert sorted(n for n in names if n) == ["먼곳", "좌표없음"] and names.count(None) == 1

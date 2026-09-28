@@ -43,7 +43,7 @@ def test_assign_places_no_duplicates_across_slots():
              Slot(slot_id="d1-s2", day=1, order=2, category="식당"),
              Slot(slot_id="d1-s3", day=1, order=3, category="식당")]
     p = lambda n: Place(name=n, region="r", category="식당")  # noqa: E731
-    out = assign_places(slots, {"식당": [p("A"), p("B")]})
+    out, _ = assign_places(slots, {"식당": [p("A"), p("B")]})
     assert out["d1-s1"].name == "A" and out["d1-s2"].name == "B" and out["d1-s3"] is None
 
 

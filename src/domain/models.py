@@ -39,6 +39,7 @@ class ItineraryItem(BaseModel):
     move_min: int | None = None                   # 직전 장소에서 이동 시간
     move_detail: str | None = None
     reason: str = ""                              # 추천 사유 (브리핑)
+    alternatives: list[Place] = []                # 교체 후보 (같은 권역 차순위)
 
 
 class TripPreferences(BaseModel):

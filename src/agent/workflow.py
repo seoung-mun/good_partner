@@ -1,11 +1,11 @@
 """초안 일정 생성 워크플로우 (LangGraph).
 
-    resolve_region ─┬─ extract_preferences ─ search ─┬─ plan_routes ─┐
-                    └─ fetch_weather ────────────────┴─ brief ───────┴─ render
+    resolve_region ─┬─ extract_preferences ─ search ─ locate ─┬─ plan_routes ─┐
+                    └─ fetch_weather ─────────────────────────┴─ brief ───────┴─ render
 
-임계 경로: 지역 해석 → 취향 LLM → 검색 → max(경로, 브리핑 LLM) → 렌더. 날씨·경로는 LLM 대기와 겹쳐 실행된다.
+임계 경로: 지역 해석 → 취향 LLM → 검색 → 좌표·배정 → max(경로, 브리핑 LLM) → 렌더.
 
-결정적 단계(지역 해석·슬롯·검색·배정·시간표·렌더)는 코드가, LLM은 취향 파싱과 브리핑 2회만 담당한다.
+결정적 단계(지역 해석·슬롯·검색·좌표·동선 배정·시간표·렌더)는 코드가, LLM은 취향 파싱과 브리핑 2회만 담당한다.
 각 단계의 실패는 예외로 전파하지 않고 StepError로 상태에 기록한 뒤 대체 동작으로 계속 진행한다.
 
 비동기 경계: 네트워크 I/O(LLM, Maps)는 await, CPU 작업(임베딩·FAISS)과 동기 HTTP(날씨)는 asyncio.to_thread.
@@ -20,14 +20,17 @@ from langgraph.graph import END, START, StateGraph
 
 from src.agent.chains import build_briefing_chain, build_preference_chain, format_plan_for_briefing
 from src.agent.render import render_markdown, request_text
-from src.domain.models import Briefing, ItineraryItem, Slot, StepError, TripPreferences
+from src.domain.models import Briefing, ItineraryItem, Place, Slot, StepError, TripPreferences
 from src.domain.region import resolve_destination
-from src.domain.schedule import assign_places, assign_times, build_slots
+from src.domain.schedule import MAX_KM, assign_places, assign_times, build_slots
 from src.errors import ExternalServiceError, LLMOutputError, RegionNotFoundError, VectorStoreUnavailableError
 from src.logging_config import get_logger
 from src.retrieval.retriever import search_candidates
 
 log = get_logger(__name__)
+
+GEOCODE_TOP = 25          # 카테고리별 상위 몇 곳까지 좌표를 구할지 (지오코딩은 디스크 캐시 — 장소당 평생 1회)
+GEOCODE_CONCURRENCY = 8
 
 
 class PlanState(TypedDict, total=False):
@@ -37,6 +40,7 @@ class PlanState(TypedDict, total=False):
     region: str              # "부산광역시 중구" (해석 실패 시 "")
     preferences: TripPreferences
     slots: list[Slot]
+    candidates: dict[str, list[Place]]   # 카테고리 → 검색 순위순 후보
     items: list[ItineraryItem]
     weather: str
     briefing: Briefing | None
@@ -92,8 +96,23 @@ def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
     return out
 
 
+async def locate_places(places: list[Place], geocode_fn) -> list[Place]:
+    """장소 좌표를 병렬(동시 GEOCODE_CONCURRENCY) 조회. 실패한 곳은 좌표 없이 그대로."""
+    sem = asyncio.Semaphore(GEOCODE_CONCURRENCY)
+
+    async def one(p: Place) -> Place:
+        async with sem:
+            try:
+                lat, lng = await geocode_fn(p.address or f"{p.region} {p.name}")
+            except Exception as e:
+                log.debug("지오코딩 실패 %s: %s", p.name, e)
+                lat = lng = None
+        return p.model_copy(update={"lat": lat, "lng": lng}) if lat is not None else p
+    return list(await asyncio.gather(*[one(p) for p in places]))
+
+
 def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resolve_fallback=None,
-                   llm_timeout: float | None = None):
+                   llm_timeout: float | None = None, geocode_fn=None):
     """초안 생성 그래프를 만든다. 의존성은 주입 가능(테스트), 기본값은 앱 설정(LLM·FAISS·Maps·날씨).
 
     llm_timeout: LLM 호출 1회 제한 시간(초, 기본 LLM_TIMEOUT_S=90). 넘기면 StepError로 기록하고 대체 동작.
@@ -107,6 +126,8 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
         from src.services.maps import get_detailed_route as route_fn
     if weather_fn is None:
         from src.services.weather import forecast_summary as weather_fn
+    if geocode_fn is None:
+        from src.services.maps import get_coordinates as geocode_fn
     if resolve_fallback is None:
         from src.services.maps import resolve_admin_region
         resolve_fallback = lambda dest: resolve_admin_region(dest, dest)  # noqa: E731
@@ -143,23 +164,45 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
                     "errors": [StepError.from_error("extract_preferences", LLMOutputError("preference", e))]}
 
     async def search(state: PlanState) -> dict:
-        """모든 슬롯 쿼리를 한 번에 배치 검색해 슬롯에 배정. 지역 미확정·인덱스 실패 시 빈 슬롯."""
-        slots = state["slots"]
-        empty = {"items": [ItineraryItem(slot=s) for s in slots]}
+        """모든 카테고리 쿼리를 한 번에 배치 검색 → 카테고리별 후보. 지역 미확정·인덱스 실패 시 후보 없음."""
         if not state.get("region"):
-            return empty
+            return {"candidates": {}}
         try:
             db = load_db()
             if db is None:
                 raise FileNotFoundError("load_faiss_index returned None")
         except Exception as e:
             log.error("벡터 인덱스 로드 실패: %s", e)
-            return {**empty, "errors": [StepError.from_error("search", VectorStoreUnavailableError(str(e)))]}
-        cats = list(dict.fromkeys(s.category for s in slots))
+            return {"candidates": {}, "errors": [StepError.from_error("search", VectorStoreUnavailableError(str(e)))]}
+        cats = list(dict.fromkeys(s.category for s in state["slots"]))
         cands = await asyncio.to_thread(search_candidates, db, state["region"], cats, state["preferences"].keywords)
-        picks = assign_places(slots, cands)
-        log.info("검색 완료: 슬롯 %d개 중 %d개 배정", len(slots), sum(p is not None for p in picks.values()))
-        return {"items": [ItineraryItem(slot=s, place=picks[s.slot_id]) for s in slots]}
+        log.info("검색 완료: %s", {c: len(v) for c, v in cands.items()})
+        return {"candidates": cands}
+
+    async def locate(state: PlanState) -> dict:
+        """상위 후보·출발지 좌표(병렬 지오코딩) → 출발지를 앵커로 직전 장소에서 가까운 순 배정. 좌표 실패는 순위순."""
+        req, slots, cands = state["request"], state["slots"], state.get("candidates") or {}
+        top = {c: v[:GEOCODE_TOP] for c, v in cands.items()}
+        flat = [p for v in top.values() for p in v]
+        start = (req.get("start_location") or "").strip()
+        located, anchor = await locate_places(flat, geocode_fn), None
+        if start:
+            try:
+                lat, lng = await geocode_fn(f"{state['region']} {start}")
+                anchor = (lat, lng) if lat is not None else None
+            except Exception as e:
+                log.warning("출발지 지오코딩 실패: %s", e)
+        n, located_top = 0, {}
+        for c, v in top.items():
+            located_top[c], n = located[n:n + len(v)], n + len(v)
+        if anchor is None:  # 출발지 없음 → 1순위 관광지(없으면 아무 후보) 좌표에서 시작
+            first = next((p for c in ("관광지", "식당", "카페") for p in located_top.get(c, []) if p.lat is not None), None)
+            anchor = (first.lat, first.lng) if first else None
+        anchors = {d: anchor for d in {s.day for s in slots}} if anchor else None
+        picks, alts = assign_places(slots, located_top, anchors, MAX_KM.get(req.get("mode", "transit"), MAX_KM["transit"]))
+        log.info("배정: 슬롯 %d개 중 %d개 (좌표 %d/%d, 앵커 %s)", len(slots), sum(p is not None for p in picks.values()),
+                 sum(p.lat is not None for p in located), len(located), "출발지" if start and anchor else anchor is not None)
+        return {"items": [ItineraryItem(slot=s, place=picks[s.slot_id], alternatives=alts[s.slot_id]) for s in slots]}
 
     async def plan_routes(state: PlanState) -> dict:
         """연속 장소 간 대중교통 경로(병렬)와 시간표."""
@@ -205,15 +248,16 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
 
     g = StateGraph(PlanState)
     for name, fn in [("resolve_region", resolve_region), ("extract_preferences", extract_preferences),
-                     ("fetch_weather", fetch_weather), ("search", search), ("plan_routes", plan_routes),
+                     ("fetch_weather", fetch_weather), ("search", search), ("locate", locate), ("plan_routes", plan_routes),
                      ("brief", brief), ("render", render)]:
         g.add_node(name, fn)
     g.add_edge(START, "resolve_region")
     g.add_edge("resolve_region", "extract_preferences")
     g.add_edge("resolve_region", "fetch_weather")
     g.add_edge("extract_preferences", "search")
-    g.add_edge("search", "plan_routes")
-    g.add_edge(["search", "fetch_weather"], "brief")       # 둘 다 끝나야 실행 (join)
+    g.add_edge("search", "locate")
+    g.add_edge("locate", "plan_routes")
+    g.add_edge(["locate", "fetch_weather"], "brief")       # 둘 다 끝나야 실행 (join)
     g.add_edge(["plan_routes", "brief"], "render")
     g.add_edge("render", END)
     return g.compile()
