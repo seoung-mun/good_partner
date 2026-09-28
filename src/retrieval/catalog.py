@@ -47,10 +47,10 @@ class Catalog:
             st = self.places.get(key)
             if st is None:
                 r = md.get("별점")
-                st = self.places[key] = PlaceStats(rating=float(r) if r not in (None, "") else None,
+                st = self.places[key] = PlaceStats(rating=float(r) if r not in (None, "") and r == r else None,  # NaN 제외
                                                    address=str(md.get("상세 주소", "") or ""),
                                                    category=md.get("카테고리", ""))
-            if md.get("리뷰"):
+            if isinstance(md.get("리뷰"), str) and md["리뷰"]:  # 결측 리뷰는 NaN(float)
                 st.reviews.append(md["리뷰"])
         self._by_region = {k: np.array(v, dtype="int64") for k, v in by_region.items()}
         self._region_cache: dict[str, np.ndarray] = {}

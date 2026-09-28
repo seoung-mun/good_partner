@@ -118,3 +118,15 @@ def test_node_time_mean():
     from eval.run_e2e import node_time_mean
     rows = [{"node_time_s": {"a": 1.0, "b": 2.0}}, {"node_time_s": {"a": 3.0}}]
     assert node_time_mean(rows) == {"a": 2.0, "b": 1.0}
+
+
+def test_ranking_metrics():
+    from eval.metrics import mrr_at_k, ndcg_at_k, recall_at_k
+    ranked, rel = ["a", "b", "c", "d"], {"b", "d", "z"}
+    assert mrr_at_k(ranked, rel, 10) == 0.5
+    assert mrr_at_k(ranked, rel, 1) == 0.0
+    assert recall_at_k(ranked, rel, 2) == 1 / 3
+    ideal = 1 + 1 / __import__("math").log2(3) + 0.5          # 정답 3개 이상적 배치
+    got = 1 / __import__("math").log2(3) + 1 / __import__("math").log2(5)
+    assert abs(ndcg_at_k(ranked, rel, 10) - got / ideal) < 1e-9
+    assert mrr_at_k([], rel, 10) == 0.0 and ndcg_at_k(ranked, set(), 10) == 0.0

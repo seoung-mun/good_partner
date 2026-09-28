@@ -1,4 +1,5 @@
 """평가 지표. 모두 순수 함수 — LLM·I/O 없음."""
+import math
 from collections import defaultdict
 
 from eval.regions import region_match
@@ -113,3 +114,20 @@ def summarize_e2e(rows: list[dict], quality_keys: list[str], all_keys: list[str]
             # 서비스 지연은 실패 포함 전체 요청 기준 백분위수
             "latency_p50_all": percentile([r["latency_s"] for r in rows if "latency_s" in r], 50),
             "latency_p95_all": percentile([r["latency_s"] for r in rows if "latency_s" in r], 95)}
+
+
+def mrr_at_k(ranked: list, relevant: set, k: int) -> float:
+    """상위 k 안의 첫 정답 순위의 역수 (없으면 0)."""
+    return next((1 / (i + 1) for i, x in enumerate(ranked[:k]) if x in relevant), 0.0)
+
+
+def recall_at_k(ranked: list, relevant: set, k: int) -> float:
+    """상위 k가 정답 전체 중 몇 %를 포함하는지."""
+    return len(set(ranked[:k]) & relevant) / len(relevant) if relevant else 0.0
+
+
+def ndcg_at_k(ranked: list, relevant: set, k: int) -> float:
+    """이진 관련도 nDCG@k."""
+    dcg = sum(1 / math.log2(i + 2) for i, x in enumerate(ranked[:k]) if x in relevant)
+    idcg = sum(1 / math.log2(i + 2) for i in range(min(len(relevant), k)))
+    return dcg / idcg if idcg else 0.0

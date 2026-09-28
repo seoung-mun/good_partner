@@ -34,3 +34,9 @@ def test_place_stats_group_reviews_and_cache():
 def test_bayes_rating_shrinks_few_reviews_toward_mean():
     assert bayes_rating(5.0, 1, C=4.0, m=10) < bayes_rating(5.0, 100, C=4.0, m=10) < 5.0
     assert bayes_rating(None, 3, C=4.0, m=10) == 4.0
+
+
+def test_nan_reviews_are_skipped():
+    db = make_db([md("A", "부산광역시 중구", "식당", "좋아요")])
+    db.docstore.search(db.index_to_docstore_id[0]).metadata["리뷰"] = float("nan")
+    assert get_catalog(db).places[("A", "부산광역시 중구")].reviews == []
