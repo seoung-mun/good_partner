@@ -120,10 +120,46 @@
 
 ---
 
+## P3. 초안 생성 워크플로우 + 수정 에이전트
+
+**원칙**: 매번 같은 절차인 초안 생성은 **워크플로우**, 무엇을 할지 예측할 수 없는 수정은 **tool calling 에이전트**.
+(사용자 결정: 건별 측정 없이 P3 완료 후 최종 1회 평가 — "1년 전 프로젝트 리팩토링 전후" 서사에는 before/after 두 점이면 충분)
+
+### 워크플로우 (`src/agent/workflow.py`)
+```
+parse_request → search → (plan_routes ∥ fetch_weather) → compose
+```
+| 단계 | 방식 | 옛 방식 |
+|---|---|---|
+| 목적지 해석 | 행정구역 표로 결정적(`resolve_destination`), 모호할 때만 Maps | LLM 정규화 — '울산 동구'→'울산광역시'(시군구 손실), '전북도' 같은 비표준명 |
+| 취향 | LLM 1회 → `TripPreferences`(구조화 출력) | 장소마다 멀티쿼리 LLM |
+| 슬롯 | `build_slots` 템플릿 (코드) | LLM이 한 곳씩 채우며 개수 판단 → 무한 루프 |
+| 검색 | 모든 슬롯 쿼리 **1회 배치 임베딩** → FAISS → 지역·카테고리 필터 | 쿼리마다 스레드 병렬 임베딩 (CPU에서 느림, torch·faiss 충돌) |
+| 경로 | 장소 쌍 병렬(asyncio.gather) | 순차 |
+| 설명 | LLM 1회 → `Briefing`, **근거 리뷰 밖 추측 금지** | 장소마다 추천사 LLM |
+
+**스펙과 다르게 간 것**: 슬롯별 `Send` 병렬 대신 단일 배치 검색 노드 — 서빙 대상이 CPU라 배치 1회가 빠르고 멀티스레드 충돌도 없음.
+
+### 수정 에이전트 (`src/agent/edit_agent.py`, `edit_tools.py`)
+- `create_agent` + tool 3개(`replace_slot`, `remove_slot`, `add_slot`). **slot_id 기반** — 옛 이름 퍼지 매칭(difflib 0.5) 제거.
+- tool = Pydantic `args_schema` + `@tool(name, description)`(사용 시점·다른 tool과 구분·결과 형식) + `Command`로 상태 갱신 + `{ok, tool_name, data|error}` envelope.
+- 미들웨어: `ModelCallLimit`·`ToolCallLimit`(옛 재귀 감지·[SYSTEM ALERT] 주입 대체), `ToolErrorMiddleware`(tool 예외 → 실패 envelope).
+
+### 견고성: 단계 실패가 서비스를 멈추지 않게
+- `src/errors.py`: `AppError`(code + 사용자 안내) — 지역 미확정, 인덱스 없음, LLM 출력 오류, 외부 API 실패.
+- `StepError` 스키마를 상태에 누적(reducer). 각 단계는 예외 대신 기록 후 대체 동작(키워드 없이 검색, 기본 이동 30분, 브리핑 생략 등), 화면 상단에 안내.
+- **LLM 타임아웃**(`LLM_TIMEOUT_S`)·Ollama 생성 토큰 상한: 최종 평가 첫 실행에서 한 요청이 5분 넘게 멈춘 것을 관측하고 추가.
+- 전역 로깅(`LOG_LEVEL`), 모든 모듈·함수 docstring.
+
+### 정리
+- 옛 에이전트(graph_flow 670줄, tool 7종, scheduler, 옛 체인·검색) 삭제. 베이스라인 재현은 `baseline-v0` 태그.
+- `src/` 1,465줄, 최대 파일 201줄 (옛 670줄).
+- 숨은 버그: PDF가 리뷰 2개 이상이면 예외 — 옛 코드는 리뷰 추출 버그로 이 경로가 실행된 적이 없었음.
+
 ## 미결 / 다음
 
-- P2-2 판정: 관련도 judge CLS vs Mean (진행 중).
+- P2-2 판정: 관련도 judge 파이프라인이 MPS 멀티스레드 교착으로 중단됨 → 이론적 일관성(쿼리·문서·리뷰 추가 모두 Mean)으로 Mean 채택, 측정상 중립으로 기록.
 - 깨끗한 조건의 지연 재측정: CPU 멀티스레드, OMP 설정 없이 세그폴트를 피하는 방법.
 - P2 종료 E2E 재측정(서비스 지표 포함).
 - 수기 라벨 24건 → judge kappa.
-- P3: 초안 생성 워크플로우화(LLM 호출 ~24회 → ~2회 목표), tool 입출력 구조화, 수정 에이전트.
+- 비동기·성능 최적화 (사용자 예정): 임베딩 모델 상주/워밍업, 경로 조회 배치(Route Matrix), 브리핑 스트리밍.
