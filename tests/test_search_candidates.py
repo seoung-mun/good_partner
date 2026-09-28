@@ -45,3 +45,22 @@ def test_assign_places_no_duplicates_across_slots():
     p = lambda n: Place(name=n, region="r", category="식당")  # noqa: E731
     out = assign_places(slots, {"식당": [p("A"), p("B")]})
     assert out["d1-s1"].name == "A" and out["d1-s2"].name == "B" and out["d1-s3"] is None
+
+
+def test_preference_query_results_rank_before_base_only_results():
+    rows = [meta("기본만", "부산광역시 중구", "식당", "base"), meta("취향", "부산광역시 중구", "식당", "pref")]
+    db = make_db(rows, {"base": [0.0, 0, 0, 0], "pref": [1.0, 0, 0, 0],
+                        "노포 좋은 맛집": [1.0, 0, 0, 0], "좋은 맛집": [0.0, 0, 0, 0]})
+    out = search_candidates(db, "부산광역시 중구", ["식당"], ["노포"])["식당"]
+    assert [p.name for p in out] == ["취향", "기본만"] and out[0].score > out[1].score
+
+
+def test_place_carries_review_count_and_keyword_quote():
+    rows = [meta("무명", "부산광역시 중구", "식당", "그냥", rating=3.0),
+            meta("유명", "부산광역시 중구", "식당", "노포 분위기", rating=4.8)]
+    rows += [meta("유명", "부산광역시 중구", "식당", f"리뷰{i}", rating=4.8) for i in range(20)]
+    db = make_db(rows)
+    out = {p.name: p for p in search_candidates(db, "부산광역시 중구", ["식당"], ["노포"])["식당"]}
+    assert out["유명"].n_reviews == 21 and out["유명"].score > 0
+    assert out["유명"].quote == "노포 분위기"               # 키워드가 들어간 리뷰를 인용
+    assert out["무명"].quote == "그냥"                      # 없으면 가장 가까운 리뷰

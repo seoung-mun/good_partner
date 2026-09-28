@@ -1,7 +1,7 @@
 from langchain_community.vectorstores import FAISS
 from langchain_core.embeddings import DeterministicFakeEmbedding
 
-from src.retrieval.catalog import bayes_rating, get_catalog
+from src.retrieval.catalog import get_catalog
 
 
 def md(name, region, cat, review, rating=4.0):
@@ -29,11 +29,6 @@ def test_place_stats_group_reviews_and_cache():
     a = cat.places[("A", "부산광역시 중구")]
     assert a.n_reviews == 2 and sorted(a.reviews) == ["맛있다", "친절"] and a.rating == 4.6
     assert get_catalog(db) is cat                       # 인덱스당 1회만 구축
-
-
-def test_bayes_rating_shrinks_few_reviews_toward_mean():
-    assert bayes_rating(5.0, 1, C=4.0, m=10) < bayes_rating(5.0, 100, C=4.0, m=10) < 5.0
-    assert bayes_rating(None, 3, C=4.0, m=10) == 4.0
 
 
 def test_nan_reviews_are_skipped():

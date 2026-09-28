@@ -1,8 +1,7 @@
 """장소 카탈로그: FAISS docstore를 한 번 훑어 지역별 행 id·장소별 통계(별점·리뷰 수·리뷰 원문)를 만든다.
 
-지역 선필터 검색(IDSelector), 인기 순위, UI 리뷰 원문 보기가 공유한다. 인덱스당 1회 구축 후 db 객체에 붙여 재사용.
+지역 선필터 검색(IDSelector)과 UI 리뷰 원문 보기가 공유한다. 인덱스당 1회 구축 후 db 객체에 붙여 재사용.
 """
-import statistics
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -22,13 +21,6 @@ class PlaceStats:
     def n_reviews(self) -> int:
         """수집된 리뷰 수."""
         return len(self.reviews)
-
-
-def bayes_rating(rating: float | None, n: int, C: float, m: float) -> float:
-    """리뷰 수가 적을수록 전체 평균 C 쪽으로 당긴 보정 별점. 별점이 없으면 C."""
-    if rating is None:
-        return C
-    return (n * rating + m * C) / (n + m)
 
 
 class Catalog:
@@ -55,9 +47,6 @@ class Catalog:
         self._by_region = {k: np.array(v, dtype="int64") for k, v in by_region.items()}
         self._category = np.array([md.get("카테고리", "") for md in self.meta])
         self._region_cache: dict[tuple, np.ndarray] = {}
-        rated = [p.rating for p in self.places.values() if p.rating is not None]
-        self.C = statistics.mean(rated) if rated else 0.0
-        self.m = statistics.median(p.n_reviews for p in self.places.values()) if self.places else 1
 
     def ids_for_region(self, target: str, category: str | None = None) -> np.ndarray:
         """목표 지역(시도 [+ 시군구]) [및 카테고리] 안의 행 id. 고유 지역 문자열(~250개)에만 region_matches 적용."""
@@ -67,11 +56,6 @@ class Catalog:
             ids = np.concatenate(parts) if parts else np.array([], dtype="int64")
             self._region_cache[key] = ids[self._category[ids] == category] if category else ids
         return self._region_cache[key]
-
-    def popularity(self, key: tuple[str, str]) -> float:
-        """인기 점수 = 보정 별점 × log(1 + 리뷰 수)."""
-        p = self.places[key]
-        return bayes_rating(p.rating, p.n_reviews, self.C, self.m) * float(np.log1p(p.n_reviews))
 
 
 def get_catalog(db) -> Catalog:

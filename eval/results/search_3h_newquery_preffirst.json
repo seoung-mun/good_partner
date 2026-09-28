@@ -1,0 +1,1990 @@
+{
+ "label": "3h_newquery_preffirst",
+ "summary": {
+  "rank": {
+   "all": {
+    "n": 131,
+    "mrr@10": 0.8947837150127226,
+    "ndcg@10": 0.778276282236529,
+    "recall@20": 0.5286715316293334,
+    "latency_s": 0.06837988991773765
+   },
+   "식당": {
+    "n": 38,
+    "mrr@10": 0.8346491228070176,
+    "ndcg@10": 0.6922090350864324,
+    "recall@20": 0.5079570442351015,
+    "latency_s": 0.1368259818930375
+   },
+   "카페": {
+    "n": 49,
+    "mrr@10": 0.8571428571428571,
+    "ndcg@10": 0.7393090220768916,
+    "recall@20": 0.496520780471229,
+    "latency_s": 0.040462644732728294
+   },
+   "관광지": {
+    "n": 44,
+    "mrr@10": 0.9886363636363636,
+    "ndcg@10": 0.8960024444984824,
+    "recall@20": 0.5823655618049681,
+    "latency_s": 0.040357015349648216
+   }
+  },
+  "region": {
+   "all": {
+    "n": 73,
+    "empty": 0.0,
+    "returned": 5.0,
+    "region_acc": 0.9917808219178081,
+    "region_hit1": 0.9863013698630136,
+    "category_acc": 1.0
+   },
+   "ambiguous": {
+    "n": 29,
+    "empty": 0.0,
+    "returned": 5.0,
+    "region_acc": 1.0,
+    "region_hit1": 1.0,
+    "category_acc": 1.0
+   },
+   "gwangju": {
+    "n": 6,
+    "empty": 0.0,
+    "returned": 5.0,
+    "region_acc": 1.0,
+    "region_hit1": 1.0,
+    "category_acc": 1.0
+   },
+   "regular": {
+    "n": 30,
+    "empty": 0.0,
+    "returned": 5.0,
+    "region_acc": 1.0,
+    "region_hit1": 1.0,
+    "category_acc": 1.0
+   },
+   "landmark": {
+    "n": 8,
+    "empty": 0.0,
+    "returned": 5.0,
+    "region_acc": 0.925,
+    "region_hit1": 0.875,
+    "category_acc": 1.0
+   }
+  }
+ },
+ "rank_rows": [
+  {
+   "id": "search-부산광역시-식당-해산물",
+   "category": "식당",
+   "returned": 232,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.38363315291837646,
+   "recall@20": 0.21428571428571427,
+   "latency_s": 3.663032054901123
+  },
+  {
+   "id": "search-부산광역시-식당-아이랑",
+   "category": "식당",
+   "returned": 260,
+   "mrr@10": 0.2,
+   "ndcg@10": 0.2507629716415185,
+   "recall@20": 0.375,
+   "latency_s": 0.06466102600097656
+  },
+  {
+   "id": "search-부산광역시-식당-주차 편한",
+   "category": "식당",
+   "returned": 273,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9305687780632227,
+   "recall@20": 0.14516129032258066,
+   "latency_s": 0.041631221771240234
+  },
+  {
+   "id": "search-부산광역시-식당-고기",
+   "category": "식당",
+   "returned": 225,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.11560693641618497,
+   "latency_s": 0.04406237602233887
+  },
+  {
+   "id": "search-부산광역시-식당-혼밥",
+   "category": "식당",
+   "returned": 245,
+   "mrr@10": 0.25,
+   "ndcg@10": 0.26687965254220064,
+   "recall@20": 0.8,
+   "latency_s": 0.041203975677490234
+  },
+  {
+   "id": "search-부산광역시-식당-국밥",
+   "category": "식당",
+   "returned": 198,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.45454545454545453,
+   "latency_s": 0.0422818660736084
+  },
+  {
+   "id": "search-부산광역시-카페-디저트",
+   "category": "카페",
+   "returned": 201,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.6851198693323691,
+   "recall@20": 0.1368421052631579,
+   "latency_s": 0.0448908805847168
+  },
+  {
+   "id": "search-부산광역시-카페-오션뷰",
+   "category": "카페",
+   "returned": 184,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.67175898907361,
+   "recall@20": 0.52,
+   "latency_s": 0.04257988929748535
+  },
+  {
+   "id": "search-부산광역시-카페-조용한",
+   "category": "카페",
+   "returned": 202,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.5321408435198608,
+   "recall@20": 0.47368421052631576,
+   "latency_s": 0.04208874702453613
+  },
+  {
+   "id": "search-부산광역시-카페-빵",
+   "category": "카페",
+   "returned": 195,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.24390243902439024,
+   "latency_s": 0.04051518440246582
+  },
+  {
+   "id": "search-부산광역시-카페-주차 편한",
+   "category": "카페",
+   "returned": 211,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9052116356304493,
+   "recall@20": 0.18811881188118812,
+   "latency_s": 0.03984999656677246
+  },
+  {
+   "id": "search-부산광역시-카페-넓은",
+   "category": "카페",
+   "returned": 185,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8263333286520083,
+   "recall@20": 0.1625,
+   "latency_s": 0.042610883712768555
+  },
+  {
+   "id": "search-부산광역시-관광지-야경",
+   "category": "관광지",
+   "returned": 150,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.5806451612903226,
+   "latency_s": 0.04361391067504883
+  },
+  {
+   "id": "search-부산광역시-관광지-산책",
+   "category": "관광지",
+   "returned": 153,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.15625,
+   "latency_s": 0.04147911071777344
+  },
+  {
+   "id": "search-부산광역시-관광지-아이랑",
+   "category": "관광지",
+   "returned": 155,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9363792118010483,
+   "recall@20": 0.29310344827586204,
+   "latency_s": 0.04184389114379883
+  },
+  {
+   "id": "search-부산광역시-관광지-사진",
+   "category": "관광지",
+   "returned": 146,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.25,
+   "latency_s": 0.04028582572937012
+  },
+  {
+   "id": "search-부산광역시-관광지-바다",
+   "category": "관광지",
+   "returned": 143,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.273972602739726,
+   "latency_s": 0.04029393196105957
+  },
+  {
+   "id": "search-부산광역시-관광지-역사",
+   "category": "관광지",
+   "returned": 147,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8236998933965709,
+   "recall@20": 0.4827586206896552,
+   "latency_s": 0.04039406776428223
+  },
+  {
+   "id": "search-서울특별시-식당-해산물",
+   "category": "식당",
+   "returned": 266,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.6051399156371955,
+   "recall@20": 0.1702127659574468,
+   "latency_s": 0.046849966049194336
+  },
+  {
+   "id": "search-서울특별시-식당-아이랑",
+   "category": "식당",
+   "returned": 280,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.48509692977884844,
+   "recall@20": 0.625,
+   "latency_s": 0.04246807098388672
+  },
+  {
+   "id": "search-서울특별시-식당-주차 편한",
+   "category": "식당",
+   "returned": 282,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.2,
+   "latency_s": 0.04123687744140625
+  },
+  {
+   "id": "search-서울특별시-식당-혼밥",
+   "category": "식당",
+   "returned": 274,
+   "mrr@10": 0.16666666666666666,
+   "ndcg@10": 0.1208113026994942,
+   "recall@20": 0.6,
+   "latency_s": 0.04155302047729492
+  },
+  {
+   "id": "search-서울특별시-식당-국밥",
+   "category": "식당",
+   "returned": 254,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8364586133797037,
+   "recall@20": 0.5,
+   "latency_s": 0.043894052505493164
+  },
+  {
+   "id": "search-서울특별시-카페-디저트",
+   "category": "카페",
+   "returned": 246,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.11242603550295859,
+   "latency_s": 0.0450289249420166
+  },
+  {
+   "id": "search-서울특별시-카페-조용한",
+   "category": "카페",
+   "returned": 252,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.45184593602045525,
+   "recall@20": 0.21153846153846154,
+   "latency_s": 0.041586875915527344
+  },
+  {
+   "id": "search-서울특별시-카페-빵",
+   "category": "카페",
+   "returned": 233,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.23255813953488372,
+   "latency_s": 0.04078102111816406
+  },
+  {
+   "id": "search-서울특별시-카페-주차 편한",
+   "category": "카페",
+   "returned": 256,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.857980942822373,
+   "recall@20": 0.3684210526315789,
+   "latency_s": 0.040450096130371094
+  },
+  {
+   "id": "search-서울특별시-카페-넓은",
+   "category": "카페",
+   "returned": 215,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.933745776545611,
+   "recall@20": 0.14285714285714285,
+   "latency_s": 0.040548086166381836
+  },
+  {
+   "id": "search-서울특별시-관광지-야경",
+   "category": "관광지",
+   "returned": 199,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9363792118010483,
+   "recall@20": 0.5161290322580645,
+   "latency_s": 0.04425477981567383
+  },
+  {
+   "id": "search-서울특별시-관광지-아이랑",
+   "category": "관광지",
+   "returned": 203,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9305687780632227,
+   "recall@20": 0.18947368421052632,
+   "latency_s": 0.04293990135192871
+  },
+  {
+   "id": "search-서울특별시-관광지-사진",
+   "category": "관광지",
+   "returned": 211,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.16964285714285715,
+   "latency_s": 0.04186391830444336
+  },
+  {
+   "id": "search-서울특별시-관광지-역사",
+   "category": "관광지",
+   "returned": 180,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9266360779006401,
+   "recall@20": 0.3103448275862069,
+   "latency_s": 0.04159998893737793
+  },
+  {
+   "id": "search-제주특별자치도-식당-해산물",
+   "category": "식당",
+   "returned": 55,
+   "mrr@10": 0.1,
+   "ndcg@10": 0.07311683844390994,
+   "recall@20": 0.375,
+   "latency_s": 0.03908491134643555
+  },
+  {
+   "id": "search-제주특별자치도-식당-아이랑",
+   "category": "식당",
+   "returned": 58,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9651366671790967,
+   "recall@20": 1.0,
+   "latency_s": 0.039167165756225586
+  },
+  {
+   "id": "search-제주특별자치도-식당-주차 편한",
+   "category": "식당",
+   "returned": 59,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.6691255538181726,
+   "recall@20": 0.6666666666666666,
+   "latency_s": 0.038136959075927734
+  },
+  {
+   "id": "search-제주특별자치도-식당-고기",
+   "category": "식당",
+   "returned": 55,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9363792118010483,
+   "recall@20": 0.6470588235294118,
+   "latency_s": 0.03907585144042969
+  },
+  {
+   "id": "search-제주특별자치도-카페-디저트",
+   "category": "카페",
+   "returned": 57,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7605591431973849,
+   "recall@20": 0.55,
+   "latency_s": 0.038413047790527344
+  },
+  {
+   "id": "search-제주특별자치도-카페-오션뷰",
+   "category": "카페",
+   "returned": 56,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7788065869851872,
+   "recall@20": 0.9090909090909091,
+   "latency_s": 0.037915945053100586
+  },
+  {
+   "id": "search-제주특별자치도-카페-빵",
+   "category": "카페",
+   "returned": 56,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.933745776545611,
+   "recall@20": 0.6,
+   "latency_s": 0.03955197334289551
+  },
+  {
+   "id": "search-제주특별자치도-카페-주차 편한",
+   "category": "카페",
+   "returned": 58,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8603818544462509,
+   "recall@20": 0.65,
+   "latency_s": 0.03981614112854004
+  },
+  {
+   "id": "search-제주특별자치도-카페-넓은",
+   "category": "카페",
+   "returned": 54,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.37185395737611554,
+   "recall@20": 0.35294117647058826,
+   "latency_s": 0.03998827934265137
+  },
+  {
+   "id": "search-제주특별자치도-관광지-산책",
+   "category": "관광지",
+   "returned": 38,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8236998933965709,
+   "recall@20": 0.75,
+   "latency_s": 0.04004406929016113
+  },
+  {
+   "id": "search-제주특별자치도-관광지-아이랑",
+   "category": "관광지",
+   "returned": 40,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.793584067764911,
+   "recall@20": 0.8333333333333334,
+   "latency_s": 0.040048837661743164
+  },
+  {
+   "id": "search-제주특별자치도-관광지-사진",
+   "category": "관광지",
+   "returned": 38,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9363792118010483,
+   "recall@20": 0.7142857142857143,
+   "latency_s": 0.03869891166687012
+  },
+  {
+   "id": "search-제주특별자치도-관광지-바다",
+   "category": "관광지",
+   "returned": 38,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8643145546088337,
+   "recall@20": 1.0,
+   "latency_s": 0.038571834564208984
+  },
+  {
+   "id": "search-강원특별자치도-식당-해산물",
+   "category": "식당",
+   "returned": 220,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.6874708847784536,
+   "recall@20": 0.3611111111111111,
+   "latency_s": 0.04443192481994629
+  },
+  {
+   "id": "search-강원특별자치도-식당-아이랑",
+   "category": "식당",
+   "returned": 278,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.5224955967919311,
+   "recall@20": 0.23529411764705882,
+   "latency_s": 0.04208993911743164
+  },
+  {
+   "id": "search-강원특별자치도-식당-주차 편한",
+   "category": "식당",
+   "returned": 268,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.933745776545611,
+   "recall@20": 0.16326530612244897,
+   "latency_s": 0.04045534133911133
+  },
+  {
+   "id": "search-강원특별자치도-식당-고기",
+   "category": "식당",
+   "returned": 212,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8165901947515999,
+   "recall@20": 0.09210526315789473,
+   "latency_s": 0.04096817970275879
+  },
+  {
+   "id": "search-강원특별자치도-식당-국밥",
+   "category": "식당",
+   "returned": 225,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8389574121760602,
+   "recall@20": 0.6666666666666666,
+   "latency_s": 0.04094076156616211
+  },
+  {
+   "id": "search-강원특별자치도-카페-디저트",
+   "category": "카페",
+   "returned": 207,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.18604651162790697,
+   "latency_s": 0.04429316520690918
+  },
+  {
+   "id": "search-강원특별자치도-카페-오션뷰",
+   "category": "카페",
+   "returned": 197,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8643145546088337,
+   "recall@20": 0.3,
+   "latency_s": 0.04031181335449219
+  },
+  {
+   "id": "search-강원특별자치도-카페-조용한",
+   "category": "카페",
+   "returned": 203,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.5617131059245698,
+   "recall@20": 0.4444444444444444,
+   "latency_s": 0.04123711585998535
+  },
+  {
+   "id": "search-강원특별자치도-카페-빵",
+   "category": "카페",
+   "returned": 210,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.1919191919191919,
+   "latency_s": 0.04117608070373535
+  },
+  {
+   "id": "search-강원특별자치도-카페-주차 편한",
+   "category": "카페",
+   "returned": 205,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8482378089219645,
+   "recall@20": 0.15384615384615385,
+   "latency_s": 0.03991818428039551
+  },
+  {
+   "id": "search-강원특별자치도-카페-넓은",
+   "category": "카페",
+   "returned": 177,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.5152880109744815,
+   "recall@20": 0.16071428571428573,
+   "latency_s": 0.041480302810668945
+  },
+  {
+   "id": "search-강원특별자치도-관광지-산책",
+   "category": "관광지",
+   "returned": 177,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.17307692307692307,
+   "latency_s": 0.04251384735107422
+  },
+  {
+   "id": "search-강원특별자치도-관광지-아이랑",
+   "category": "관광지",
+   "returned": 203,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.2375,
+   "latency_s": 0.04162192344665527
+  },
+  {
+   "id": "search-강원특별자치도-관광지-사진",
+   "category": "관광지",
+   "returned": 183,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.20224719101123595,
+   "latency_s": 0.04057598114013672
+  },
+  {
+   "id": "search-강원특별자치도-관광지-바다",
+   "category": "관광지",
+   "returned": 174,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.29411764705882354,
+   "latency_s": 0.04001474380493164
+  },
+  {
+   "id": "search-강원특별자치도-관광지-역사",
+   "category": "관광지",
+   "returned": 164,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.727329844310522,
+   "recall@20": 0.36363636363636365,
+   "latency_s": 0.03995203971862793
+  },
+  {
+   "id": "search-경상북도 경주시-식당-해산물",
+   "category": "식당",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7511984400967531,
+   "recall@20": 0.8888888888888888,
+   "latency_s": 0.03891587257385254
+  },
+  {
+   "id": "search-경상북도 경주시-식당-주차 편한",
+   "category": "식당",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7859162856301584,
+   "recall@20": 0.9,
+   "latency_s": 0.03814816474914551
+  },
+  {
+   "id": "search-경상북도 경주시-식당-고기",
+   "category": "식당",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.793584067764911,
+   "recall@20": 1.0,
+   "latency_s": 0.03926992416381836
+  },
+  {
+   "id": "search-경상북도 경주시-카페-디저트",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.5716213154129578,
+   "recall@20": 0.8888888888888888,
+   "latency_s": 0.03877902030944824
+  },
+  {
+   "id": "search-경상북도 경주시-카페-빵",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7831089439065598,
+   "recall@20": 1.0,
+   "latency_s": 0.0387120246887207
+  },
+  {
+   "id": "search-경상북도 경주시-카페-주차 편한",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8475028682434302,
+   "recall@20": 0.7777777777777778,
+   "latency_s": 0.03862571716308594
+  },
+  {
+   "id": "search-경상북도 경주시-카페-넓은",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 0.25,
+   "ndcg@10": 0.3335733535243489,
+   "recall@20": 1.0,
+   "latency_s": 0.03926730155944824
+  },
+  {
+   "id": "search-경상북도 경주시-관광지-산책",
+   "category": "관광지",
+   "returned": 20,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8572048559638628,
+   "recall@20": 1.0,
+   "latency_s": 0.0435938835144043
+  },
+  {
+   "id": "search-경상북도 경주시-관광지-사진",
+   "category": "관광지",
+   "returned": 20,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7529694065526482,
+   "recall@20": 1.0,
+   "latency_s": 0.03838205337524414
+  },
+  {
+   "id": "search-경상북도 경주시-관광지-역사",
+   "category": "관광지",
+   "returned": 20,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8367597250300389,
+   "recall@20": 1.0,
+   "latency_s": 0.03863191604614258
+  },
+  {
+   "id": "search-전북특별자치도 전주시-식당-주차 편한",
+   "category": "식당",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.750637296052051,
+   "recall@20": 0.9230769230769231,
+   "latency_s": 0.038828134536743164
+  },
+  {
+   "id": "search-전북특별자치도 전주시-식당-고기",
+   "category": "식당",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.5926825204089028,
+   "recall@20": 0.8461538461538461,
+   "latency_s": 0.03931403160095215
+  },
+  {
+   "id": "search-전북특별자치도 전주시-카페-디저트",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7279747803558243,
+   "recall@20": 1.0,
+   "latency_s": 0.03888297080993652
+  },
+  {
+   "id": "search-전북특별자치도 전주시-카페-빵",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8687949224876582,
+   "recall@20": 1.0,
+   "latency_s": 0.038777828216552734
+  },
+  {
+   "id": "search-전북특별자치도 전주시-카페-주차 편한",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.4157726138414091,
+   "recall@20": 0.8333333333333334,
+   "latency_s": 0.03798794746398926
+  },
+  {
+   "id": "search-전북특별자치도 전주시-관광지-산책",
+   "category": "관광지",
+   "returned": 18,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9838048780283076,
+   "recall@20": 1.0,
+   "latency_s": 0.039338111877441406
+  },
+  {
+   "id": "search-전북특별자치도 전주시-관광지-아이랑",
+   "category": "관광지",
+   "returned": 18,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9838048780283076,
+   "recall@20": 1.0,
+   "latency_s": 0.0393528938293457
+  },
+  {
+   "id": "search-전북특별자치도 전주시-관광지-사진",
+   "category": "관광지",
+   "returned": 18,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9484399158780439,
+   "recall@20": 1.0,
+   "latency_s": 0.03835105895996094
+  },
+  {
+   "id": "search-광주광역시-식당-해산물",
+   "category": "식당",
+   "returned": 119,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.4024912677501485,
+   "recall@20": 0.7142857142857143,
+   "latency_s": 0.04001784324645996
+  },
+  {
+   "id": "search-광주광역시-식당-주차 편한",
+   "category": "식당",
+   "returned": 124,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.5416666666666666,
+   "latency_s": 0.04009389877319336
+  },
+  {
+   "id": "search-광주광역시-식당-고기",
+   "category": "식당",
+   "returned": 122,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.35185185185185186,
+   "latency_s": 0.04099416732788086
+  },
+  {
+   "id": "search-광주광역시-카페-디저트",
+   "category": "카페",
+   "returned": 102,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.7104770117651426,
+   "recall@20": 0.39473684210526316,
+   "latency_s": 0.04134798049926758
+  },
+  {
+   "id": "search-광주광역시-카페-조용한",
+   "category": "카페",
+   "returned": 110,
+   "mrr@10": 0.3333333333333333,
+   "ndcg@10": 0.5344990410103657,
+   "recall@20": 1.0,
+   "latency_s": 0.0397639274597168
+  },
+  {
+   "id": "search-광주광역시-카페-빵",
+   "category": "카페",
+   "returned": 102,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7720617383222417,
+   "recall@20": 0.6111111111111112,
+   "latency_s": 0.040036916732788086
+  },
+  {
+   "id": "search-광주광역시-카페-주차 편한",
+   "category": "카페",
+   "returned": 112,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7600791051976192,
+   "recall@20": 0.42857142857142855,
+   "latency_s": 0.039440155029296875
+  },
+  {
+   "id": "search-광주광역시-카페-넓은",
+   "category": "카페",
+   "returned": 102,
+   "mrr@10": 0.3333333333333333,
+   "ndcg@10": 0.34301849170611365,
+   "recall@20": 0.2727272727272727,
+   "latency_s": 0.03909897804260254
+  },
+  {
+   "id": "search-광주광역시-관광지-산책",
+   "category": "관광지",
+   "returned": 59,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.6060606060606061,
+   "latency_s": 0.04083514213562012
+  },
+  {
+   "id": "search-광주광역시-관광지-아이랑",
+   "category": "관광지",
+   "returned": 56,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8572048559638628,
+   "recall@20": 0.5909090909090909,
+   "latency_s": 0.039511919021606445
+  },
+  {
+   "id": "search-광주광역시-관광지-사진",
+   "category": "관광지",
+   "returned": 55,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.8421052631578947,
+   "latency_s": 0.039769887924194336
+  },
+  {
+   "id": "search-광주광역시-관광지-역사",
+   "category": "관광지",
+   "returned": 52,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.5983950669742499,
+   "recall@20": 0.6,
+   "latency_s": 0.03892827033996582
+  },
+  {
+   "id": "search-대구광역시-식당-해산물",
+   "category": "식당",
+   "returned": 175,
+   "mrr@10": 0.16666666666666666,
+   "ndcg@10": 0.22119341301481266,
+   "recall@20": 0.3076923076923077,
+   "latency_s": 0.041220903396606445
+  },
+  {
+   "id": "search-대구광역시-식당-주차 편한",
+   "category": "식당",
+   "returned": 200,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.933745776545611,
+   "recall@20": 0.24615384615384617,
+   "latency_s": 0.039695024490356445
+  },
+  {
+   "id": "search-대구광역시-식당-고기",
+   "category": "식당",
+   "returned": 174,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.21176470588235294,
+   "latency_s": 0.04017210006713867
+  },
+  {
+   "id": "search-대구광역시-식당-국밥",
+   "category": "식당",
+   "returned": 163,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7819835854675755,
+   "recall@20": 0.9090909090909091,
+   "latency_s": 0.04046177864074707
+  },
+  {
+   "id": "search-대구광역시-카페-디저트",
+   "category": "카페",
+   "returned": 150,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.933745776545611,
+   "recall@20": 0.27586206896551724,
+   "latency_s": 0.041378021240234375
+  },
+  {
+   "id": "search-대구광역시-카페-조용한",
+   "category": "카페",
+   "returned": 156,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.5797827732044221,
+   "recall@20": 0.4117647058823529,
+   "latency_s": 0.040679931640625
+  },
+  {
+   "id": "search-대구광역시-카페-빵",
+   "category": "카페",
+   "returned": 148,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.273972602739726,
+   "latency_s": 0.04085803031921387
+  },
+  {
+   "id": "search-대구광역시-카페-주차 편한",
+   "category": "카페",
+   "returned": 164,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.27941176470588236,
+   "latency_s": 0.04050302505493164
+  },
+  {
+   "id": "search-대구광역시-카페-넓은",
+   "category": "카페",
+   "returned": 140,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.2982456140350877,
+   "latency_s": 0.03917980194091797
+  },
+  {
+   "id": "search-대구광역시-관광지-야경",
+   "category": "관광지",
+   "returned": 93,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7457912185292983,
+   "recall@20": 0.75,
+   "latency_s": 0.04200005531311035
+  },
+  {
+   "id": "search-대구광역시-관광지-산책",
+   "category": "관광지",
+   "returned": 101,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.28169014084507044,
+   "latency_s": 0.039714813232421875
+  },
+  {
+   "id": "search-대구광역시-관광지-아이랑",
+   "category": "관광지",
+   "returned": 107,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.933745776545611,
+   "recall@20": 0.391304347826087,
+   "latency_s": 0.0401608943939209
+  },
+  {
+   "id": "search-대구광역시-관광지-사진",
+   "category": "관광지",
+   "returned": 91,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.3392857142857143,
+   "latency_s": 0.03904914855957031
+  },
+  {
+   "id": "search-대구광역시-관광지-역사",
+   "category": "관광지",
+   "returned": 88,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.5333576782543337,
+   "recall@20": 0.47368421052631576,
+   "latency_s": 0.038909196853637695
+  },
+  {
+   "id": "search-인천광역시-식당-해산물",
+   "category": "식당",
+   "returned": 178,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.5352543167750639,
+   "recall@20": 0.35,
+   "latency_s": 0.04285097122192383
+  },
+  {
+   "id": "search-인천광역시-식당-아이랑",
+   "category": "식당",
+   "returned": 193,
+   "mrr@10": 0.3333333333333333,
+   "ndcg@10": 0.3416877728373431,
+   "recall@20": 0.5714285714285714,
+   "latency_s": 0.04138612747192383
+  },
+  {
+   "id": "search-인천광역시-식당-주차 편한",
+   "category": "식당",
+   "returned": 201,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9363792118010483,
+   "recall@20": 0.24285714285714285,
+   "latency_s": 0.04010605812072754
+  },
+  {
+   "id": "search-인천광역시-식당-고기",
+   "category": "식당",
+   "returned": 172,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9052116356304493,
+   "recall@20": 0.2,
+   "latency_s": 0.04037284851074219
+  },
+  {
+   "id": "search-인천광역시-식당-국밥",
+   "category": "식당",
+   "returned": 173,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7456919575934261,
+   "recall@20": 0.8333333333333334,
+   "latency_s": 0.04124021530151367
+  },
+  {
+   "id": "search-인천광역시-카페-디저트",
+   "category": "카페",
+   "returned": 142,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.6968404678259545,
+   "recall@20": 0.24528301886792453,
+   "latency_s": 0.04216504096984863
+  },
+  {
+   "id": "search-인천광역시-카페-오션뷰",
+   "category": "카페",
+   "returned": 136,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.6678144472275097,
+   "recall@20": 0.75,
+   "latency_s": 0.04030275344848633
+  },
+  {
+   "id": "search-인천광역시-카페-조용한",
+   "category": "카페",
+   "returned": 165,
+   "mrr@10": 0.25,
+   "ndcg@10": 0.22784037450527975,
+   "recall@20": 0.6,
+   "latency_s": 0.041486263275146484
+  },
+  {
+   "id": "search-인천광역시-카페-빵",
+   "category": "카페",
+   "returned": 137,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.36538461538461536,
+   "latency_s": 0.043685197830200195
+  },
+  {
+   "id": "search-인천광역시-카페-주차 편한",
+   "category": "카페",
+   "returned": 158,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8899541168509599,
+   "recall@20": 0.2641509433962264,
+   "latency_s": 0.0399937629699707
+  },
+  {
+   "id": "search-인천광역시-카페-넓은",
+   "category": "카페",
+   "returned": 141,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.6621137423456802,
+   "recall@20": 0.20930232558139536,
+   "latency_s": 0.038970232009887695
+  },
+  {
+   "id": "search-인천광역시-관광지-야경",
+   "category": "관광지",
+   "returned": 110,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.5615798830425318,
+   "recall@20": 0.875,
+   "latency_s": 0.0418398380279541
+  },
+  {
+   "id": "search-인천광역시-관광지-산책",
+   "category": "관광지",
+   "returned": 109,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.25316455696202533,
+   "latency_s": 0.040103912353515625
+  },
+  {
+   "id": "search-인천광역시-관광지-아이랑",
+   "category": "관광지",
+   "returned": 120,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.35185185185185186,
+   "latency_s": 0.04020500183105469
+  },
+  {
+   "id": "search-인천광역시-관광지-사진",
+   "category": "관광지",
+   "returned": 108,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9266360779006401,
+   "recall@20": 0.33962264150943394,
+   "latency_s": 0.03973984718322754
+  },
+  {
+   "id": "search-인천광역시-관광지-바다",
+   "category": "관광지",
+   "returned": 108,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 0.5555555555555556,
+   "latency_s": 0.04052615165710449
+  },
+  {
+   "id": "search-인천광역시-관광지-역사",
+   "category": "관광지",
+   "returned": 105,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.5384313152574521,
+   "recall@20": 0.5833333333333334,
+   "latency_s": 0.03973031044006348
+  },
+  {
+   "id": "search-전라남도 여수시-식당-주차 편한",
+   "category": "식당",
+   "returned": 29,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.5039163329697344,
+   "recall@20": 0.8571428571428571,
+   "latency_s": 0.03907370567321777
+  },
+  {
+   "id": "search-전라남도 여수시-카페-오션뷰",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 0.3333333333333333,
+   "ndcg@10": 0.4226415848467783,
+   "recall@20": 1.0,
+   "latency_s": 0.041651248931884766
+  },
+  {
+   "id": "search-전라남도 여수시-카페-빵",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.870418110188789,
+   "recall@20": 0.8571428571428571,
+   "latency_s": 0.03937172889709473
+  },
+  {
+   "id": "search-전라남도 여수시-카페-주차 편한",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.8157259650369637,
+   "recall@20": 1.0,
+   "latency_s": 0.03850698471069336
+  },
+  {
+   "id": "search-전라남도 여수시-카페-넓은",
+   "category": "카페",
+   "returned": 30,
+   "mrr@10": 0.5,
+   "ndcg@10": 0.43174241683892983,
+   "recall@20": 1.0,
+   "latency_s": 0.038184165954589844
+  },
+  {
+   "id": "search-전라남도 여수시-관광지-산책",
+   "category": "관광지",
+   "returned": 20,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9643632283499571,
+   "recall@20": 1.0,
+   "latency_s": 0.0391080379486084
+  },
+  {
+   "id": "search-전라남도 여수시-관광지-아이랑",
+   "category": "관광지",
+   "returned": 20,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.9799214801447083,
+   "recall@20": 1.0,
+   "latency_s": 0.03891777992248535
+  },
+  {
+   "id": "search-전라남도 여수시-관광지-사진",
+   "category": "관광지",
+   "returned": 20,
+   "mrr@10": 1.0,
+   "ndcg@10": 0.7227265726449519,
+   "recall@20": 1.0,
+   "latency_s": 0.03903985023498535
+  },
+  {
+   "id": "search-전라남도 여수시-관광지-바다",
+   "category": "관광지",
+   "returned": 20,
+   "mrr@10": 1.0,
+   "ndcg@10": 1.0,
+   "recall@20": 1.0,
+   "latency_s": 0.03935718536376953
+  }
+ ],
+ "region_rows": [
+  {
+   "id": "ambiguous-부산광역시-강서구-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-서울특별시-강서구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-강원특별자치도-고성군-관광지-관광지",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-경상남도-고성군-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-광주광역시-남구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-대구광역시-남구-관광지-관광지",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-부산광역시-남구-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-울산광역시-남구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-광주광역시-동구-관광지-관광지",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-대구광역시-동구-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-대전광역시-동구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-부산광역시-동구-관광지-관광지",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-울산광역시-동구-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-인천광역시-동구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-광주광역시-북구-관광지-관광지",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-대구광역시-북구-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-부산광역시-북구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-울산광역시-북구-관광지-관광지",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-광주광역시-서구-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-대구광역시-서구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-대전광역시-서구-관광지-관광지",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-부산광역시-서구-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-인천광역시-서구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-대구광역시-중구-관광지-관광지",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-대전광역시-중구-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-부산광역시-중구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-서울특별시-중구-관광지-관광지",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-울산광역시-중구-식당-맛집",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "ambiguous-인천광역시-중구-카페-카페",
+   "group": "ambiguous",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "gwangju-광주광역시-전체-식당-맛집",
+   "group": "gwangju",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "gwangju-경기도-광주시-식당-맛집",
+   "group": "gwangju",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "gwangju-광주광역시-전체-카페-카페",
+   "group": "gwangju",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "gwangju-경기도-광주시-카페-카페",
+   "group": "gwangju",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "gwangju-광주광역시-전체-관광지-관광지",
+   "group": "gwangju",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "gwangju-경기도-광주시-관광지-관광지",
+   "group": "gwangju",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경기도-수원시-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-강원특별자치도-영월군-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경상북도-봉화군-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경상남도-함양군-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경상남도-창녕군-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경기도-여주시-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경기도-부천시-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-충청남도-아산시-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경기도-군포시-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-전라남도-장성군-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-강원특별자치도-인제군-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-강원특별자치도-원주시-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경기도-김포시-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경상남도-의령군-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경상남도-통영시-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-제주특별자치도-제주시-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-충청북도-청주시-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경상남도-남해군-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-전라남도-완도군-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경상남도-진주시-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-전북특별자치도-고창군-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경상북도-상주시-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-강원특별자치도-동해시-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경기도-의정부시-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-충청북도-단양군-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-대구광역시-달성군-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-충청남도-당진시-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-경기도-의왕시-식당-맛집",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-충청남도-청양군-카페-카페",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "regular-전북특별자치도-익산시-관광지-관광지",
+   "group": "regular",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "landmark-부산광역시-해운대구-식당-해운대 맛집",
+   "group": "landmark",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "landmark-부산광역시-수영구-카페-광안리 카페",
+   "group": "landmark",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "landmark-부산광역시-부산진구-식당-서면 맛집",
+   "group": "landmark",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.8,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "landmark-서울특별시-마포구-카페-홍대 카페",
+   "group": "landmark",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.6,
+   "region_hit1": 0,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "landmark-서울특별시-강남구-식당-강남역 맛집",
+   "group": "landmark",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "landmark-전북특별자치도-전주시-관광지-전주 한옥마을 관광지",
+   "group": "landmark",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "landmark-경상북도-경주시-카페-경주 황리단길 카페",
+   "group": "landmark",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  },
+  {
+   "id": "landmark-강원특별자치도-속초시-식당-속초 중앙시장 맛집",
+   "group": "landmark",
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0
+  }
+ ]
+}

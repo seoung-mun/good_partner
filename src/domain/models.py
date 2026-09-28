@@ -22,7 +22,12 @@ class Place(BaseModel):
     category: str
     address: str = ""                             # 상세 주소
     rating: float | None = None
-    reviews: list[str] = []                       # 근거 리뷰
+    reviews: list[str] = []                       # 근거 리뷰 (쿼리와 가까운 순)
+    n_reviews: int = 0                            # 수집된 전체 리뷰 수
+    quote: str = ""                               # 카드에 인용할 리뷰 한 줄 (취향 키워드 포함 우선)
+    score: float = 0.0                            # 검색 순위 점수 (RRF)
+    lat: float | None = None                      # 좌표 (지오코딩 후)
+    lng: float | None = None
 
 
 class ItineraryItem(BaseModel):

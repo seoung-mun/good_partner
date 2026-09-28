@@ -17,14 +17,14 @@ BASE_WORD = {"식당": "맛집", "카페": "카페", "관광지": "관광지"}
 
 def main(args):
     from src.domain.region import resolve_destination
-    from src.retrieval.retriever import search_candidates
+    from src.retrieval import retriever
     from src.retrieval.store import load_faiss_index
     db = load_faiss_index()
 
     rank_rows = []
     for it in [json.loads(l) for l in Path(args.search).read_text().splitlines() if l.strip()]:
         t0 = time.time()
-        places = search_candidates(db, it["region"], [it["category"]], [it["keyword"]])[it["category"]]
+        places = retriever.search_candidates(db, it["region"], [it["category"]], [it["keyword"]])[it["category"]]
         ranked = [(p.name, p.region) for p in places]
         rel = {tuple(x) for x in it["relevant"]}
         rank_rows.append({"id": it["id"], "category": it["category"], "returned": len(ranked),
@@ -36,7 +36,7 @@ def main(args):
         resolved = resolve_destination(it["destination"])
         region = " ".join(x for x in resolved if x) if resolved else it["destination"]
         extra = [w for w in it["query"].split() if w != BASE_WORD[it["category_filter"]]]  # 지명 쿼리('해운대 맛집')
-        places = search_candidates(db, region, [it["category_filter"]], extra)[it["category_filter"]]
+        places = retriever.search_candidates(db, region, [it["category_filter"]], extra)[it["category_filter"]]
         cands = [{"name": p.name, "region": p.region, "category": p.category} for p in places]
         region_rows.append({"id": it["id"], "group": it["group"], **retrieval_item_metrics(cands, it, args.k)})
 
