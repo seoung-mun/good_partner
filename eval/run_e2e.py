@@ -9,7 +9,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from eval.instrument import LLMCallCounter, attach_counter, configure_caches
-from eval.metrics import e2e_trip_metrics, summarize_e2e
+from eval.metrics import e2e_trip_metrics, route_metrics, summarize_e2e
 from eval.trace import AgentTracer, percentile, timed_sync
 
 KEYS = ["n_places", "slot_fill", "category_adherence", "overflow", "region_acc", "dup_rate",
@@ -33,7 +33,7 @@ def resummarize(path: str) -> None:
     for r in d["rows"]:  # 지표 정의가 바뀌어도 저장된 itinerary로 행별 지표를 다시 계산
         r.update(e2e_trip_metrics(r["itinerary"], r))
         r["ungrounded_rate"] = ungrounded_rate([x for x in r["itinerary"] if x.get("type") != "move"])
-    d["summary"] = {"all": summarize_e2e(d["rows"], KEYS, SERVICE_KEYS)}
+    d["summary"] = {"all": summarize_e2e(d["rows"], KEYS, SERVICE_KEYS), "route": route_metrics(d["rows"])}
     Path(path).write_text(json.dumps(d, ensure_ascii=False, indent=1, default=str))
     print(json.dumps(d["summary"], ensure_ascii=False, indent=1))
 
@@ -90,7 +90,8 @@ async def main(args):
            "cache": cache_state, "summary": {"all": {**summarize_e2e(rows, KEYS, SERVICE_KEYS),
                                                   "node_time_mean": node_time_mean(rows),
                                                   "first_plan_p50": percentile([r["first_plan_s"] for r in rows if r.get("first_plan_s")], 50),
-                                                  "first_plan_p95": percentile([r["first_plan_s"] for r in rows if r.get("first_plan_s")], 95)}}, "rows": rows}
+                                                  "first_plan_p95": percentile([r["first_plan_s"] for r in rows if r.get("first_plan_s")], 95)},
+                                          "route": route_metrics(rows)}, "rows": rows}
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str))
     print(json.dumps(out["summary"], ensure_ascii=False, indent=1))

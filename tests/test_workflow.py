@@ -217,3 +217,29 @@ async def test_locate_uses_start_location_as_anchor_and_keeps_alternatives():
     assert first.place.name == "식당1"                       # 검색 2위지만 출발지(부산역)에서 가장 가까움
     assert first.place.lat == 35.001
     assert "식당0" not in [p.name for p in first.alternatives[:1]]   # 110km 밖은 대안 맨 앞이 아님
+
+
+def test_assign_times_uses_arrival_time_and_trims_after_departure():
+    items = [it("d1-s1", 1, 1, "식당", "A"), it("d2-s1", 2, 1, "관광지", "B"), it("d2-s2", 2, 2, "식당", "C"),
+             it("d2-s3", 2, 3, "카페", "D")]
+    out = assign_times(items, {}, first_start="14:00", last_end="13:30", last_day=2)
+    assert out[0].start == "14:00"
+    assert [i.place.name for i in out if i.slot.day == 2] == ["B"]    # 10:00-12:00 관광만 13:30 전에 끝남
+
+
+def test_last_day_template_has_sightseeing_lunch_cafe():
+    from src.domain.schedule import build_slots
+    last = [(s.category, s.meal) for s in build_slots(2) if s.day == 2]
+    assert last == [("관광지", None), ("식당", "점심"), ("카페", None)]
+
+
+async def test_reschedule_passes_travel_mode_and_times_from_request():
+    from src.agent.workflow import reschedule
+    modes = []
+
+    async def r(a, b, mode="transit", departure_time=None):
+        modes.append(mode)
+        return {"duration_value": 600, "steps": []}
+    items = [it("d1-s1", 1, 1, "식당", "A"), it("d1-s2", 1, 2, "카페", "B")]
+    out, _ = await reschedule(items, r, {"mode": "driving", "start_time": "15:00", "days": 1})
+    assert modes == ["driving"] and out[0].start == "15:00"

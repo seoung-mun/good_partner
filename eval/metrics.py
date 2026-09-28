@@ -7,7 +7,7 @@ from eval.trace import percentile
 
 FIRST = ["식당", "카페", "관광지", "식당"]
 MIDDLE = ["관광지", "식당", "카페", "관광지", "식당"]
-LAST = ["관광지"]
+LAST = ["관광지", "식당", "카페"]   # P5: 마지막 날 관광·점심·카페 (P4 이전은 관광 1곳)
 
 
 def mean_or_none(xs):
@@ -131,3 +131,23 @@ def ndcg_at_k(ranked: list, relevant: set, k: int) -> float:
     dcg = sum(1 / math.log2(i + 2) for i, x in enumerate(ranked[:k]) if x in relevant)
     idcg = sum(1 / math.log2(i + 2) for i in range(min(len(relevant), k)))
     return dcg / idcg if idcg else 0.0
+
+
+def _is_dinner(x: dict) -> bool:
+    """저녁 식사 슬롯. meal 필드가 없는 옛 결과는 템플릿 위치(1일차 4번째, 이후 5번째)로 판별."""
+    if "meal" in x:
+        return x["meal"] == "저녁"
+    sid = x.get("slot_id", "")
+    return x.get("type") == "식당" and (sid.startswith("d1-") and sid.endswith("-s4")
+                                       or not sid.startswith("d1-") and sid.endswith("-s5"))
+
+
+def route_metrics(rows: list[dict]) -> dict:
+    """동선 현실성 (성공 건만): 구간 이동 p50·p95, 60분 초과 구간 비율, 저녁 20시 이후 시작 비율, 여행당 총 이동(분)."""
+    ok = [r for r in rows if r.get("ok")]
+    legs = [int(x["duration_min"]) for r in ok for x in r["itinerary"] if x.get("type") == "move"]
+    dinners = [x for r in ok for x in r["itinerary"] if x.get("type") != "move" and _is_dinner(x) and x.get("start")]
+    return {"legs": len(legs), "leg_p50": percentile(legs, 50), "leg_p95": percentile(legs, 95),
+            "leg_over60_rate": sum(m > 60 for m in legs) / len(legs) if legs else None,
+            "late_dinner_rate": sum(x["start"] >= "20:00" for x in dinners) / len(dinners) if dinners else None,
+            "move_per_trip": sum(legs) / len(ok) if ok else None}

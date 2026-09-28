@@ -5,10 +5,10 @@ from src.domain.geo import calculate_haversine_distance
 from src.domain.models import ItineraryItem, Place, Slot
 
 
-# 슬롯 템플릿 (기존 앱 규칙 유지): 1일차 12시 점심 시작 4곳, 중간 날 10시 시작 5곳, 마지막 날 관광 1곳
+# 슬롯 템플릿: 1일차 도착 후 점심부터 4곳, 중간 날 10시 시작 5곳, 마지막 날 관광·점심·카페 (귀가 시각 넘으면 잘림)
 _FIRST = [("식당", "점심"), ("카페", None), ("관광지", None), ("식당", "저녁")]
 _MIDDLE = [("관광지", None), ("식당", "점심"), ("카페", None), ("관광지", None), ("식당", "저녁")]
-_LAST = [("관광지", None)]
+_LAST = [("관광지", None), ("식당", "점심"), ("카페", None)]
 
 
 def build_slots(days: int) -> list[Slot]:
@@ -67,24 +67,34 @@ def assign_places(slots: list[Slot], candidates: dict[str, list[Place]],
 STAY_MIN = {"식당": 90, "카페": 60, "관광지": 120}
 
 
-def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | None]],
-                 default_move: int = 30) -> list[ItineraryItem]:
-    """일차별 시작(1일차 12:00, 이후 10:00)부터 체류·이동 시간을 누적. legs: slot_id → (직전 장소에서 이동 분, 교통편)."""
-    out, cursor, day, prev_placed = [], None, None, False
+def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | None]], default_move: int = 30,
+                 first_start: str = "12:00", last_end: str | None = None, last_day: int | None = None
+                 ) -> list[ItineraryItem]:
+    """일차별 시작(1일차 first_start, 이후 10:00)부터 체류·이동 시간을 누적. legs: slot_id → (이동 분, 교통편).
+
+    last_day의 장소 중 last_end(귀가 출발 시각)를 넘겨 끝나는 곳은 일정에서 뺀다.
+    """
+    h, m = map(int, first_start.split(":"))
+    out, cursor, day, prev_placed, closed = [], None, None, False, False
     for it in items:
         if it.slot.day != day:
             day, prev_placed = it.slot.day, False
-            cursor = datetime(2000, 1, 1, 12 if day == 1 else 10, 0)
+            cursor = datetime(2000, 1, 1, h, m) if day == 1 else datetime(2000, 1, 1, 10, 0)
+        if closed and day == last_day:
+            continue
         if it.place is None:
             out.append(it)
             continue
-        update = {}
+        update, at = {}, cursor
         if prev_placed:
             mv, detail = legs.get(it.slot.slot_id, (default_move, None))
-            cursor += timedelta(minutes=mv)
+            at = cursor + timedelta(minutes=mv)
             update.update(move_min=mv, move_detail=detail)
-        end = cursor + timedelta(minutes=STAY_MIN.get(it.slot.category, 90))
-        update.update(start=cursor.strftime("%H:%M"), end=end.strftime("%H:%M"))
+        end = at + timedelta(minutes=STAY_MIN.get(it.slot.category, 90))
+        if last_end and day == last_day and end.strftime("%H:%M") > last_end:
+            closed = True                             # 귀가 시각을 넘김 → 이 장소부터 그날 나머지 제외
+            continue
+        update.update(start=at.strftime("%H:%M"), end=end.strftime("%H:%M"))
         out.append(it.model_copy(update=update))
         cursor, prev_placed = end, True
     return out

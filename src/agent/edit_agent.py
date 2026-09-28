@@ -47,7 +47,7 @@ def build_edit_app(llm=None, load_db=None, route_fn=None):
 
     async def finalize(state: EditState) -> dict:
         """수정 반영 후 시간표 재계산·렌더. 경로 실패는 기본 이동 시간 + 안내."""
-        items, errors = await reschedule(state["items"], route_fn)
+        items, errors = await reschedule(state["items"], route_fn, state["request"])
         return {"items": items, "final_text": render_markdown(state["request"], items, None, "", errors)}
 
     g = StateGraph(EditState)

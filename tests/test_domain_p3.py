@@ -20,12 +20,12 @@ def test_resolve_destination(text, expected):
     assert resolve_destination(text) == expected
 
 
-def test_build_slots_follows_legacy_template():
+def test_build_slots_template():
     s = build_slots(3)
     assert [(x.day, x.category) for x in s] == [
         (1, "식당"), (1, "카페"), (1, "관광지"), (1, "식당"),
         (2, "관광지"), (2, "식당"), (2, "카페"), (2, "관광지"), (2, "식당"),
-        (3, "관광지")]
+        (3, "관광지"), (3, "식당"), (3, "카페")]
     assert s[0].slot_id == "d1-s1" and s[0].meal == "점심" and s[3].meal == "저녁"
     assert [x.category for x in build_slots(1)] == ["식당", "카페", "관광지", "식당"]
 

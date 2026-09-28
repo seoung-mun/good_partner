@@ -36,7 +36,8 @@ GEOCODE_CONCURRENCY = 8
 class PlanState(TypedDict, total=False):
     """워크플로우 상태. errors는 여러 단계(병렬 포함)가 추가만 하므로 리스트 합치기 reducer."""
 
-    request: dict            # destination, start_location, start_date(YYYY-MM-DD), days, group_type, style, detail
+    request: dict            # destination, start_location, start_date(YYYY-MM-DD), days, group_type, style, detail,
+                             # mode(transit|driving), start_time·end_time("HH:MM", 선택)
     region: str              # "부산광역시 중구" (해석 실패 시 "")
     preferences: TripPreferences
     slots: list[Slot]
@@ -54,8 +55,14 @@ def _where(item: ItineraryItem) -> str:
     return p.address or f"{p.region} {p.name}"
 
 
-async def reschedule(items: list[ItineraryItem], route_fn) -> tuple[list[ItineraryItem], list[StepError]]:
-    """같은 날 연속한 장소 쌍의 경로를 병렬 조회하고 시간표를 다시 계산. 실패한 구간은 기본 이동 시간."""
+async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None = None
+                     ) -> tuple[list[ItineraryItem], list[StepError]]:
+    """같은 날 연속한 장소 쌍의 경로를 병렬 조회하고 시간표를 다시 계산. 실패한 구간은 기본 이동 시간.
+
+    request의 mode(transit|driving)·start_time(1일차 도착)·end_time(마지막 날 귀가 출발)·days를 반영.
+    """
+    req = request or {}
+    mode = req.get("mode") or "transit"
     pairs, prev = [], None
     for it in items:
         if prev is not None and prev.slot.day != it.slot.day:
@@ -64,7 +71,7 @@ async def reschedule(items: list[ItineraryItem], route_fn) -> tuple[list[Itinera
             if prev is not None:
                 pairs.append((it.slot.slot_id, prev, it))
             prev = it
-    results = await asyncio.gather(*[route_fn(_where(a), _where(b), mode="transit") for _, a, b in pairs],
+    results = await asyncio.gather(*[route_fn(_where(a), _where(b), mode=mode) for _, a, b in pairs],
                                    return_exceptions=True)
     legs, failures = {}, []
     for (sid, _, _), r in zip(pairs, results):
@@ -77,7 +84,8 @@ async def reschedule(items: list[ItineraryItem], route_fn) -> tuple[list[Itinera
         log.warning("경로 조회 실패 %d/%d건: %s", len(failures), len(pairs), failures[:3])
         errors.append(StepError.from_error("plan_routes", ExternalServiceError("Google Maps", "; ".join(failures[:3]))))
     reset = [i.model_copy(update={"move_min": None, "move_detail": None}) for i in items]
-    return assign_times(reset, legs), errors
+    return assign_times(reset, legs, first_start=req.get("start_time") or "12:00", last_end=req.get("end_time"),
+                        last_day=req.get("days")), errors
 
 
 def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
@@ -91,7 +99,7 @@ def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
                         "transport_detail": it.move_detail or "", "transport": it.move_detail or "이동",
                         "duration_text": f"약 {it.move_min}분"})
         out.append({"type": it.place.category, "name": it.place.name, "address": it.place.region,
-                    "day": it.slot.day, "category": it.place.category, "slot_id": it.slot.slot_id,
+                    "day": it.slot.day, "category": it.place.category, "slot_id": it.slot.slot_id, "meal": it.slot.meal,
                     "start": it.start, "end": it.end, "description": it.reason, "reviews": it.place.reviews})
     return out
 
@@ -206,7 +214,7 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
 
     async def plan_routes(state: PlanState) -> dict:
         """연속 장소 간 대중교통 경로(병렬)와 시간표."""
-        items, errors = await reschedule(state["items"], route_fn)
+        items, errors = await reschedule(state["items"], route_fn, state["request"])
         return {"items": items, "errors": errors}
 
     async def fetch_weather(state: PlanState) -> dict:

@@ -33,7 +33,7 @@ def test_retrieval_diversity_counts_same_place_once():
 def test_expected_slots():
     assert expected_slots(1) == [["식당", "카페", "관광지", "식당"]]
     assert expected_slots(3) == [["식당", "카페", "관광지", "식당"],
-                                 ["관광지", "식당", "카페", "관광지", "식당"], ["관광지"]]
+                                 ["관광지", "식당", "카페", "관광지", "식당"], ["관광지", "식당", "카페"]]
 
 
 def test_category_group():
@@ -53,9 +53,9 @@ def test_e2e_metrics():
             p("e", "관광지", 2), p("e", "관광지", 2)]
     m = e2e_trip_metrics(itin, trip)
     assert m["n_places"] == 6
-    assert m["slot_fill"] == pytest.approx(5 / 5)          # day1 4/4, day2 1/1
-    assert m["category_adherence"] == pytest.approx(4 / 5)  # day1 3번째 식당≠관광지
-    assert m["overflow"] == 1                               # day2 1곳 초과
+    assert m["slot_fill"] == pytest.approx(6 / 7)          # day1 4/4, day2 2/3 (관광·점심·카페)
+    assert m["category_adherence"] == pytest.approx(4 / 7)  # day1 3번째 식당≠관광지, day2 2번째 관광지≠식당
+    assert m["overflow"] == 0
     assert m["region_acc"] == pytest.approx(5 / 6)
     assert m["dup_rate"] == pytest.approx(1 - 5 / 6)
     assert m["total_move_min"] == 10
@@ -130,3 +130,20 @@ def test_ranking_metrics():
     got = 1 / __import__("math").log2(3) + 1 / __import__("math").log2(5)
     assert abs(ndcg_at_k(ranked, rel, 10) - got / ideal) < 1e-9
     assert mrr_at_k([], rel, 10) == 0.0 and ndcg_at_k(ranked, set(), 10) == 0.0
+
+
+def test_route_metrics_legs_and_late_dinner():
+    from eval.metrics import route_metrics
+    rows = [{"ok": 1.0, "itinerary": [
+        {"type": "식당", "day": 1, "slot_id": "d1-s1", "start": "12:00"},
+        {"type": "move", "day": 1, "duration_min": 20}, {"type": "카페", "day": 1, "slot_id": "d1-s2"},
+        {"type": "move", "day": 1, "duration_min": 90},
+        {"type": "식당", "day": 1, "slot_id": "d1-s4", "meal": "저녁", "start": "20:30"}]},
+        {"ok": 1.0, "itinerary": [{"type": "move", "day": 1, "duration_min": 40},
+                                  {"type": "식당", "day": 1, "slot_id": "d1-s4", "start": "18:00"}]},
+        {"ok": 0.0, "itinerary": [{"type": "move", "day": 1, "duration_min": 999}]}]    # 실패 건 제외
+    m = route_metrics(rows)
+    assert m["legs"] == 3 and m["leg_p50"] == 40 and m["leg_p95"] == 90
+    assert abs(m["leg_over60_rate"] - 1 / 3) < 1e-9
+    assert m["late_dinner_rate"] == 0.5                     # meal 없는 옛 결과는 slot_id(d1-s4)로 판별
+    assert m["move_per_trip"] == 75
