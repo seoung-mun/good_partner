@@ -63,7 +63,9 @@ def e2e_trip_metrics(itinerary: list[dict], trip: dict) -> dict:
         "region_acc": mean_or_none([float(region_match(x.get("address", ""), trip["gold_sido"],
                                                        trip["gold_sigungu"])) for x in places]),
         "dup_rate": (1 - len(set(names)) / len(names)) if names else 0.0,
-        "total_move_min": sum(int(m.get("duration_min", 0)) for m in moves),
+        # 타임라인 계산(plan_itinerary_timeline)까지 간 일정만 이동 시간이 존재 — 없으면 0이 아니라 None
+        "has_timeline": int(bool(moves)),
+        "total_move_min": sum(int(m.get("duration_min", 0)) for m in moves) if moves else None,
     }
 
 
@@ -90,9 +92,20 @@ def aggregate(rows: list[dict], keys: list[str], by: str | None = None) -> dict:
             for g, rs in groups.items()}
 
 
+def trip_outcome(row: dict) -> str:
+    """error: 예외(무한 루프 등) / empty: 예외 없이 끝났지만 일정 없음(도구 없이 답변 포함) / success."""
+    if not row.get("ok"):
+        return "error"
+    return "success" if row.get("n_places", 0) > 0 else "empty"
+
+
 def summarize_e2e(rows: list[dict], quality_keys: list[str]) -> dict:
-    """성공률은 전체 기준, 품질·비용 지표는 성공한 여행만 평균 (실패가 품질 평균을 왜곡하지 않도록)."""
-    ok_rows = [r for r in rows if r.get("ok")]
-    return {"n": len(rows), "n_ok": len(ok_rows),
-            "ok": mean_or_none([float(bool(r.get("ok"))) for r in rows]),
-            **{k: mean_or_none([r.get(k) for r in ok_rows]) for k in quality_keys}}
+    """비율은 전체 기준, 품질·비용 지표는 성공한 여행만 평균. 비용은 실패 포함 전체 평균(*_all)도 함께."""
+    outcomes = [trip_outcome(r) for r in rows]
+    ok_rows = [r for r, o in zip(rows, outcomes) if o == "success"]
+    rate = lambda o: outcomes.count(o) / len(rows) if rows else None
+    cost_keys = [k for k in ("llm_calls", "input_tokens", "output_tokens", "latency_s") if k in quality_keys]
+    return {"n": len(rows), "n_success": len(ok_rows), "success_rate": rate("success"),
+            "empty_rate": rate("empty"), "error_rate": rate("error"),
+            **{k: mean_or_none([r.get(k) for r in ok_rows]) for k in quality_keys},
+            **{f"{k}_all": mean_or_none([r.get(k) for r in rows]) for k in cost_keys}}

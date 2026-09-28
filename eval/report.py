@@ -17,11 +17,13 @@ def render(retrieval: dict, e2e: dict, judge: dict, agreement: dict | None) -> s
         out.append(f"| {g} | {s['n']} | {_f(s['region_acc'])} | {_f(s['region_hit1'])} | "
                    f"{_f(s['category_acc'])} | {_f(s['diversity'])} | {_f(s['empty'])} | {_f(s['llm_calls'], 1)} |")
     s = e2e["summary"]["all"]
-    out += ["", "## B. E2E 일정 생성", "", f"성공 {s.get('n_ok', '–')}/{s['n']}건. 품질·비용 지표는 성공한 여행 기준 평균.", "", "| 지표 | 값 |", "|---|---|"]
-    for label, key, d in [("성공률", "ok", 2), ("슬롯 충족률", "slot_fill", 2),
+    out += ["", "## B. E2E 일정 생성", "", f"성공 {s['n_success']}/{s['n']}건 (성공 = 예외 없이 장소 1개 이상). 품질 지표는 성공한 여행 기준 평균.", "", "| 지표 | 값 |", "|---|---|"]
+    for label, key, d in [("성공률", "success_rate", 2), ("빈 일정 비율", "empty_rate", 2),
+                          ("오류 비율", "error_rate", 2), ("슬롯 충족률", "slot_fill", 2),
                           ("카테고리 준수율", "category_adherence", 2), ("일정 지역 정확도", "region_acc", 2),
                           ("중복률", "dup_rate", 2), ("초과 배정 수", "overflow", 1),
-                          ("총 이동 시간(분)", "total_move_min", 1), ("LLM 호출 수", "llm_calls", 1),
+                          ("타임라인 완성률", "has_timeline", 2), ("총 이동 시간(분, 타임라인 있는 일정)", "total_move_min", 1), ("LLM 호출 수 (성공 건)", "llm_calls", 1),
+                          ("LLM 호출 수 (실패 포함 전체)", "llm_calls_all", 1),
                           ("입력 토큰", "input_tokens", 0), ("출력 토큰", "output_tokens", 0),
                           ("Maps 호출 수", "maps_calls", 1), ("소요 시간(초)", "latency_s", 1)]:
         out.append(f"| {label} | {_f(s.get(key), d)} |")

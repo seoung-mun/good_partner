@@ -78,11 +78,28 @@ def test_aggregate_ignores_none_and_groups():
     assert out["all"]["v"] == 0.5 and out["x"]["v"] == 1.0 and out["y"]["n"] == 1
 
 
-def test_summarize_e2e_excludes_failed_trips_from_quality():
+def test_trip_outcome():
+    from eval.metrics import trip_outcome
+    assert trip_outcome({"ok": 0.0, "n_places": 0}) == "error"
+    assert trip_outcome({"ok": 1.0, "n_places": 0}) == "empty"     # 예외 없이 끝났지만 일정 없음(도구 없이 답변 등)
+    assert trip_outcome({"ok": 1.0, "n_places": 3}) == "success"
+
+
+def test_summarize_e2e_uses_success_only_for_quality():
     from eval.metrics import summarize_e2e
-    rows = [{"ok": 1.0, "slot_fill": 1.0, "dup_rate": 0.2, "llm_calls": 30},
-            {"ok": 0.0, "slot_fill": 0.0, "dup_rate": 0.0, "llm_calls": 50}]
+    rows = [{"ok": 1.0, "n_places": 4, "slot_fill": 1.0, "dup_rate": 0.2, "llm_calls": 30},
+            {"ok": 1.0, "n_places": 0, "slot_fill": 0.0, "dup_rate": 0.0, "llm_calls": 3},
+            {"ok": 0.0, "n_places": 0, "slot_fill": 0.0, "dup_rate": 0.0, "llm_calls": 50}]
     s = summarize_e2e(rows, ["slot_fill", "dup_rate", "llm_calls"])
-    assert s["n"] == 2 and s["ok"] == 0.5 and s["n_ok"] == 1
-    assert s["slot_fill"] == 1.0 and s["dup_rate"] == 0.2   # 실패 건 제외
-    assert s["llm_calls"] == 30
+    assert s["n"] == 3 and s["n_success"] == 1
+    assert s["success_rate"] == 1 / 3 and s["empty_rate"] == 1 / 3 and s["error_rate"] == 1 / 3
+    assert s["slot_fill"] == 1.0 and s["dup_rate"] == 0.2 and s["llm_calls"] == 30
+    assert s["llm_calls_all"] == (30 + 3 + 50) / 3                  # 비용은 실패 포함 전체 평균도 함께
+
+
+def test_move_time_is_none_without_timeline():
+    trip = {"days": 1, "gold_sido": "부산광역시", "gold_sigungu": None}
+    no_tl = e2e_trip_metrics([p("a", "식당", 1), p("b", "카페", 1)], trip)
+    assert no_tl["has_timeline"] == 0 and no_tl["total_move_min"] is None
+    tl = e2e_trip_metrics([p("a", "식당", 1), {"type": "move", "duration_min": 32, "day": 1}, p("b", "카페", 1)], trip)
+    assert tl["has_timeline"] == 1 and tl["total_move_min"] == 32

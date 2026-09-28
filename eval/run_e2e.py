@@ -12,7 +12,17 @@ from eval.instrument import LLMCallCounter, attach_counter, configure_caches
 from eval.metrics import e2e_trip_metrics, summarize_e2e
 
 KEYS = ["n_places", "slot_fill", "category_adherence", "overflow", "region_acc", "dup_rate",
-        "total_move_min", "llm_calls", "input_tokens", "output_tokens", "maps_calls", "latency_s"]
+        "has_timeline", "total_move_min", "llm_calls", "input_tokens", "output_tokens", "maps_calls", "latency_s"]
+
+
+def resummarize(path: str) -> None:
+    """저장된 결과로 행별 지표와 summary를 다시 계산 (LLM 재실행 없음)."""
+    d = json.loads(Path(path).read_text())
+    for r in d["rows"]:  # 지표 정의가 바뀌어도 저장된 itinerary로 행별 지표를 다시 계산
+        r.update(e2e_trip_metrics(r["itinerary"], r))
+    d["summary"] = {"all": summarize_e2e(d["rows"], KEYS)}
+    Path(path).write_text(json.dumps(d, ensure_ascii=False, indent=1, default=str))
+    print(json.dumps(d["summary"], ensure_ascii=False, indent=1))
 
 
 async def main(args):
@@ -56,4 +66,6 @@ if __name__ == "__main__":
     ap.add_argument("--out", default="eval/results/e2e_baseline.json")
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--no-cache", action="store_true")
-    asyncio.run(main(ap.parse_args()))
+    ap.add_argument("--resummarize", metavar="RESULT_JSON")
+    a = ap.parse_args()
+    resummarize(a.resummarize) if a.resummarize else asyncio.run(main(a))
