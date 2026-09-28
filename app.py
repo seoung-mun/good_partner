@@ -4,10 +4,12 @@ import os
 os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "0"
 os.environ["PYTHON_GRPC_IPV6_LOOPBACK"] = "0"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+# macOS: torch·faiss가 각자 libomp를 로드 → 중복 허용 + 단일 스레드로 세그폴트·교착 방지
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+os.environ.setdefault("OMP_NUM_THREADS", "1")
 
 import streamlit as st
-from datetime import date, timedelta
-import time
+from datetime import date, time, timedelta
 from concurrent.futures import ThreadPoolExecutor
 from src.retrieval.store import load_faiss_index
 from src.logging_config import get_logger
@@ -33,8 +35,8 @@ if "db_loading_submitted" not in st.session_state:
 
 
 st.set_page_config(page_title="여행 정보 입력", layout="centered")
-st.title("📝 AI 여행 플래너 시작하기")
-st.markdown("여행 계획을 시작하기 위해 아래 정보를 입력하고 버튼을 눌러주세요.")
+st.title("AI 여행 플래너")
+st.caption("실제 방문자 리뷰를 근거로, 동선까지 고려한 일정을 만들어 드려요.")
 
 defaults = {
     "destination": "", "start_location": "", "start_date": None, "end_date": None,
@@ -51,13 +53,21 @@ col_dest, col_start = st.columns(2)
 with col_dest:
     destination_input = st.text_input("목적지", value=st.session_state.destination, placeholder="예: 부산, 제주도")
 with col_start:
-    start_location_input = st.text_input("출발지 (숙소/공항)", value=st.session_state.start_location, placeholder="예: 제주공항, 하얏트 호텔")
+    start_location_input = st.text_input("숙소 (또는 출발지)", value=st.session_state.start_location, placeholder="예: 부산역, 해운대 숙소 (매일 여기서 출발·복귀)")
 
 col_date1, col_date2 = st.columns(2)
 with col_date1:
     start_date = st.date_input("출발일", value=st.session_state.start_date or date.today(), min_value=date.today())
 with col_date2:
     end_date = st.date_input("귀가일", value=st.session_state.end_date or (start_date + timedelta(days=1)), min_value=start_date)
+
+col_t1, col_t2, col_t3 = st.columns(3)
+with col_t1:
+    travel_mode = st.radio("이동 수단", ["대중교통", "자동차"], horizontal=True)
+with col_t2:
+    arrive_time = st.time_input("첫날 도착 시각", value=time(12, 0), step=1800)
+with col_t3:
+    leave_time = st.time_input("마지막 날 출발 시각", value=time(20, 0), step=1800)
 
 st.subheader("2. 여행 스타일")
 col_style1, col_style2 = st.columns(2)
@@ -69,8 +79,8 @@ with col_style2:
 
 
 st.markdown("---")
-st.subheader("💡 상세 취향 (선택사항)")
-st.info("구체적으로 적을수록 AI가 더 정확한 장소를 추천해 드려요!")
+st.subheader("상세 취향 (선택)")
+st.caption("구체적으로 적을수록 리뷰에서 더 잘 맞는 장소를 찾아요.")
 
 detail_preference = st.text_area(
     "나만의 여행 스타일을 자유롭게 적어주세요",
@@ -80,7 +90,7 @@ detail_preference = st.text_area(
 
 st.markdown("---")
 
-if st.button("AI 플래너에게 정보 전달하고 시작하기", type="primary", use_container_width=True):
+if st.button("일정 만들기", type="primary", use_container_width=True):
     if destination_input and start_date and end_date:
         st.session_state.destination = destination_input
         st.session_state.start_location = start_location_input
@@ -89,6 +99,10 @@ if st.button("AI 플래너에게 정보 전달하고 시작하기", type="primar
         st.session_state.group_type = gathering_type 
         st.session_state.travel_style = travel_style
         st.session_state.detail_preference = detail_preference
+        st.session_state.travel_mode = "driving" if travel_mode == "자동차" else "transit"
+        st.session_state.arrive_time = arrive_time.strftime("%H:%M")
+        st.session_state.leave_time = leave_time.strftime("%H:%M")
+        st.session_state.plan = None
         
         days = (end_date - start_date).days + 1 
         travel_dates_str = f"{start_date.strftime('%Y년 %m월 %d일')}부터 {days}일간"

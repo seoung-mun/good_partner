@@ -26,7 +26,7 @@ def from_legacy_itinerary(itinerary: list[dict]) -> list[ItineraryItem]:
             continue
         day, order = int(x["day"]), int(x["slot_id"].split("-s")[1])
         items.append(ItineraryItem(
-            slot=Slot(slot_id=x["slot_id"], day=day, order=order, category=x["type"], meal=_meal(day, order, x["type"])),
+            slot=Slot(slot_id=x["slot_id"], day=day, order=order, category=x["type"], meal=x["meal"] if "meal" in x else _meal(day, order, x["type"])),
             place=Place(name=x["name"], region=x.get("address", ""), category=x["type"], reviews=x.get("reviews", [])),
             start=x.get("start"), end=x.get("end"), reason=x.get("description", "")))
     return items

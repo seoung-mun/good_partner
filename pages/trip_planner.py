@@ -1,7 +1,13 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
 from src.agent.edit_agent import build_edit_app, edit
-from src.agent.workflow import build_workflow, stream_plan, to_legacy_itinerary
+from src.agent.workflow import build_workflow, reschedule, stream_plan, to_legacy_itinerary
+from src.domain.schedule import swap_place
+from src.retrieval.catalog import get_catalog
+from src.services.maps import get_detailed_route
+from src.ui.cards import chips, move_line, place_card
+from src.ui.map import day_map
+from src.ui.text import to_plain
 import re
 import asyncio
 from datetime import date, datetime
@@ -123,7 +129,7 @@ def create_itinerary_pdf(itinerary, destination, dates, weather, final_routes, t
 
     if weather and weather.strip() and weather != '정보 없음':
         pdf.set_font_size(10)
-        pdf.multi_cell(0, 5, text=f"날씨: {weather}", align='C')
+        pdf.multi_cell(0, 5, text=f"날씨: {to_plain(weather)}", align='C')
 
     pdf.ln(10)
 
@@ -157,7 +163,7 @@ def create_itinerary_pdf(itinerary, destination, dates, weather, final_routes, t
             if item_type == 'move':
                 pdf.set_text_color(100, 100, 100)
                 pdf.set_font_size(10)
-                move_text = f"      |  {item.get('start', '')} ~ {item.get('end', '')} ({item.get('duration_text', '')}) : {item.get('transport', '이동')}"
+                move_text = f"      |  {item.get('duration_text', '')} : {to_plain(item.get('transport', '이동'))}"
                 pdf.cell(0, 8, text=move_text, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                 pdf.set_text_color(0, 0, 0)
                 pdf.set_font_size(11)
@@ -167,13 +173,13 @@ def create_itinerary_pdf(itinerary, destination, dates, weather, final_routes, t
 
                 if has_korean_font: pdf.set_font('NanumGothic', 'B', 12)
                 category_text = translate_category_to_korean(item.get('category', item_type))
-                main_text = f"  ● {time_info} {item.get('name', '이름 없음')} ({category_text})"
+                main_text = f"  ● {time_info} {to_plain(item.get('name', '이름 없음'))} ({category_text})"
                 pdf.cell(0, 8, text=main_text, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
                 if item.get('description'):
                     if has_korean_font: pdf.set_font('NanumGothic', '', 10)
                     pdf.set_x(20)
-                    pdf.multi_cell(0, 5, text=f"{item['description']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                    pdf.multi_cell(0, 5, text=to_plain(item['description']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                     pdf.ln(2)
 
                 reviews = item.get('reviews', [])
@@ -185,7 +191,7 @@ def create_itinerary_pdf(itinerary, destination, dates, weather, final_routes, t
                         else: review_text = str(review)
                         # 매 줄 왼쪽 여백에서 시작 — 기본값(new_x=RIGHT)이면 두 번째 리뷰부터 쓸 공간이 없어 예외
                         pdf.set_x(20)
-                        pdf.multi_cell(0, 4, text=f"  • {review_text}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                        pdf.multi_cell(0, 4, text=f"  • {to_plain(review_text)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                     pdf.ln(2)
 
         pdf.ln(10)
@@ -198,33 +204,15 @@ def create_itinerary_pdf(itinerary, destination, dates, weather, final_routes, t
 
     return bytes(pdf.output())
 
-st.set_page_config(page_title="AI 여행 플래너", layout="centered")
-st.title("💬 AI 여행 플래너")
-
-with st.sidebar:
-    st.header("질문 가이드")
-    st.markdown("""
-    - "근처 관광지 추천해줘"
-    - "맛집 알려줘"
-    - "일정 수정하고 싶어"
-    - "경로 최적화해줘"
-    - "PDF로 만들어줘"
-    """)
+st.set_page_config(page_title="AI 여행 플래너", layout="wide")
 
 if "preferences_collected" not in st.session_state:
-    st.warning("⚠️ 정보 입력 페이지에서 먼저 여행 정보를 입력해주세요.")
-    if st.button("테스트용 임시 데이터 로드"):
-        st.session_state.destination = "부산 해운대"
-        st.session_state.dates = "2025-12-06 (1일)"
-        st.session_state.total_days = 1
-        st.session_state.preference = "맛집 탐방"
-        st.session_state.group_type = "친구"
-        st.session_state.preferences_collected = True
-        st.rerun()
+    st.warning("정보 입력 페이지에서 먼저 여행 정보를 입력해주세요.")
+    st.page_link("app.py", label="여행 정보 입력하기", icon=":material/edit:")
     st.stop()
 
 if "messages" not in st.session_state: st.session_state.messages = []
-if "plan" not in st.session_state: st.session_state.plan = None  # request, region, items, weather
+if "plan" not in st.session_state: st.session_state.plan = None
 
 if "event_loop" not in st.session_state:
     st.session_state.event_loop = asyncio.new_event_loop()
@@ -239,6 +227,9 @@ def get_apps():
 
 
 WORKFLOW, EDIT_APP = get_apps()
+STEP_LABEL = {"resolve_region": "여행 지역 확인", "extract_preferences": "취향 키워드 추출", "fetch_weather": "날씨 조회",
+              "search": "리뷰에서 장소 검색", "locate": "동선 짜기", "plan_routes": "이동 경로 계산",
+              "brief": "추천 이유 작성", "render": "마무리"}
 
 
 def build_request() -> dict:
@@ -248,50 +239,103 @@ def build_request() -> dict:
             "start_date": start.isoformat(), "days": int(st.session_state.get("total_days", 1)),
             "group_type": st.session_state.get("group_type", "친구"),
             "style": st.session_state.get("travel_style") or st.session_state.get("preference", ""),
-            "detail": st.session_state.get("detail_preference", "")}
+            "detail": st.session_state.get("detail_preference", ""),
+            "mode": st.session_state.get("travel_mode", "transit"),
+            "start_time": st.session_state.get("arrive_time", "12:00"),
+            "end_time": st.session_state.get("leave_time", "20:00")}
 
 
-async def create_plan(placeholder=None):
-    """초안 생성. 시간표가 나오면 브리핑(LLM)을 기다리지 않고 placeholder에 일정부터 표시."""
-    out = await stream_plan(WORKFLOW, build_request(), on_plan=placeholder.markdown if placeholder else None)
-    st.session_state.plan = {k: out.get(k) for k in ("request", "region", "items", "weather")}
-    st.session_state.messages.append(AIMessage(content=out["final_text"]))
+async def create_plan(status):
+    """초안 생성. 노드가 끝날 때마다 진행 단계를 표시."""
+    out = await stream_plan(WORKFLOW, build_request(),
+                            on_step=lambda n: status.write(f":material/check: {STEP_LABEL.get(n, n)}"))
+    st.session_state.plan = {**{k: out.get(k) for k in ("request", "region", "items", "weather", "briefing", "errors")},
+                             "keywords": out["preferences"].keywords if out.get("preferences") else [],
+                             "rejected": []}
 
 
 async def edit_plan(text: str):
-    out = await edit(EDIT_APP, st.session_state.plan, text)
-    st.session_state.plan = {**st.session_state.plan, "items": out["items"]}
+    plan = st.session_state.plan
+    out = await edit(EDIT_APP, {k: plan[k] for k in ("request", "region", "items", "rejected")}, text)
+    st.session_state.plan = {**plan, "items": out["items"], "rejected": out.get("rejected") or plan["rejected"]}
     reply = next((m.content for m in reversed(out["messages"]) if isinstance(m, AIMessage) and m.content), "")
-    st.session_state.messages.append(AIMessage(content=(f"{reply}\n\n" if reply else "") + out["final_text"]))
+    st.session_state.messages.append(AIMessage(content=reply or "일정을 수정했어요."))
+
+
+def swap(slot_id: str, place):
+    """카드의 대안 선택 → 교체, 뺀 장소는 재추천 금지, 시간표 재계산."""
+    plan = st.session_state.plan
+    old = next(i.place for i in plan["items"] if i.slot.slot_id == slot_id)
+    items, _ = loop.run_until_complete(reschedule(swap_place(plan["items"], slot_id, place), get_detailed_route,
+                                                  plan["request"]))
+    st.session_state.plan = {**plan, "items": items, "rejected": [*plan["rejected"], (old.name, old.region)]}
 
 
 # --- 초기 실행: 초안 생성 ---
 if st.session_state.plan is None:
-    preview = st.empty()
-    with st.spinner("여행 계획을 만드는 중입니다..."):
-        loop.run_until_complete(create_plan(preview))
+    with st.status("여행 계획을 만드는 중이에요", expanded=True) as status:
+        loop.run_until_complete(create_plan(status))
+        status.update(label="여행 계획을 만들었어요", state="complete", expanded=False)
     st.rerun()
 
-for msg in st.session_state.messages:
-    role = "user" if isinstance(msg, HumanMessage) else "assistant"
-    content = normalize_to_string(msg.content)
-    if content.strip():
-        st.chat_message(role).markdown(content)
+plan = st.session_state.plan
+req, items, briefing = plan["request"], plan["items"], plan.get("briefing")
+catalog = get_catalog(DB) if DB is not None else None
+
+st.title(f"{req['destination']} {req['days']}일 여행")
+chips([req["group_type"], req["style"], "자동차" if req.get("mode") == "driving" else "대중교통",
+       f"숙소 {req['start_location']}" if req.get("start_location") else ""], plan.get("keywords") or [])
+for msg in dict.fromkeys(e.message for e in plan.get("errors") or []):
+    st.warning(msg)
+if briefing:
+    st.markdown(briefing.overview)
+    st.caption(f":material/partly_cloudy_day: {briefing.weather_tip}")
+elif plan.get("weather"):
+    st.caption(plan["weather"].splitlines()[0])
+
+taken = {(i.place.name, i.place.region) for i in items if i.place} | {tuple(k) for k in plan["rejected"]}
+days = sorted({i.slot.day for i in items})
+for day, tab in zip(days, st.tabs([f"Day {d}" for d in days])):
+    today = [i for i in items if i.slot.day == day]
+    with tab:
+        left, right = st.columns([1.2, 1], gap="large")
+        with left:
+            n = 0
+            for it in today:
+                if it.place is None:
+                    st.caption(f"{it.slot.meal or it.slot.category}: 조건에 맞는 장소를 찾지 못했어요")
+                    continue
+                n += 1
+                if it.move_min is not None:
+                    move_line(it.move_min, it.move_detail)
+                reviews = catalog.places.get((it.place.name, it.place.region)).reviews if catalog else it.place.reviews
+                picked = place_card(n, it, plan.get("keywords") or [], reviews, taken)
+                if picked:
+                    swap(it.slot.slot_id, picked)
+                    st.rerun()
+                if it.lodging_min is not None:
+                    move_line(it.lodging_min, it.lodging_detail, label="숙소로 · ")
+        with right:
+            deck = day_map(today)
+            if deck:
+                st.pydeck_chart(deck, height=520)
+            else:
+                st.caption("좌표를 찾지 못해 지도를 표시할 수 없어요")
 
 # --- PDF ---
-plan = st.session_state.plan
-if plan and plan.get("items"):
-    itinerary = to_legacy_itinerary(plan["items"])
-    pdf_bytes = create_itinerary_pdf(itinerary, st.session_state.destination, st.session_state.get("dates", ""),
-                                     plan.get("weather") or "날씨 정보 없음", "", st.session_state.get("total_days", 1),
-                                     st.session_state.get("start_location"))
+if items:
+    pdf_bytes = create_itinerary_pdf(to_legacy_itinerary(items), req["destination"], st.session_state.get("dates", ""),
+                                     plan.get("weather") or "날씨 정보 없음", "", req["days"], req.get("start_location"))
     if pdf_bytes:
-        st.download_button(label="📄 여행 계획 PDF 다운로드", data=pdf_bytes,
-                           file_name=f"{st.session_state.destination}_여행계획.pdf", mime="application/pdf")
+        st.download_button(label="여행 계획 PDF 다운로드", data=pdf_bytes, icon=":material/download:",
+                           file_name=f"{req['destination']}_여행계획.pdf", mime="application/pdf")
 
 # --- 수정 요청: 에이전트 ---
-if user_input := st.chat_input("수정할 내용을 입력하세요 (예: d1-s2 카페를 조용한 곳으로 바꿔줘)"):
+st.divider()
+for msg in st.session_state.messages:
+    st.chat_message("user" if isinstance(msg, HumanMessage) else "assistant").markdown(normalize_to_string(msg.content))
+if user_input := st.chat_input("수정할 내용을 입력하세요 (예: 1일차 카페를 조용한 곳으로 바꿔줘)"):
     st.session_state.messages.append(HumanMessage(content=user_input))
-    with st.spinner("일정을 수정하는 중입니다..."):
+    with st.spinner("일정을 수정하는 중이에요..."):
         loop.run_until_complete(edit_plan(user_input))
     st.rerun()
