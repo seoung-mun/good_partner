@@ -21,7 +21,7 @@ def build_slots(days: int) -> list[Slot]:
     return slots
 
 
-MAX_KM = {"transit": 8.0, "driving": 15.0}   # 직전 장소에서 이 거리(직선) 안의 후보만 — 없으면 해제
+MAX_KM = {"transit": 5.0, "driving": 15.0}   # 직전 장소에서 이 거리(직선) 안의 후보만 — 없으면 해제
 RANK_KM = 0.3                                # 검색 순위 한 칸 = 0.3km: 순위를 조금 양보하고 가까운 곳을 고르는 비율
 N_ALTERNATIVES = 3
 

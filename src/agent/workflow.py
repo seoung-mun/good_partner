@@ -29,7 +29,7 @@ from src.retrieval.retriever import search_candidates
 
 log = get_logger(__name__)
 
-GEOCODE_TOP = 25          # 카테고리별 상위 몇 곳까지 좌표를 구할지 (지오코딩은 디스크 캐시 — 장소당 평생 1회)
+GEOCODE_TOP = 50          # 카테고리별 상위 몇 곳까지 좌표를 구할지 (지오코딩은 디스크 캐시 — 장소당 평생 1회)
 GEOCODE_CONCURRENCY = 8
 
 
