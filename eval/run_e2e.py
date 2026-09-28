@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from eval.instrument import LLMCallCounter, attach_counter, configure_caches
 from eval.metrics import e2e_trip_metrics, summarize_e2e
-from eval.trace import AgentTracer, timed, timed_sync
+from eval.trace import AgentTracer, timed_sync
 
 KEYS = ["n_places", "slot_fill", "category_adherence", "overflow", "region_acc", "dup_rate",
         "has_timeline", "total_move_min", "llm_calls", "input_tokens", "output_tokens", "maps_calls", "latency_s",
@@ -35,29 +35,20 @@ def resummarize(path: str) -> None:
 async def main(args):
     load_dotenv(".env")
     cache_state = configure_caches(args.no_cache)
-    from src.config import LLM
-    from src.graph_flow import build_graph
-    from src.services.maps_client import RoutesCompatClient
-    from eval.metadata import ungrounded_rate
-    from src.agent.tools import AVAILABLE_TOOLS
-    search_acc = {"t": 0.0, "n": 0}
     if args.system == "legacy":
-        import src.retrieval.retriever as T
-        from eval.legacy_adapter import run_legacy_trip as run_trip
-        T._search_docs = timed(T._search_docs, search_acc)  # 임베딩+FAISS 시간 계측 (로직 동일)
-        known_tools = set(AVAILABLE_TOOLS)
-    else:
-        import src.agent.workflow as WF
-        from eval.new_adapter import run_new_trip as run_trip
-        WF.search_candidates = timed_sync(WF.search_candidates, search_acc)
-        known_tools = set()
+        raise SystemExit("옛 시스템(legacy)은 삭제됐습니다. 베이스라인 재현: git checkout baseline-v0 후 --system legacy")
+    import src.agent.workflow as WF
+    from eval.metadata import ungrounded_rate
+    from eval.new_adapter import run_new_trip as run_trip
+    from src.config import LLM
+    from src.services.maps_client import RoutesCompatClient
+    search_acc = {"t": 0.0, "n": 0}
+    WF.search_candidates = timed_sync(WF.search_candidates, search_acc)  # 배치 임베딩+FAISS 시간 계측
+    known_tools = set()   # 초안 생성 워크플로우는 tool을 쓰지 않음 (tool 지표는 run_edit)
 
     counter = LLMCallCounter()
     attach_counter(LLM, counter)
-    if args.system == "legacy":
-        app = build_graph()
-    else:
-        app = WF.build_workflow()
+    app = WF.build_workflow()
     start = date.today() + timedelta(days=1)
     trips = [json.loads(l) for l in Path(args.golden).read_text().splitlines() if l.strip()][: args.limit]
     rows = []
@@ -101,6 +92,6 @@ if __name__ == "__main__":
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--no-cache", action="store_true")
     ap.add_argument("--resummarize", metavar="RESULT_JSON")
-    ap.add_argument("--system", choices=["legacy", "new"], default="legacy")
+    ap.add_argument("--system", choices=["legacy", "new"], default="new")
     a = ap.parse_args()
     resummarize(a.resummarize) if a.resummarize else asyncio.run(main(a))

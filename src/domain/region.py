@@ -1,5 +1,4 @@
-import re
-from typing import List, Set, Dict
+"""행정구역 정규화·일치 판정·목적지 해석 (시/도 + 시/군/구)."""
 
 REGION_STRUCTURE = {
     "서울특별시": ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"],
@@ -69,6 +68,7 @@ def normalize_region_name(user_input: str) -> str:
     return clean
 
 def _sido_of(token: str) -> str:
+    """시/도 토큰 → 정식 명칭. 약칭('부산'), 옛 명칭('강원도'), LLM식 표기('전북도')를 인식."""
     if token in REGION_STRUCTURE:
         return token
     # LLM이 '전북도', '경북도'처럼 약칭 + '도'로 내놓는 경우도 인식

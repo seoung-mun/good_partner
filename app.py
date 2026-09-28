@@ -10,6 +10,9 @@ from datetime import date, timedelta
 import time
 from concurrent.futures import ThreadPoolExecutor
 from src.retrieval.store import load_faiss_index
+from src.logging_config import get_logger
+
+log = get_logger(__name__)
 
 
 if "executor" not in st.session_state:
@@ -17,12 +20,12 @@ if "executor" not in st.session_state:
 
 def warm_up_task():
     """백그라운드 작업: DB 로딩"""
-    print(" 백그라운드 DB 로딩 시작 (Non-blocking)")
+    log.info(" 백그라운드 DB 로딩 시작 (Non-blocking)")
     try:
         load_faiss_index() 
-        print("백그라운드 DB 로딩 완료")
+        log.info("백그라운드 DB 로딩 완료")
     except Exception as e:
-        print(f"로딩 실패: {e}")
+        log.warning(f"로딩 실패: {e}")
 
 if "db_loading_submitted" not in st.session_state:
     st.session_state.executor.submit(warm_up_task)

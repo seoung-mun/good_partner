@@ -3,8 +3,11 @@ import asyncio
 import datetime
 
 from src.config import GMAPS_CLIENT
-from src.domain.geo import calculate_distance_time, calculate_haversine_distance  # noqa: F401 (재수출)
+from src.domain.geo import calculate_distance_time
 from src.domain.region import normalize_region_name
+from src.logging_config import get_logger
+
+log = get_logger(__name__)
 
 
 async def get_coordinates(location_name: str):
@@ -16,19 +19,19 @@ async def get_coordinates(location_name: str):
             loc = res[0]['geometry']['location']
             return loc['lat'], loc['lng']
     except Exception as e:
-        print(f" 좌표 변환 실패 ({location_name}): {e}")
+        log.warning(f" 좌표 변환 실패 ({location_name}): {e}")
     return None, None
 
 async def get_detailed_route(start_place: str, end_place: str, mode="transit", departure_time=None):
     """상세 경로 조회 (Google Maps Directions API)"""
     if not GMAPS_CLIENT: 
-        print(f" GMAPS_CLIENT가 없습니다. (API Key 확인 필요)")
+        log.warning(f" GMAPS_CLIENT가 없습니다. (API Key 확인 필요)")
         return None
     if mode == "transit" and not departure_time: departure_time = datetime.datetime.now()
     if mode != "transit": departure_time = None
 
     try:
-        print(f" 경로 검색 요청: {start_place} -> {end_place}")
+        log.debug(f" 경로 검색 요청: {start_place} -> {end_place}")
         res = await asyncio.to_thread(
             GMAPS_CLIENT.directions, origin=start_place, destination=end_place,
             mode=mode, departure_time=departure_time, region="KR", language="ko"
@@ -53,7 +56,7 @@ async def get_detailed_route(start_place: str, end_place: str, mode="transit", d
                 "start_location": route['start_location'], "end_location": route['end_location']
             }
     except Exception as e:
-        print(f" 경로 검색 API 에러: {e}") 
+        log.warning(f" 경로 검색 API 에러: {e}") 
         return None
     
 
@@ -75,7 +78,7 @@ async def resolve_admin_region(query: str, destination: str) -> str:
     if destination and destination not in query:
         search_term = f"{destination} {query}"
         
-    print(f" 행정구역 식별 시도: '{search_term}'")
+    log.debug(f" 행정구역 식별 시도: '{search_term}'")
 
     try:
         geocode_res = await asyncio.to_thread(GMAPS_CLIENT.geocode, search_term, language='ko')
@@ -107,11 +110,11 @@ async def resolve_admin_region(query: str, destination: str) -> str:
         extracted_region = f"{level1} {level2}".strip()
         
         if extracted_region:
-            print(f" 변환 성공: '{query}' -> '{extracted_region}'")
+            log.debug(f" 변환 성공: '{query}' -> '{extracted_region}'")
             return extracted_region
         else:
             return normalize_region_name(destination)
 
     except Exception as e:
-        print(f" 행정구역 변환 중 에러: {e}")
+        log.warning(f" 행정구역 변환 중 에러: {e}")
         return normalize_region_name(destination)

@@ -24,6 +24,7 @@ def _tool_error(error: Exception, request) -> str:
 
 
 class EditState(AgentState):
+    """수정 에이전트 상태: 대화 메시지 + 일정·요청·지역."""
     items: list[ItineraryItem]
     request: dict
     region: str
@@ -31,6 +32,7 @@ class EditState(AgentState):
 
 
 def build_edit_app(llm=None, load_db=None, route_fn=None):
+    """수정 그래프: 에이전트(tool calling) → 시간표 재계산·렌더. 의존성 주입 가능."""
     if llm is None:
         from src.config import LLM as llm
     if load_db is None:

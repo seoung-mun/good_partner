@@ -10,10 +10,13 @@ import time
 import os
 from fpdf.enums import XPos, YPos
 from src.retrieval.store import load_faiss_index
+from src.logging_config import get_logger
+
+log = get_logger(__name__)
 
 with st.spinner("여행 데이터를 불러오는 중입니다..."):
     DB = load_faiss_index()
-    print("1_trip_planner 페이지에서 DB 로드 확인 완료")
+    log.info("1_trip_planner 페이지에서 DB 로드 확인 완료")
 
 def normalize_to_string(content):
     if content is None:
@@ -105,7 +108,7 @@ def create_itinerary_pdf(itinerary, destination, dates, weather, final_routes, t
         else:
             pdf.set_font('Arial', '', 12)
     except Exception as e:
-        print(f" [PDF 생성] 폰트 로드 에러: {e}")
+        log.warning(f" [PDF 생성] 폰트 로드 에러: {e}")
         pdf.set_font('Arial', '', 12)
 
     pdf.set_font_size(24)

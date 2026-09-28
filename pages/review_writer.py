@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import os
 from src.rag_updater import update_vector_db_if_needed 
+from src.logging_config import get_logger
+
+log = get_logger(__name__)
 
 st.set_page_config(page_title="리뷰 작성기", page_icon="✍️")
 st.title("✍️ 여행지 리뷰 작성")
@@ -40,7 +43,7 @@ if submitted:
             st.success(f"'{place_name}' 리뷰가 성공적으로 저장되었습니다. 감사합니다!")
             
             update_status = update_vector_db_if_needed(NEW_REVIEWS_FILE)
-            print(update_status) 
+            log.info(update_status) 
 
         except Exception as e:
             st.error(f"리뷰 저장 중 오류 발생: {e}")

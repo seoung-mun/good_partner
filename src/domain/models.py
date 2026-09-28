@@ -7,6 +7,7 @@ Category = Literal["식당", "카페", "관광지"]
 
 
 class Slot(BaseModel):
+    """일정의 빈칸 하나 (일차·순서·카테고리·식사 구분)."""
     slot_id: str                                  # "d1-s2"
     day: int
     order: int
@@ -15,6 +16,7 @@ class Slot(BaseModel):
 
 
 class Place(BaseModel):
+    """검색된 장소 (메타데이터 기반, 근거 리뷰 포함)."""
     name: str
     region: str                                   # 메타데이터 '지역' ("부산광역시 중구")
     category: str
@@ -24,6 +26,7 @@ class Place(BaseModel):
 
 
 class ItineraryItem(BaseModel):
+    """슬롯 + 배정된 장소 + 시간표 + 추천 사유."""
     slot: Slot
     place: Place | None = None
     start: str | None = None                      # "HH:MM"
@@ -34,16 +37,19 @@ class ItineraryItem(BaseModel):
 
 
 class TripPreferences(BaseModel):
+    """LLM이 추출한 취향 키워드 (검색 쿼리에 사용)."""
     keywords: list[str] = Field(description="리뷰 검색에 쓸 취향 키워드 1~4개 (예: 조용한, 바다뷰, 노포)")
     avoid: list[str] = Field(description="피하고 싶은 것 (없으면 빈 목록)")
 
 
 class SlotReason(BaseModel):
+    """슬롯별 추천 사유."""
     slot_id: str
     reason: str = Field(description="근거 리뷰에 기반한 1~2문장 추천 사유")
 
 
 class Briefing(BaseModel):
+    """LLM 브리핑: 개요, 날씨 팁, 슬롯별 사유."""
     overview: str = Field(description="일정 전체를 소개하는 2~3문장")
     weather_tip: str = Field(description="날씨 데이터를 한 문장으로 요약한 조언")
     reasons: list[SlotReason]
