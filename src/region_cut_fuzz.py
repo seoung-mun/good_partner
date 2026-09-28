@@ -67,3 +67,39 @@ def normalize_region_name(user_input: str) -> str:
             
 
     return clean
+
+def _sido_of(token: str) -> str:
+    if token in REGION_STRUCTURE:
+        return token
+    # LLM이 '전북도', '경북도'처럼 약칭 + '도'로 내놓는 경우도 인식
+    return SIMPLE_ALIASES.get(token) or SIMPLE_ALIASES.get(token.removesuffix("도"), "")
+
+
+def _sigungu_of(token: str, sido: str) -> str:
+    """'광주' → '광주시'(경기도), '고성' → '고성군'(강원). 행정구역 표에서 접미사까지 복원."""
+    for name in REGION_STRUCTURE.get(sido, []):
+        if token == name or token == name[:-1]:
+            return name
+    return token
+
+
+def canonical_region(text: str) -> tuple[str, str]:
+    """'서울 강동구' → ('서울특별시', '강동구'). 시도를 못 찾으면 ('', 첫 토큰)."""
+    parts = (text or "").split()
+    if not parts:
+        return ("", "")
+    sido = _sido_of(parts[0])
+    if not sido:
+        return ("", parts[0])
+    return (sido, _sigungu_of(parts[1], sido) if len(parts) > 1 else "")
+
+
+def region_matches(address: str, target: str) -> bool:
+    """후보 주소가 목표 지역(시도 [+ 시군구]) 안에 있는지. 동명 시군구(중구·강서구·고성군, 광주)를 구분한다."""
+    t_sido, t_sigungu = canonical_region(target)
+    if not t_sido and not t_sigungu:
+        return True
+    a_sido, a_sigungu = canonical_region(address)
+    if not t_sido:  # 시도 없는 타깃('해운대구')은 시군구만 비교
+        return a_sigungu == t_sigungu
+    return a_sido == t_sido and (not t_sigungu or a_sigungu == t_sigungu)

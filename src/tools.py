@@ -14,10 +14,7 @@ from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.load import dumps, loads
 from src.config import LLM, load_faiss_index, GMAPS_CLIENT
 
-try:
-    from src.region_cut_fuzz import normalize_region_name
-except ImportError:
-    def normalize_region_name(name): return name
+from src.region_cut_fuzz import canonical_region, normalize_region_name, region_matches
 
 
 query_gen_prompt = PromptTemplate.from_template("""
@@ -235,11 +232,7 @@ async def _filter_candidates(docs, target_region: str, exclude_places: List[str]
     candidates = []
     print(f" _filter_candidates 진입 (문서 수: {len(docs)})")
     
-    target_parts = target_region.split()
-    refined_targets = [re.sub(r'(특별시|광역시|도|시|군|구)$', '', p) for p in target_parts]
-    if not refined_targets: refined_targets = target_parts
-
-    print(f" 필터 적용 - 지역키워드:{refined_targets} / 카테고리:{category_filter}")
+    print(f" 필터 적용 - 지역:{canonical_region(target_region)} / 카테고리:{category_filter}")
     count=0
     for doc in docs:
         count+=1
@@ -258,15 +251,8 @@ async def _filter_candidates(docs, target_region: str, exclude_places: List[str]
         elif category_filter == "관광지":
             if not any(x in doc_cat for x in ["관광", "여행", "명소"]): continue
 
-        is_match = False
-        if not refined_targets:
-            is_match = True
-        elif all(k in address for k in refined_targets): 
-            is_match = True
-        elif refined_targets and refined_targets[-1] in address: 
-            is_match = True
-            
-        if is_match:
+        # 기존: 접미사를 떼고 부분 문자열 비교 → '광주광역시'와 '경기도 광주시', 동명 구가 서로 통과했음
+        if region_matches(address, target_region):
             candidates.append(doc)
             
     return candidates

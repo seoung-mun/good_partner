@@ -1,0 +1,4059 @@
+{
+ "llm_model": "ollama:qwen2.5:7b-instruct-q4_K_M",
+ "k": 5,
+ "cache": {
+  "llm_cache": true,
+  "maps_cache": true
+ },
+ "summary": {
+  "all": {
+   "n": 73,
+   "empty": 0.0136986301369863,
+   "returned": 4.931506849315069,
+   "region_acc": 0.9232876712328766,
+   "region_hit1": 0.9041095890410958,
+   "category_acc": 0.9863013698630136,
+   "diversity": 0.9863013698630136,
+   "llm_calls": 2.0,
+   "latency_s": 0.20917979331865702
+  },
+  "ambiguous": {
+   "n": 29,
+   "empty": 0.0,
+   "returned": 5.0,
+   "region_acc": 0.9655172413793104,
+   "region_hit1": 0.9310344827586207,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "llm_calls": 2.0,
+   "latency_s": 0.381692491728684
+  },
+  "gwangju": {
+   "n": 6,
+   "empty": 0.0,
+   "returned": 5.0,
+   "region_acc": 1.0,
+   "region_hit1": 1.0,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "llm_calls": 2.0,
+   "latency_s": 0.08920542399088542
+  },
+  "regular": {
+   "n": 30,
+   "empty": 0.03333333333333333,
+   "returned": 4.833333333333333,
+   "region_acc": 0.9666666666666667,
+   "region_hit1": 0.9666666666666667,
+   "category_acc": 0.9666666666666667,
+   "diversity": 0.9666666666666667,
+   "llm_calls": 2.0,
+   "latency_s": 0.0930280605951945
+  },
+  "landmark": {
+   "n": 8,
+   "empty": 0.0,
+   "returned": 5.0,
+   "region_acc": 0.55,
+   "region_hit1": 0.5,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "llm_calls": 2.0,
+   "latency_s": 0.10937103629112244
+  }
+ },
+ "rows": [
+  {
+   "id": "ambiguous-부산광역시-강서구-식당-맛집",
+   "group": "ambiguous",
+   "destination": "부산 강서구",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "부산광역시",
+   "gold_sigungu": "강서구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "부산광역시 강서구",
+   "queries": [
+    "부산광역시 강서구 맛집",
+    "부산광역시 강서구 조용한 맛집",
+    "부산광역시 강서구 분위기 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "참맛우리돼지",
+     "region": "부산광역시 강서구",
+     "category": "식당"
+    },
+    {
+     "name": "영진돼지국밥",
+     "region": "부산광역시 강서구",
+     "category": "식당"
+    },
+    {
+     "name": "삼성갈미조개",
+     "region": "부산광역시 강서구",
+     "category": "식당"
+    },
+    {
+     "name": "앙탄",
+     "region": "부산광역시 강서구",
+     "category": "식당"
+    },
+    {
+     "name": "만드리곤드레밥",
+     "region": "부산광역시 강서구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 8.474210023880005,
+   "llm_calls": 2,
+   "input_tokens": 791,
+   "output_tokens": 51
+  },
+  {
+   "id": "ambiguous-서울특별시-강서구-카페-카페",
+   "group": "ambiguous",
+   "destination": "서울 강서구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "서울특별시",
+   "gold_sigungu": "강서구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "서울특별시 강서구",
+   "queries": [
+    "서울 강서구 카페",
+    "서울 강서구 조용한 카페",
+    "서울 강서구 스터디 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "커피볶는곤이네집",
+     "region": "서울특별시 강서구",
+     "category": "카페"
+    },
+    {
+     "name": "디프커피",
+     "region": "서울특별시 강서구",
+     "category": "카페"
+    },
+    {
+     "name": "남대문커피",
+     "region": "서울특별시 강서구",
+     "category": "카페"
+    },
+    {
+     "name": "스타벅스 등촌대로점",
+     "region": "서울특별시 강서구",
+     "category": "카페"
+    },
+    {
+     "name": "카페우드진",
+     "region": "서울특별시 강서구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09931397438049316,
+   "llm_calls": 2,
+   "input_tokens": 789,
+   "output_tokens": 40
+  },
+  {
+   "id": "ambiguous-강원특별자치도-고성군-관광지-관광지",
+   "group": "ambiguous",
+   "destination": "강원 고성군",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "강원특별자치도",
+   "gold_sigungu": "고성군",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "강원특별자치도 고성군",
+   "queries": [
+    "강원특별자치도 고성군",
+    "강원특별자치도 고성군 관광지",
+    "강원특별자치도 고성군 휴식처 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "금강산화암사",
+     "region": "강원특별자치도 고성군",
+     "category": "관광지"
+    },
+    {
+     "name": "아야진해수욕장",
+     "region": "강원특별자치도 고성군",
+     "category": "관광지"
+    },
+    {
+     "name": "봉포해수욕장",
+     "region": "강원특별자치도 고성군",
+     "category": "관광지"
+    },
+    {
+     "name": "백섬해상전망대",
+     "region": "강원특별자치도 고성군",
+     "category": "관광지"
+    },
+    {
+     "name": "거진해수욕장",
+     "region": "강원특별자치도 고성군",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.1000361442565918,
+   "llm_calls": 2,
+   "input_tokens": 792,
+   "output_tokens": 47
+  },
+  {
+   "id": "ambiguous-경상남도-고성군-식당-맛집",
+   "group": "ambiguous",
+   "destination": "경남 고성군",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "경상남도",
+   "gold_sigungu": "고성군",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "경상남도 고성군",
+   "queries": [
+    "경상남도 고성군",
+    "경상남도 고성군 맛집",
+    "경상남도 고성군 재미있는 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "옛날손짜장 고성점",
+     "region": "경상남도 고성군",
+     "category": "식당"
+    },
+    {
+     "name": "왕창이식당",
+     "region": "경상남도 고성군",
+     "category": "식당"
+    },
+    {
+     "name": "대가돌솥밥",
+     "region": "경상남도 고성군",
+     "category": "식당"
+    },
+    {
+     "name": "병산수산고성왕새우",
+     "region": "경상남도 고성군",
+     "category": "식당"
+    },
+    {
+     "name": "고성쭈꾸미",
+     "region": "경상남도 고성군",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09770798683166504,
+   "llm_calls": 2,
+   "input_tokens": 790,
+   "output_tokens": 39
+  },
+  {
+   "id": "ambiguous-광주광역시-남구-카페-카페",
+   "group": "ambiguous",
+   "destination": "광주 남구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "광주광역시",
+   "gold_sigungu": "남구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "광주광역시 남구",
+   "queries": [
+    "광주광역시 남구 카페",
+    "광주광역시 남구 조용한 카페",
+    "광주광역시 남구 휴식"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "카페도로시",
+     "region": "광주광역시 남구",
+     "category": "카페"
+    },
+    {
+     "name": "카페퀜쳐 진월점",
+     "region": "광주광역시 남구",
+     "category": "카페"
+    },
+    {
+     "name": "까사델커피",
+     "region": "광주광역시 남구",
+     "category": "카페"
+    },
+    {
+     "name": "달달한온도 백운본점",
+     "region": "광주광역시 남구",
+     "category": "카페"
+    },
+    {
+     "name": "카페쉼표",
+     "region": "광주광역시 남구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.0949549674987793,
+   "llm_calls": 2,
+   "input_tokens": 359,
+   "output_tokens": 5
+  },
+  {
+   "id": "ambiguous-대구광역시-남구-관광지-관광지",
+   "group": "ambiguous",
+   "destination": "대구 남구",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "대구광역시",
+   "gold_sigungu": "남구",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "대구광역시 남구",
+   "queries": [
+    "대구광역시 남구 관광지",
+    "대구광역시 남구 조용한 관광지",
+    "대구광역시 남구 역사적 관광지 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "신천물놀이장",
+     "region": "대구광역시 남구",
+     "category": "관광지"
+    },
+    {
+     "name": "앞산빨래터공원",
+     "region": "대구광역시 남구",
+     "category": "관광지"
+    },
+    {
+     "name": "앞산해넘이전망대",
+     "region": "대구광역시 남구",
+     "category": "관광지"
+    },
+    {
+     "name": "앞산공원",
+     "region": "대구광역시 남구",
+     "category": "관광지"
+    },
+    {
+     "name": "산성산",
+     "region": "대구광역시 남구",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08752322196960449,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 46
+  },
+  {
+   "id": "ambiguous-부산광역시-남구-식당-맛집",
+   "group": "ambiguous",
+   "destination": "부산 남구",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "부산광역시",
+   "gold_sigungu": "남구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "부산광역시 남구",
+   "queries": [
+    "부산광역시 남구 맛집",
+    "부산광역시 남구 조용한 맛집",
+    "부산광역시 남구 해변가 맛집 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "덕산명가참소국밥",
+     "region": "부산광역시 남구",
+     "category": "식당"
+    },
+    {
+     "name": "대연밀면",
+     "region": "부산광역시 남구",
+     "category": "식당"
+    },
+    {
+     "name": "영진돼지국밥 남구청점",
+     "region": "부산광역시 남구",
+     "category": "식당"
+    },
+    {
+     "name": "영진돼지국밥 경성부경점",
+     "region": "부산광역시 남구",
+     "category": "식당"
+    },
+    {
+     "name": "초원복국 대연점",
+     "region": "부산광역시 남구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.0958549976348877,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 47
+  },
+  {
+   "id": "ambiguous-울산광역시-남구-카페-카페",
+   "group": "ambiguous",
+   "destination": "울산 남구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "울산광역시",
+   "gold_sigungu": "남구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "울산광역시 남구",
+   "queries": [
+    "울산광역시 남구 카페",
+    "울산광역시 남구 조용한 카페",
+    "울산광역시 남구 휴식"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "웰빈카페",
+     "region": "울산광역시 남구",
+     "category": "카페"
+    },
+    {
+     "name": "카페리뉴",
+     "region": "울산광역시 남구",
+     "category": "카페"
+    },
+    {
+     "name": "ppl",
+     "region": "울산광역시 남구",
+     "category": "카페"
+    },
+    {
+     "name": "베란다카페",
+     "region": "울산광역시 남구",
+     "category": "카페"
+    },
+    {
+     "name": "클라우드나인커피",
+     "region": "울산광역시 남구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08731889724731445,
+   "llm_calls": 2,
+   "input_tokens": 359,
+   "output_tokens": 5
+  },
+  {
+   "id": "ambiguous-광주광역시-동구-관광지-관광지",
+   "group": "ambiguous",
+   "destination": "광주 동구",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "광주광역시",
+   "gold_sigungu": "동구",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "광주광역시 동구",
+   "queries": [
+    "광주광역시 동구 관광지",
+    "광주광역시 동구 조용한 관광지",
+    "광주광역시 동구 역사적 관광지 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "여행자의zip",
+     "region": "광주광역시 동구",
+     "category": "관광지"
+    },
+    {
+     "name": "충장의집",
+     "region": "광주광역시 동구",
+     "category": "관광지"
+    },
+    {
+     "name": "빛나는 아이나라",
+     "region": "광주광역시 동구",
+     "category": "관광지"
+    },
+    {
+     "name": "증심사",
+     "region": "광주광역시 동구",
+     "category": "관광지"
+    },
+    {
+     "name": "헬로애니멀 광주점",
+     "region": "광주광역시 동구",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.10217094421386719,
+   "llm_calls": 2,
+   "input_tokens": 788,
+   "output_tokens": 50
+  },
+  {
+   "id": "ambiguous-대구광역시-동구-식당-맛집",
+   "group": "ambiguous",
+   "destination": "대구 동구",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "대구광역시",
+   "gold_sigungu": "동구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "대구광역시 동구",
+   "queries": [
+    "대구광역시 동구 맛집",
+    "대구광역시 동구 조용한 맛집",
+    "대구광역시 동구 테마 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "동림식당",
+     "region": "대구광역시 동구",
+     "category": "식당"
+    },
+    {
+     "name": "샤브20 대구동구점",
+     "region": "대구광역시 동구",
+     "category": "식당"
+    },
+    {
+     "name": "밥을짓다",
+     "region": "대구광역시 동구",
+     "category": "식당"
+    },
+    {
+     "name": "도심속바닷가",
+     "region": "대구광역시 동구",
+     "category": "식당"
+    },
+    {
+     "name": "팔공 은가비",
+     "region": "대구광역시 동구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.10655403137207031,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 44
+  },
+  {
+   "id": "ambiguous-대전광역시-동구-카페-카페",
+   "group": "ambiguous",
+   "destination": "대전 동구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "대전광역시",
+   "gold_sigungu": "동구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "대전광역시 동구",
+   "queries": [
+    "대전광역시 동구",
+    "대전광역시 동구 카페",
+    "대전광역시 동구 조용한 카페"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "메리골드카페",
+     "region": "대전광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "허브향기",
+     "region": "대전광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "메가MGC커피 대전역점",
+     "region": "대전광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "투썸플레이스 대전용전DT점",
+     "region": "대전광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "카페하소",
+     "region": "대전광역시 동구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09200382232666016,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 38
+  },
+  {
+   "id": "ambiguous-부산광역시-동구-관광지-관광지",
+   "group": "ambiguous",
+   "destination": "부산 동구",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "부산광역시",
+   "gold_sigungu": "동구",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "부산광역시 동구",
+   "queries": [
+    "부산광역시 동구 관광지",
+    "부산광역시 동구 조용한 관광지",
+    "부산광역시 동구 해변 관광지"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "증산공원",
+     "region": "부산광역시 동구",
+     "category": "관광지"
+    },
+    {
+     "name": "168계단",
+     "region": "부산광역시 동구",
+     "category": "관광지"
+    },
+    {
+     "name": "이바구길(초량이바구길)",
+     "region": "부산광역시 동구",
+     "category": "관광지"
+    },
+    {
+     "name": "문화공감수정",
+     "region": "부산광역시 동구",
+     "category": "관광지"
+    },
+    {
+     "name": "중앙공원",
+     "region": "부산광역시 동구",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09619784355163574,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 43
+  },
+  {
+   "id": "ambiguous-울산광역시-동구-식당-맛집",
+   "group": "ambiguous",
+   "destination": "울산 동구",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "울산광역시",
+   "gold_sigungu": "동구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "울산광역시",
+   "queries": [
+    "울산광역시 맛집",
+    "울산광역시 조용한 맛집",
+    "울산광역시 분위기 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "울산언양불고기",
+     "region": "울산광역시 남구",
+     "category": "식당"
+    },
+    {
+     "name": "대복횟집",
+     "region": "울산광역시 남구",
+     "category": "식당"
+    },
+    {
+     "name": "용궁해물탕",
+     "region": "울산광역시 동구",
+     "category": "식당"
+    },
+    {
+     "name": "굴하우스 굴화점",
+     "region": "울산광역시 울주군",
+     "category": "식당"
+    },
+    {
+     "name": "산너머남촌 동구점",
+     "region": "울산광역시 동구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.4,
+   "region_hit1": 0,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08533978462219238,
+   "llm_calls": 2,
+   "input_tokens": 785,
+   "output_tokens": 40
+  },
+  {
+   "id": "ambiguous-인천광역시-동구-카페-카페",
+   "group": "ambiguous",
+   "destination": "인천 동구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "인천광역시",
+   "gold_sigungu": "동구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "인천광역시 동구",
+   "queries": [
+    "인천광역시 동구 카페",
+    "인천광역시 동구 조용한 카페",
+    "인천광역시 동구 스터디 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "리치카페",
+     "region": "인천광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "카페잎새달",
+     "region": "인천광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "동양가배관",
+     "region": "인천광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "문카페 1호점",
+     "region": "인천광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "투썸플레이스 인천백병원점",
+     "region": "인천광역시 동구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.0916898250579834,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 47
+  },
+  {
+   "id": "ambiguous-광주광역시-북구-관광지-관광지",
+   "group": "ambiguous",
+   "destination": "광주 북구",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "광주광역시",
+   "gold_sigungu": "북구",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "광주광역시 북구",
+   "queries": [
+    "광주광역시 북구 관광지",
+    "광주광역시 북구 조용한 관광지",
+    "광주광역시 북구 역사적 관광지 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "중외공원",
+     "region": "광주광역시 북구",
+     "category": "관광지"
+    },
+    {
+     "name": "중외공원문화산책로",
+     "region": "광주광역시 북구",
+     "category": "관광지"
+    },
+    {
+     "name": "양산호수공원",
+     "region": "광주광역시 북구",
+     "category": "관광지"
+    },
+    {
+     "name": "우치공원 동물원",
+     "region": "광주광역시 북구",
+     "category": "관광지"
+    },
+    {
+     "name": "광주시민의숲",
+     "region": "광주광역시 북구",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08949685096740723,
+   "llm_calls": 2,
+   "input_tokens": 788,
+   "output_tokens": 50
+  },
+  {
+   "id": "ambiguous-대구광역시-북구-식당-맛집",
+   "group": "ambiguous",
+   "destination": "대구 북구",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "대구광역시",
+   "gold_sigungu": "북구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "대구광역시 북구",
+   "queries": [
+    "대구광역시 북구 맛집",
+    "대구광역시 북구 조용한 맛집",
+    "대구광역시 북구 테마 맛집 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "국수마을",
+     "region": "대구광역시 북구",
+     "category": "식당"
+    },
+    {
+     "name": "이가네더덕밥 대구팔공산점",
+     "region": "대구광역시 북구",
+     "category": "식당"
+    },
+    {
+     "name": "단골식당",
+     "region": "대구광역시 북구",
+     "category": "식당"
+    },
+    {
+     "name": "프로방스 P",
+     "region": "대구광역시 북구",
+     "category": "식당"
+    },
+    {
+     "name": "쿠우쿠우 대구북구점",
+     "region": "대구광역시 북구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09598278999328613,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 47
+  },
+  {
+   "id": "ambiguous-부산광역시-북구-카페-카페",
+   "group": "ambiguous",
+   "destination": "부산 북구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "부산광역시",
+   "gold_sigungu": "북구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "부산광역시 북구",
+   "queries": [
+    "부산광역시 북구 카페",
+    "부산광역시 북구 조용한 카페",
+    "부산광역시 북구 휴식"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "마비스커피",
+     "region": "부산광역시 북구",
+     "category": "카페"
+    },
+    {
+     "name": "부바스 만덕점",
+     "region": "부산광역시 북구",
+     "category": "카페"
+    },
+    {
+     "name": "이너프커피",
+     "region": "부산광역시 북구",
+     "category": "카페"
+    },
+    {
+     "name": "무사이",
+     "region": "부산광역시 북구",
+     "category": "카페"
+    },
+    {
+     "name": "카페오",
+     "region": "부산광역시 북구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08537697792053223,
+   "llm_calls": 2,
+   "input_tokens": 359,
+   "output_tokens": 5
+  },
+  {
+   "id": "ambiguous-울산광역시-북구-관광지-관광지",
+   "group": "ambiguous",
+   "destination": "울산 북구",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "울산광역시",
+   "gold_sigungu": "북구",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "울산광역시 북구",
+   "queries": [
+    "울산광역시 북구 관광지",
+    "울산광역시 북구 조용한 관광지",
+    "울산광역시 북구 역사적 관광지 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "만남의광장",
+     "region": "울산광역시 북구",
+     "category": "관광지"
+    },
+    {
+     "name": "무룡산",
+     "region": "울산광역시 북구",
+     "category": "관광지"
+    },
+    {
+     "name": "홈골수변공원",
+     "region": "울산광역시 북구",
+     "category": "관광지"
+    },
+    {
+     "name": "양정자동차테마거리",
+     "region": "울산광역시 북구",
+     "category": "관광지"
+    },
+    {
+     "name": "태화강",
+     "region": "울산광역시 북구",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.0853571891784668,
+   "llm_calls": 2,
+   "input_tokens": 787,
+   "output_tokens": 48
+  },
+  {
+   "id": "ambiguous-광주광역시-서구-식당-맛집",
+   "group": "ambiguous",
+   "destination": "광주 서구",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "광주광역시",
+   "gold_sigungu": "서구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "광주광역시 서구",
+   "queries": [
+    "광주광역시 서구 맛집",
+    "광주광역시 서구 맛집 추천",
+    "광주광역시 서구 음식점 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "김서방국밥",
+     "region": "광주광역시 서구",
+     "category": "식당"
+    },
+    {
+     "name": "벗초밥",
+     "region": "광주광역시 서구",
+     "category": "식당"
+    },
+    {
+     "name": "머시기 쪽갈비생족발구이 쌍촌본점",
+     "region": "광주광역시 서구",
+     "category": "식당"
+    },
+    {
+     "name": "상무초밥 상무점",
+     "region": "광주광역시 서구",
+     "category": "식당"
+    },
+    {
+     "name": "아웃백스테이크하우스 광주상무점",
+     "region": "광주광역시 서구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08594489097595215,
+   "llm_calls": 2,
+   "input_tokens": 788,
+   "output_tokens": 48
+  },
+  {
+   "id": "ambiguous-대구광역시-서구-카페-카페",
+   "group": "ambiguous",
+   "destination": "대구 서구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "대구광역시",
+   "gold_sigungu": "서구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "대구광역시 서구",
+   "queries": [
+    "대구광역시 서구",
+    "대구광역시 서구 카페",
+    "대구광역시 서구 조용한 카페"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "퀸즈크라운 베이커리카페",
+     "region": "대구광역시 서구",
+     "category": "카페"
+    },
+    {
+     "name": "디웨이브",
+     "region": "대구광역시 서구",
+     "category": "카페"
+    },
+    {
+     "name": "컴포즈커피 대구퀸스로드점",
+     "region": "대구광역시 서구",
+     "category": "카페"
+    },
+    {
+     "name": "메리쟈레",
+     "region": "대구광역시 서구",
+     "category": "카페"
+    },
+    {
+     "name": "파스쿠찌 서대구센트럴자이점",
+     "region": "대구광역시 서구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.1312260627746582,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 38
+  },
+  {
+   "id": "ambiguous-대전광역시-서구-관광지-관광지",
+   "group": "ambiguous",
+   "destination": "대전 서구",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "대전광역시",
+   "gold_sigungu": "서구",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "대전광역시 서구",
+   "queries": [
+    "대전광역시 서구",
+    "대전광역시 서구 관광지",
+    "대전광역시 서구 휴식처 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "한밭수목원열대식물원",
+     "region": "대전광역시 서구",
+     "category": "관광지"
+    },
+    {
+     "name": "대전엑스포시민광장",
+     "region": "대전광역시 서구",
+     "category": "관광지"
+    },
+    {
+     "name": "남선공원",
+     "region": "대전광역시 서구",
+     "category": "관광지"
+    },
+    {
+     "name": "보라매공원",
+     "region": "대전광역시 서구",
+     "category": "관광지"
+    },
+    {
+     "name": "둔산선사유적지",
+     "region": "대전광역시 서구",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08748698234558105,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 40
+  },
+  {
+   "id": "ambiguous-부산광역시-서구-식당-맛집",
+   "group": "ambiguous",
+   "destination": "부산 서구",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "부산광역시",
+   "gold_sigungu": "서구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "부산광역시 서구",
+   "queries": [
+    "부산광역시 서구 맛집",
+    "부산광역시 서구 조용한 맛집",
+    "부산광역시 서구 분위기 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "스시로운",
+     "region": "부산광역시 서구",
+     "category": "식당"
+    },
+    {
+     "name": "브런치송도&디에이블",
+     "region": "부산광역시 서구",
+     "category": "식당"
+    },
+    {
+     "name": "몽실종가돼지국밥",
+     "region": "부산광역시 서구",
+     "category": "식당"
+    },
+    {
+     "name": "윈덤 그랜드부산 더브릿지",
+     "region": "부산광역시 서구",
+     "category": "식당"
+    },
+    {
+     "name": "송도제일밀면",
+     "region": "부산광역시 서구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08483219146728516,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 47
+  },
+  {
+   "id": "ambiguous-인천광역시-서구-카페-카페",
+   "group": "ambiguous",
+   "destination": "인천 서구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "인천광역시",
+   "gold_sigungu": "서구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "인천광역시 서구",
+   "queries": [
+    "인천광역시 서구",
+    "인천광역시 서구 카페",
+    "인천광역시 서구 조용한 카페"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "육츠커피",
+     "region": "인천광역시 서구",
+     "category": "카페"
+    },
+    {
+     "name": "북카페아날로그데이",
+     "region": "인천광역시 서구",
+     "category": "카페"
+    },
+    {
+     "name": "인썸니악커피바",
+     "region": "인천광역시 서구",
+     "category": "카페"
+    },
+    {
+     "name": "스타벅스 인천청라센트럴점",
+     "region": "인천광역시 서구",
+     "category": "카페"
+    },
+    {
+     "name": "메가MGC커피 인천정서진점",
+     "region": "인천광역시 서구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08771920204162598,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 38
+  },
+  {
+   "id": "ambiguous-대구광역시-중구-관광지-관광지",
+   "group": "ambiguous",
+   "destination": "대구 중구",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "대구광역시",
+   "gold_sigungu": "중구",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "대구광역시 중구",
+   "queries": [
+    "대구광역시 중구",
+    "대구광역시 중구 관광지",
+    "대구광역시 중구 아름다운 관광지"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "2.28기념중앙공원",
+     "region": "대구광역시 중구",
+     "category": "관광지"
+    },
+    {
+     "name": "대구근대화거리",
+     "region": "대구광역시 중구",
+     "category": "관광지"
+    },
+    {
+     "name": "달성공원",
+     "region": "대구광역시 중구",
+     "category": "관광지"
+    },
+    {
+     "name": "청라언덕",
+     "region": "대구광역시 중구",
+     "category": "관광지"
+    },
+    {
+     "name": "스파크랜드",
+     "region": "대구광역시 중구",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09006214141845703,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 39
+  },
+  {
+   "id": "ambiguous-대전광역시-중구-식당-맛집",
+   "group": "ambiguous",
+   "destination": "대전 중구",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "대전광역시",
+   "gold_sigungu": "중구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "대전광역시 중구",
+   "queries": [
+    "대전광역시 중구 맛집",
+    "대전광역시 중구 조용한 맛집",
+    "대전광역시 중구 분위기 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "선화동실비식당",
+     "region": "대전광역시 중구",
+     "category": "식당"
+    },
+    {
+     "name": "선화동소머리해장국 본점",
+     "region": "대전광역시 중구",
+     "category": "식당"
+    },
+    {
+     "name": "만나 대흥본점",
+     "region": "대전광역시 중구",
+     "category": "식당"
+    },
+    {
+     "name": "쿠우쿠우 대전점",
+     "region": "대전광역시 중구",
+     "category": "식당"
+    },
+    {
+     "name": "선코다리냉면",
+     "region": "대전광역시 중구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08721208572387695,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 44
+  },
+  {
+   "id": "ambiguous-부산광역시-중구-카페-카페",
+   "group": "ambiguous",
+   "destination": "부산 중구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "부산광역시",
+   "gold_sigungu": "중구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "부산광역시 중구",
+   "queries": [
+    "부산광역시 중구",
+    "부산광역시 중구 카페",
+    "부산광역시 중구 평화로운 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "바우노바커피",
+     "region": "부산광역시 중구",
+     "category": "카페"
+    },
+    {
+     "name": "베얼스이얼스",
+     "region": "부산광역시 중구",
+     "category": "카페"
+    },
+    {
+     "name": "굿올데이즈카페",
+     "region": "부산광역시 중구",
+     "category": "카페"
+    },
+    {
+     "name": "스타벅스 부산중앙역점",
+     "region": "부산광역시 중구",
+     "category": "카페"
+    },
+    {
+     "name": "무슈부부커피스탠드 부산",
+     "region": "부산광역시 중구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08724713325500488,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 43
+  },
+  {
+   "id": "ambiguous-서울특별시-중구-관광지-관광지",
+   "group": "ambiguous",
+   "destination": "서울 중구",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "서울특별시",
+   "gold_sigungu": "중구",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "서울특별시 중구",
+   "queries": [
+    "서울특별시 중구 관광지",
+    "서울특별시 중구 조용한 관광지",
+    "서울특별시 중구 역사적 관광지 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "서울로7017",
+     "region": "서울 중구",
+     "category": "관광지"
+    },
+    {
+     "name": "청계광장",
+     "region": "서울 중구",
+     "category": "관광지"
+    },
+    {
+     "name": "서울광장",
+     "region": "서울 중구",
+     "category": "관광지"
+    },
+    {
+     "name": "명동거리",
+     "region": "서울 중구",
+     "category": "관광지"
+    },
+    {
+     "name": "동대문역사문화공원",
+     "region": "서울 중구",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08670687675476074,
+   "llm_calls": 2,
+   "input_tokens": 784,
+   "output_tokens": 41
+  },
+  {
+   "id": "ambiguous-울산광역시-중구-식당-맛집",
+   "group": "ambiguous",
+   "destination": "울산 중구",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "울산광역시",
+   "gold_sigungu": "중구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "울산광역시 중구",
+   "queries": [
+    "울산광역시 중구 맛집",
+    "울산광역시 중구 맛집 추천",
+    "울산광역시 중구 음식점 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "쿠우쿠우 울산중구점",
+     "region": "울산광역시 중구",
+     "category": "식당"
+    },
+    {
+     "name": "제일식당",
+     "region": "울산광역시 중구",
+     "category": "식당"
+    },
+    {
+     "name": "명장스시",
+     "region": "울산광역시 중구",
+     "category": "식당"
+    },
+    {
+     "name": "컴포트",
+     "region": "울산광역시 중구",
+     "category": "식당"
+    },
+    {
+     "name": "더다이닝원 울산점",
+     "region": "울산광역시 중구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08677411079406738,
+   "llm_calls": 2,
+   "input_tokens": 787,
+   "output_tokens": 46
+  },
+  {
+   "id": "ambiguous-인천광역시-중구-카페-카페",
+   "group": "ambiguous",
+   "destination": "인천 중구",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "인천광역시",
+   "gold_sigungu": "중구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "인천광역시",
+   "queries": [
+    "인천 카페",
+    "인천 조용한 카페",
+    "인천 스터디 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "카페리프",
+     "region": "인천광역시 남동구",
+     "category": "카페"
+    },
+    {
+     "name": "카페륙",
+     "region": "인천광역시 중구",
+     "category": "카페"
+    },
+    {
+     "name": "스타파이브",
+     "region": "인천광역시 중구",
+     "category": "카페"
+    },
+    {
+     "name": "이그니토 커피컴퍼니",
+     "region": "인천광역시 중구",
+     "category": "카페"
+    },
+    {
+     "name": "북카페아날로그데이",
+     "region": "인천광역시 서구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.6,
+   "region_hit1": 0,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08678030967712402,
+   "llm_calls": 2,
+   "input_tokens": 784,
+   "output_tokens": 32
+  },
+  {
+   "id": "gwangju-광주광역시-전체-식당-맛집",
+   "group": "gwangju",
+   "destination": "광주",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "광주광역시",
+   "gold_sigungu": null,
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "광주시",
+   "queries": [
+    "광주 맛집",
+    "광주 조용한 맛집",
+    "광주 재즈 맛집 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "창억떡 광주점",
+     "region": "광주광역시 북구",
+     "category": "식당"
+    },
+    {
+     "name": "계림동잔치집",
+     "region": "광주광역시 동구",
+     "category": "식당"
+    },
+    {
+     "name": "항아리찜",
+     "region": "광주광역시 서구",
+     "category": "식당"
+    },
+    {
+     "name": "오얏리돌솥밥",
+     "region": "광주광역시 북구",
+     "category": "식당"
+    },
+    {
+     "name": "영창식당",
+     "region": "광주광역시 서구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09839415550231934,
+   "llm_calls": 2,
+   "input_tokens": 775,
+   "output_tokens": 34
+  },
+  {
+   "id": "gwangju-경기도-광주시-식당-맛집",
+   "group": "gwangju",
+   "destination": "경기 광주",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "경기도",
+   "gold_sigungu": "광주시",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "경기 광주시",
+   "queries": [
+    "경기 광주시 맛집",
+    "경기 광주시 조용한 맛집",
+    "경기 광주시 분위기 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "시래마루 곤지암점",
+     "region": "경기도 광주시",
+     "category": "식당"
+    },
+    {
+     "name": "회모리",
+     "region": "경기도 광주시",
+     "category": "식당"
+    },
+    {
+     "name": "낙선재",
+     "region": "경기도 광주시",
+     "category": "식당"
+    },
+    {
+     "name": "예전한정식",
+     "region": "경기도 광주시",
+     "category": "식당"
+    },
+    {
+     "name": "원조최미자소머리국밥 본관",
+     "region": "경기도 광주시",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08792781829833984,
+   "llm_calls": 2,
+   "input_tokens": 793,
+   "output_tokens": 43
+  },
+  {
+   "id": "gwangju-광주광역시-전체-카페-카페",
+   "group": "gwangju",
+   "destination": "광주",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "광주광역시",
+   "gold_sigungu": null,
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "광주시",
+   "queries": [
+    "광주 카페",
+    "광주 조용한 카페",
+    "광주 스터디 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "커피한잔",
+     "region": "광주광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "갤러리24카페",
+     "region": "광주광역시 서구",
+     "category": "카페"
+    },
+    {
+     "name": "카페진정성 광주편",
+     "region": "광주광역시 동구",
+     "category": "카페"
+    },
+    {
+     "name": "인크커피 광주기아챔피언스필드점",
+     "region": "광주광역시 북구",
+     "category": "카페"
+    },
+    {
+     "name": "퍼니스 카페앤라운지",
+     "region": "광주광역시 서구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.0849158763885498,
+   "llm_calls": 2,
+   "input_tokens": 775,
+   "output_tokens": 35
+  },
+  {
+   "id": "gwangju-경기도-광주시-카페-카페",
+   "group": "gwangju",
+   "destination": "경기 광주",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "경기도",
+   "gold_sigungu": "광주시",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "경기 광주시",
+   "queries": [
+    "경기 광주",
+    "경기 광주 카페",
+    "경기 광주 편안한 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "카페새오개길39",
+     "region": "경기도 광주시",
+     "category": "카페"
+    },
+    {
+     "name": "카페산",
+     "region": "경기도 광주시",
+     "category": "카페"
+    },
+    {
+     "name": "오라운트로스터리카페",
+     "region": "경기도 광주시",
+     "category": "카페"
+    },
+    {
+     "name": "몽쥬이에",
+     "region": "경기도 광주시",
+     "category": "카페"
+    },
+    {
+     "name": "에인트커피",
+     "region": "경기도 광주시",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08538079261779785,
+   "llm_calls": 2,
+   "input_tokens": 793,
+   "output_tokens": 42
+  },
+  {
+   "id": "gwangju-광주광역시-전체-관광지-관광지",
+   "group": "gwangju",
+   "destination": "광주",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "광주광역시",
+   "gold_sigungu": null,
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "광주시",
+   "queries": [
+    "광주 관광지",
+    "광주 조용한 관광지",
+    "광주 문화적 분위기 관광지"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "리얼월드 광주점",
+     "region": "광주광역시 광산구",
+     "category": "관광지"
+    },
+    {
+     "name": "고싸움놀이축제",
+     "region": "광주광역시 남구",
+     "category": "관광지"
+    },
+    {
+     "name": "충장의집",
+     "region": "광주광역시 동구",
+     "category": "관광지"
+    },
+    {
+     "name": "광주패밀리랜드",
+     "region": "광주광역시 북구",
+     "category": "관광지"
+    },
+    {
+     "name": "여행자의zip",
+     "region": "광주광역시 동구",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08937501907348633,
+   "llm_calls": 2,
+   "input_tokens": 775,
+   "output_tokens": 35
+  },
+  {
+   "id": "gwangju-경기도-광주시-관광지-관광지",
+   "group": "gwangju",
+   "destination": "경기 광주",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "경기도",
+   "gold_sigungu": "광주시",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "경기 광주시",
+   "queries": [
+    "경기 광주시 관광지",
+    "경기 광주시 조용한 관광지",
+    "경기 광주시 역사적 관광지 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "곤지암도자공원",
+     "region": "경기도 광주시",
+     "category": "관광지"
+    },
+    {
+     "name": "중대물빛공원",
+     "region": "경기도 광주시",
+     "category": "관광지"
+    },
+    {
+     "name": "광주시워터파크",
+     "region": "경기도 광주시",
+     "category": "관광지"
+    },
+    {
+     "name": "화담숲",
+     "region": "경기도 광주시",
+     "category": "관광지"
+    },
+    {
+     "name": "울트라팜",
+     "region": "경기도 광주시",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08923888206481934,
+   "llm_calls": 2,
+   "input_tokens": 793,
+   "output_tokens": 45
+  },
+  {
+   "id": "regular-경기도-수원시-식당-맛집",
+   "group": "regular",
+   "destination": "경기 수원시",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "경기도",
+   "gold_sigungu": "수원시",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "경기도 팔달구",
+   "queries": [
+    "경기도 팔달구 맛집",
+    "경기도 팔달구 조용한 맛집",
+    "경기도 팔달구 분위기 맛집"
+   ],
+   "fallback_used": true,
+   "top": [],
+   "empty": 1,
+   "returned": 0,
+   "region_acc": 0.0,
+   "region_hit1": 0,
+   "category_acc": 0.0,
+   "diversity": 0.0,
+   "latency_s": 0.13819384574890137,
+   "llm_calls": 2,
+   "input_tokens": 789,
+   "output_tokens": 42
+  },
+  {
+   "id": "regular-강원특별자치도-영월군-카페-카페",
+   "group": "regular",
+   "destination": "강원 영월군",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "강원특별자치도",
+   "gold_sigungu": "영월군",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "강원특별자치도 영월군",
+   "queries": [
+    "강원특별자치도 영월군",
+    "강원특별자치도 영월군 카페",
+    "강원특별자치도 영월군 조용한 카페",
+    "강원특별자치도 영월군 스터디 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "두메 브런치",
+     "region": "강원특별자치도 영월군",
+     "category": "카페"
+    },
+    {
+     "name": "카페슬로우슬로우",
+     "region": "강원특별자치도 영월군",
+     "category": "카페"
+    },
+    {
+     "name": "영월동서강정원 연당원 카페",
+     "region": "강원특별자치도 영월군",
+     "category": "카페"
+    },
+    {
+     "name": "레비로드",
+     "region": "강원특별자치도 영월군",
+     "category": "카페"
+    },
+    {
+     "name": "패누",
+     "region": "강원특별자치도 영월군",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.13390302658081055,
+   "llm_calls": 2,
+   "input_tokens": 792,
+   "output_tokens": 64
+  },
+  {
+   "id": "regular-경상북도-봉화군-관광지-관광지",
+   "group": "regular",
+   "destination": "경북 봉화군",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "경상북도",
+   "gold_sigungu": "봉화군",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "경상북도 봉화군",
+   "queries": [
+    "봉화군 관광지",
+    "봉화군 조용한 관광지",
+    "봉화군 휴식처 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "봉화선유교",
+     "region": "경상북도 봉화군",
+     "category": "관광지"
+    },
+    {
+     "name": "청량사",
+     "region": "경상북도 봉화군",
+     "category": "관광지"
+    },
+    {
+     "name": "분천역 산타마을",
+     "region": "경상북도 봉화군",
+     "category": "관광지"
+    },
+    {
+     "name": "낙동강세평하늘길(양원역-승부역)",
+     "region": "경상북도 봉화군",
+     "category": "관광지"
+    },
+    {
+     "name": "국립청옥산자연휴양림",
+     "region": "경상북도 봉화군",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08984494209289551,
+   "llm_calls": 2,
+   "input_tokens": 800,
+   "output_tokens": 41
+  },
+  {
+   "id": "regular-경상남도-함양군-식당-맛집",
+   "group": "regular",
+   "destination": "경남 함양군",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "경상남도",
+   "gold_sigungu": "함양군",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "경상남도 함양군",
+   "queries": [
+    "경상남도 함양군",
+    "경상남도 함양군 맛집 재즈",
+    "경상남도 함양군 휴식처"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "양지식당",
+     "region": "경상남도 함양군",
+     "category": "식당"
+    },
+    {
+     "name": "용우동 경남함양점",
+     "region": "경상남도 함양군",
+     "category": "식당"
+    },
+    {
+     "name": "대성식당",
+     "region": "경상남도 함양군",
+     "category": "식당"
+    },
+    {
+     "name": "뻘떡낙지 함양점",
+     "region": "경상남도 함양군",
+     "category": "식당"
+    },
+    {
+     "name": "초원식당",
+     "region": "경상남도 함양군",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09214901924133301,
+   "llm_calls": 2,
+   "input_tokens": 790,
+   "output_tokens": 40
+  },
+  {
+   "id": "regular-경상남도-창녕군-카페-카페",
+   "group": "regular",
+   "destination": "경남 창녕군",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "경상남도",
+   "gold_sigungu": "창녕군",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "경상남도 창녕군",
+   "queries": [
+    "창녕군 카페",
+    "창녕군 조용한 카페",
+    "창녕군 휴식 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "몬스터커피 경남창녕점",
+     "region": "경상남도 창녕군",
+     "category": "카페"
+    },
+    {
+     "name": "카페강리",
+     "region": "경상남도 창녕군",
+     "category": "카페"
+    },
+    {
+     "name": "창녕 영산 커피무제",
+     "region": "경상남도 창녕군",
+     "category": "카페"
+    },
+    {
+     "name": "킹스빈카페",
+     "region": "경상남도 창녕군",
+     "category": "카페"
+    },
+    {
+     "name": "알리스타케냐커피 창녕점",
+     "region": "경상남도 창녕군",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08556818962097168,
+   "llm_calls": 2,
+   "input_tokens": 795,
+   "output_tokens": 40
+  },
+  {
+   "id": "regular-경기도-여주시-관광지-관광지",
+   "group": "regular",
+   "destination": "경기 여주시",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "경기도",
+   "gold_sigungu": "여주시",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "경기도 여주시",
+   "queries": [
+    "경기도 여주시",
+    "경기도 여주시 관광지",
+    "경기도 여주시 조용한 관광지"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "명성황후 생가",
+     "region": "경기도 여주시",
+     "category": "관광지"
+    },
+    {
+     "name": "주주팜",
+     "region": "경기도 여주시",
+     "category": "관광지"
+    },
+    {
+     "name": "여주파사성",
+     "region": "경기도 여주시",
+     "category": "관광지"
+    },
+    {
+     "name": "여백서원",
+     "region": "경기도 여주시",
+     "category": "관광지"
+    },
+    {
+     "name": "여주신륵사",
+     "region": "경기도 여주시",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.0974278450012207,
+   "llm_calls": 2,
+   "input_tokens": 783,
+   "output_tokens": 29
+  },
+  {
+   "id": "regular-경기도-부천시-식당-맛집",
+   "group": "regular",
+   "destination": "경기 부천시",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "경기도",
+   "gold_sigungu": "부천시",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "경기도 부천시",
+   "queries": [
+    "경기도 부천시",
+    "경기도 부천시 맛집",
+    "경기도 부천시 재미있는 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "아웃오브오피스 부천점",
+     "region": "경기도 부천시",
+     "category": "식당"
+    },
+    {
+     "name": "소도시 부천중동점",
+     "region": "경기도 부천시",
+     "category": "식당"
+    },
+    {
+     "name": "거궁 부천점",
+     "region": "경기도 부천시",
+     "category": "식당"
+    },
+    {
+     "name": "어부의밥상 송내본점",
+     "region": "경기도 부천시",
+     "category": "식당"
+    },
+    {
+     "name": "미쓰발랑코",
+     "region": "경기도 부천시",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.0861968994140625,
+   "llm_calls": 2,
+   "input_tokens": 788,
+   "output_tokens": 33
+  },
+  {
+   "id": "regular-충청남도-아산시-카페-카페",
+   "group": "regular",
+   "destination": "충남 아산시",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "충청남도",
+   "gold_sigungu": "아산시",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "충청남도 아산시",
+   "queries": [
+    "아산 카페",
+    "아산 조용한 카페",
+    "아산 휴식 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "시루4294",
+     "region": "충청남도 아산시",
+     "category": "카페"
+    },
+    {
+     "name": "카페안낙",
+     "region": "충청남도 아산시",
+     "category": "카페"
+    },
+    {
+     "name": "세컨드원 레이크 아산점",
+     "region": "충청남도 아산시",
+     "category": "카페"
+    },
+    {
+     "name": "서해커피",
+     "region": "충청남도 아산시",
+     "category": "카페"
+    },
+    {
+     "name": "인주 필드점",
+     "region": "충청남도 아산시",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08544588088989258,
+   "llm_calls": 2,
+   "input_tokens": 791,
+   "output_tokens": 34
+  },
+  {
+   "id": "regular-경기도-군포시-관광지-관광지",
+   "group": "regular",
+   "destination": "경기 군포시",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "경기도",
+   "gold_sigungu": "군포시",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "경기도 군포시",
+   "queries": [
+    "경기도 군포시",
+    "경기도 군포시 관광지 조용한",
+    "경기도 군포시 관광지 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "군웅숲",
+     "region": "경기도 군포시",
+     "category": "관광지"
+    },
+    {
+     "name": "중앙공원",
+     "region": "경기도 군포시",
+     "category": "관광지"
+    },
+    {
+     "name": "군포철쭉축제",
+     "region": "경기도 군포시",
+     "category": "관광지"
+    },
+    {
+     "name": "반월호수",
+     "region": "경기도 군포시",
+     "category": "관광지"
+    },
+    {
+     "name": "철쭉동산",
+     "region": "경기도 군포시",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09115290641784668,
+   "llm_calls": 2,
+   "input_tokens": 793,
+   "output_tokens": 40
+  },
+  {
+   "id": "regular-전라남도-장성군-식당-맛집",
+   "group": "regular",
+   "destination": "전남 장성군",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "전라남도",
+   "gold_sigungu": "장성군",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "전라남도 장성군",
+   "queries": [
+    "전라남도 장성군",
+    "전라남도 장성군 맛집",
+    "전라남도 장성군 재미있는 맛집 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "화수분",
+     "region": "전라남도 장성군",
+     "category": "식당"
+    },
+    {
+     "name": "해운대식당",
+     "region": "전라남도 장성군",
+     "category": "식당"
+    },
+    {
+     "name": "동창",
+     "region": "전라남도 장성군",
+     "category": "식당"
+    },
+    {
+     "name": "청자연",
+     "region": "전라남도 장성군",
+     "category": "식당"
+    },
+    {
+     "name": "등나무집",
+     "region": "전라남도 장성군",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09091687202453613,
+   "llm_calls": 2,
+   "input_tokens": 790,
+   "output_tokens": 42
+  },
+  {
+   "id": "regular-강원특별자치도-인제군-카페-카페",
+   "group": "regular",
+   "destination": "강원 인제군",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "강원특별자치도",
+   "gold_sigungu": "인제군",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "강원특별자치도 인제군",
+   "queries": [
+    "강원특별자치도 인제군",
+    "강원특별자치도 인제군 카페",
+    "강원특별자치도 인제군 조용한 카페"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "류카페",
+     "region": "강원특별자치도 인제군",
+     "category": "카페"
+    },
+    {
+     "name": "카페루체",
+     "region": "강원특별자치도 인제군",
+     "category": "카페"
+    },
+    {
+     "name": "투썸플레이스 강원인제점",
+     "region": "강원특별자치도 인제군",
+     "category": "카페"
+    },
+    {
+     "name": "규움카페",
+     "region": "강원특별자치도 인제군",
+     "category": "카페"
+    },
+    {
+     "name": "커뮤니티 카페 포레스트",
+     "region": "강원특별자치도 인제군",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09873318672180176,
+   "llm_calls": 2,
+   "input_tokens": 792,
+   "output_tokens": 45
+  },
+  {
+   "id": "regular-강원특별자치도-원주시-관광지-관광지",
+   "group": "regular",
+   "destination": "강원 원주시",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "강원특별자치도",
+   "gold_sigungu": "원주시",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "강원특별자치도 원주시",
+   "queries": [
+    "강원특별자치도 원주시 관광지",
+    "강원특별자치도 원주시 조용한 관광지",
+    "강원특별자치도 원주시 휴식처 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "소금산그랜드밸리",
+     "region": "강원특별자치도 원주시",
+     "category": "관광지"
+    },
+    {
+     "name": "원주한지테마파크",
+     "region": "강원특별자치도 원주시",
+     "category": "관광지"
+    },
+    {
+     "name": "소금산출렁다리",
+     "region": "강원특별자치도 원주시",
+     "category": "관광지"
+    },
+    {
+     "name": "치악산",
+     "region": "강원특별자치도 원주시",
+     "category": "관광지"
+    },
+    {
+     "name": "원주 반계리 은행나무",
+     "region": "강원특별자치도 원주시",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08902287483215332,
+   "llm_calls": 2,
+   "input_tokens": 787,
+   "output_tokens": 49
+  },
+  {
+   "id": "regular-경기도-김포시-식당-맛집",
+   "group": "regular",
+   "destination": "경기 김포시",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "경기도",
+   "gold_sigungu": "김포시",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "경기도 김포시",
+   "queries": [
+    "김포시 맛집",
+    "김포시 조용한 맛집",
+    "김포시 해변가 맛집 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "이마리명품청국장 김포점",
+     "region": "경기도 김포시",
+     "category": "식당"
+    },
+    {
+     "name": "하남정",
+     "region": "경기도 김포시",
+     "category": "식당"
+    },
+    {
+     "name": "연호정칼국수",
+     "region": "경기도 김포시",
+     "category": "식당"
+    },
+    {
+     "name": "사랑해사랑회 본점",
+     "region": "경기도 김포시",
+     "category": "식당"
+    },
+    {
+     "name": "쿠우쿠우 김포운양점",
+     "region": "경기도 김포시",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08630609512329102,
+   "llm_calls": 2,
+   "input_tokens": 788,
+   "output_tokens": 36
+  },
+  {
+   "id": "regular-경상남도-의령군-카페-카페",
+   "group": "regular",
+   "destination": "경남 의령군",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "경상남도",
+   "gold_sigungu": "의령군",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "경상남도 의령군",
+   "queries": [
+    "의령군 카페",
+    "의령군 조용한 카페",
+    "의령군 휴식 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "카페원",
+     "region": "경상남도 의령군",
+     "category": "카페"
+    },
+    {
+     "name": "카페모스",
+     "region": "경상남도 의령군",
+     "category": "카페"
+    },
+    {
+     "name": "커핑스테이",
+     "region": "경상남도 의령군",
+     "category": "카페"
+    },
+    {
+     "name": "정원이야기",
+     "region": "경상남도 의령군",
+     "category": "카페"
+    },
+    {
+     "name": "수암55",
+     "region": "경상남도 의령군",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08644294738769531,
+   "llm_calls": 2,
+   "input_tokens": 790,
+   "output_tokens": 37
+  },
+  {
+   "id": "regular-경상남도-통영시-관광지-관광지",
+   "group": "regular",
+   "destination": "경남 통영시",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "경상남도",
+   "gold_sigungu": "통영시",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "경상남도 통영시",
+   "queries": [
+    "경상남도 통영시",
+    "경상남도 통영시 관광지",
+    "경상남도 통영시 휴식처 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "통영항",
+     "region": "경상남도 통영시",
+     "category": "관광지"
+    },
+    {
+     "name": "동피랑 벽화마을",
+     "region": "경상남도 통영시",
+     "category": "관광지"
+    },
+    {
+     "name": "디피랑",
+     "region": "경상남도 통영시",
+     "category": "관광지"
+    },
+    {
+     "name": "서피랑마을",
+     "region": "경상남도 통영시",
+     "category": "관광지"
+    },
+    {
+     "name": "욕지도",
+     "region": "경상남도 통영시",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08810591697692871,
+   "llm_calls": 2,
+   "input_tokens": 790,
+   "output_tokens": 41
+  },
+  {
+   "id": "regular-제주특별자치도-제주시-식당-맛집",
+   "group": "regular",
+   "destination": "제주 제주시",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "제주특별자치도",
+   "gold_sigungu": "제주시",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "제주특별자치도 제주시",
+   "queries": [
+    "제주특별자치도 제주시 맛집",
+    "제주특별자치도 제주시 조용한 맛집",
+    "제주특별자치도 제주시 분위기 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "시청그때그집",
+     "region": "제주특별자치도 제주시",
+     "category": "식당"
+    },
+    {
+     "name": "대춘해장국 본점",
+     "region": "제주특별자치도 제주시",
+     "category": "식당"
+    },
+    {
+     "name": "우진해장국",
+     "region": "제주특별자치도 제주시",
+     "category": "식당"
+    },
+    {
+     "name": "고집돌우럭 제주공항점",
+     "region": "제주특별자치도 제주시",
+     "category": "식당"
+    },
+    {
+     "name": "제주광해 애월",
+     "region": "제주특별자치도 제주시",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08766579627990723,
+   "llm_calls": 2,
+   "input_tokens": 787,
+   "output_tokens": 47
+  },
+  {
+   "id": "regular-충청북도-청주시-카페-카페",
+   "group": "regular",
+   "destination": "충북 청주시",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "충청북도",
+   "gold_sigungu": "청주시",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "청주시",
+   "queries": [
+    "청주 카페",
+    "청주 조용한 카페",
+    "청주 스터디 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "더대청호",
+     "region": "충청북도 청주시",
+     "category": "카페"
+    },
+    {
+     "name": "카미나르137",
+     "region": "충청북도 청주시",
+     "category": "카페"
+    },
+    {
+     "name": "베이커리&까페더멜",
+     "region": "충청북도 청주시",
+     "category": "카페"
+    },
+    {
+     "name": "트리브링",
+     "region": "충청북도 청주시",
+     "category": "카페"
+    },
+    {
+     "name": "로빈카페",
+     "region": "충청북도 청주시",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09121012687683105,
+   "llm_calls": 2,
+   "input_tokens": 786,
+   "output_tokens": 35
+  },
+  {
+   "id": "regular-경상남도-남해군-관광지-관광지",
+   "group": "regular",
+   "destination": "경남 남해군",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "경상남도",
+   "gold_sigungu": "남해군",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "경상남도 남해군",
+   "queries": [
+    "경상남도 남해군",
+    "경상남도 남해군 관광지",
+    "경상남도 남해군 조용한 관광지"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "남해충렬사",
+     "region": "경상남도 남해군",
+     "category": "관광지"
+    },
+    {
+     "name": "물미해안전망대",
+     "region": "경상남도 남해군",
+     "category": "관광지"
+    },
+    {
+     "name": "상주은모래비치",
+     "region": "경상남도 남해군",
+     "category": "관광지"
+    },
+    {
+     "name": "남해양떼목장 양마르뜨언덕",
+     "region": "경상남도 남해군",
+     "category": "관광지"
+    },
+    {
+     "name": "남해내산플레이랜드",
+     "region": "경상남도 남해군",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08539509773254395,
+   "llm_calls": 2,
+   "input_tokens": 790,
+   "output_tokens": 39
+  },
+  {
+   "id": "regular-전라남도-완도군-식당-맛집",
+   "group": "regular",
+   "destination": "전남 완도군",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "전라남도",
+   "gold_sigungu": "완도군",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "전라남도 완도군",
+   "queries": [
+    "완도군 맛집",
+    "완도군 조용한 맛집",
+    "완도군 해변가 맛집 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "상화식당",
+     "region": "전라남도 완도군",
+     "category": "식당"
+    },
+    {
+     "name": "대흥식당",
+     "region": "전라남도 완도군",
+     "category": "식당"
+    },
+    {
+     "name": "롯데리아 완도점",
+     "region": "전라남도 완도군",
+     "category": "식당"
+    },
+    {
+     "name": "대박집",
+     "region": "전라남도 완도군",
+     "category": "식당"
+    },
+    {
+     "name": "완도해물탕",
+     "region": "전라남도 완도군",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09113907814025879,
+   "llm_calls": 2,
+   "input_tokens": 795,
+   "output_tokens": 39
+  },
+  {
+   "id": "regular-경상남도-진주시-카페-카페",
+   "group": "regular",
+   "destination": "경남 진주시",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "경상남도",
+   "gold_sigungu": "진주시",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "경상남도 진주시",
+   "queries": [
+    "경상남도 진주",
+    "경상남도 진주 카페",
+    "경상남도 진주 조용한 카페"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "짹짹커피 진주점",
+     "region": "경상남도 진주시",
+     "category": "카페"
+    },
+    {
+     "name": "스타벅스 진주초전DT점",
+     "region": "경상남도 진주시",
+     "category": "카페"
+    },
+    {
+     "name": "스타벅스 진주경상대점",
+     "region": "경상남도 진주시",
+     "category": "카페"
+    },
+    {
+     "name": "킹덤",
+     "region": "경상남도 진주시",
+     "category": "카페"
+    },
+    {
+     "name": "커피플라워 진양호점",
+     "region": "경상남도 진주시",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.0942072868347168,
+   "llm_calls": 2,
+   "input_tokens": 785,
+   "output_tokens": 35
+  },
+  {
+   "id": "regular-전북특별자치도-고창군-관광지-관광지",
+   "group": "regular",
+   "destination": "전북 고창군",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "전북특별자치도",
+   "gold_sigungu": "고창군",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "전북특별자치도 고창군",
+   "queries": [
+    "전북특별자치도 고창군",
+    "전북특별자치도 고창군 관광지",
+    "전북특별자치도 고창군 휴식처 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "고창읍성",
+     "region": "전북특별자치도 고창군",
+     "category": "관광지"
+    },
+    {
+     "name": "문수사",
+     "region": "전북특별자치도 고창군",
+     "category": "관광지"
+    },
+    {
+     "name": "상하농원 동물농장",
+     "region": "전북특별자치도 고창군",
+     "category": "관광지"
+    },
+    {
+     "name": "인촌김성수선생생가",
+     "region": "전북특별자치도 고창군",
+     "category": "관광지"
+    },
+    {
+     "name": "쉼드림",
+     "region": "전북특별자치도 고창군",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.0877690315246582,
+   "llm_calls": 2,
+   "input_tokens": 792,
+   "output_tokens": 47
+  },
+  {
+   "id": "regular-경상북도-상주시-식당-맛집",
+   "group": "regular",
+   "destination": "경북 상주시",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "경상북도",
+   "gold_sigungu": "상주시",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "경상북도 상주시",
+   "queries": [
+    "경상북도 상주시",
+    "경상북도 상주시 맛집",
+    "경상북도 상주시 재미있는 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "용궁단골식당 상주점",
+     "region": "경상북도 상주시",
+     "category": "식당"
+    },
+    {
+     "name": "다담뜰한식뷔페 상주점",
+     "region": "경상북도 상주시",
+     "category": "식당"
+    },
+    {
+     "name": "국밥참맛있는집 상주무양점",
+     "region": "경상북도 상주시",
+     "category": "식당"
+    },
+    {
+     "name": "묘봉두부마을",
+     "region": "경상북도 상주시",
+     "category": "식당"
+    },
+    {
+     "name": "뜨돈 상주점",
+     "region": "경상북도 상주시",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09770679473876953,
+   "llm_calls": 2,
+   "input_tokens": 785,
+   "output_tokens": 35
+  },
+  {
+   "id": "regular-강원특별자치도-동해시-카페-카페",
+   "group": "regular",
+   "destination": "강원 동해시",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "강원특별자치도",
+   "gold_sigungu": "동해시",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "강원특별자치도 동해시",
+   "queries": [
+    "강원특별자치도 동해시",
+    "강원특별자치도 동해시 카페",
+    "강원특별자치도 동해시 평화로운 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "카페성지 동해",
+     "region": "강원특별자치도 동해시",
+     "category": "카페"
+    },
+    {
+     "name": "스타벅스 동해IC DT점",
+     "region": "강원특별자치도 동해시",
+     "category": "카페"
+    },
+    {
+     "name": "스타벅스 동해DT점",
+     "region": "강원특별자치도 동해시",
+     "category": "카페"
+    },
+    {
+     "name": "더좋은날 망상해수욕장본점",
+     "region": "강원특별자치도 동해시",
+     "category": "카페"
+    },
+    {
+     "name": "카페닻",
+     "region": "강원특별자치도 동해시",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08736991882324219,
+   "llm_calls": 2,
+   "input_tokens": 792,
+   "output_tokens": 50
+  },
+  {
+   "id": "regular-경기도-의정부시-관광지-관광지",
+   "group": "regular",
+   "destination": "경기 의정부시",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "경기도",
+   "gold_sigungu": "의정부시",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "경기도 의정부시",
+   "queries": [
+    "의정부 관광지",
+    "의정부 조용한 관광지",
+    "의정부 문화 테마 관광지"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "의정부천문대",
+     "region": "경기도 의정부시",
+     "category": "관광지"
+    },
+    {
+     "name": "추동근린공원",
+     "region": "경기도 의정부시",
+     "category": "관광지"
+    },
+    {
+     "name": "의정부부대찌개거리",
+     "region": "경기도 의정부시",
+     "category": "관광지"
+    },
+    {
+     "name": "데이캠파크 의정부점",
+     "region": "경기도 의정부시",
+     "category": "관광지"
+    },
+    {
+     "name": "자일산림욕장",
+     "region": "경기도 의정부시",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09036707878112793,
+   "llm_calls": 2,
+   "input_tokens": 793,
+   "output_tokens": 36
+  },
+  {
+   "id": "regular-충청북도-단양군-식당-맛집",
+   "group": "regular",
+   "destination": "충북 단양군",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "충청북도",
+   "gold_sigungu": "단양군",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "충청북도 단양군",
+   "queries": [
+    "충청북도 단양군",
+    "충청북도 단양군 맛집",
+    "충청북도 단양군 풍경좋은 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "박쏘가리",
+     "region": "충청북도 단양군",
+     "category": "식당"
+    },
+    {
+     "name": "장다리마늘약선",
+     "region": "충청북도 단양군",
+     "category": "식당"
+    },
+    {
+     "name": "단양팔각정",
+     "region": "충청북도 단양군",
+     "category": "식당"
+    },
+    {
+     "name": "보리곳간",
+     "region": "충청북도 단양군",
+     "category": "식당"
+    },
+    {
+     "name": "그집쏘가리",
+     "region": "충청북도 단양군",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09914803504943848,
+   "llm_calls": 2,
+   "input_tokens": 791,
+   "output_tokens": 44
+  },
+  {
+   "id": "regular-대구광역시-달성군-카페-카페",
+   "group": "regular",
+   "destination": "대구 달성군",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "대구광역시",
+   "gold_sigungu": "달성군",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "대구광역시 달성군",
+   "queries": [
+    "대구광역시 달성군",
+    "대구광역시 달성군 카페",
+    "대구광역시 달성군 조용한 카페"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "르당",
+     "region": "대구광역시 달성군",
+     "category": "카페"
+    },
+    {
+     "name": "카페찬스",
+     "region": "대구광역시 달성군",
+     "category": "카페"
+    },
+    {
+     "name": "카페블로썸",
+     "region": "대구광역시 달성군",
+     "category": "카페"
+    },
+    {
+     "name": "카페담",
+     "region": "대구광역시 달성군",
+     "category": "카페"
+    },
+    {
+     "name": "카르멜 다사점",
+     "region": "대구광역시 달성군",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08718276023864746,
+   "llm_calls": 2,
+   "input_tokens": 796,
+   "output_tokens": 46
+  },
+  {
+   "id": "regular-충청남도-당진시-관광지-관광지",
+   "group": "regular",
+   "destination": "충남 당진시",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "충청남도",
+   "gold_sigungu": "당진시",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "충청남도 당진시",
+   "queries": [
+    "당진시 관광지",
+    "당진시 조용한 관광지",
+    "당진시 휴식처 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "당진면천은행나무",
+     "region": "충청남도 당진시",
+     "category": "관광지"
+    },
+    {
+     "name": "군자정",
+     "region": "충청남도 당진시",
+     "category": "관광지"
+    },
+    {
+     "name": "왜목마을 해수욕장",
+     "region": "충청남도 당진시",
+     "category": "관광지"
+    },
+    {
+     "name": "당진면천읍성",
+     "region": "충청남도 당진시",
+     "category": "관광지"
+    },
+    {
+     "name": "삽교호 함상공원",
+     "region": "충청남도 당진시",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08571577072143555,
+   "llm_calls": 2,
+   "input_tokens": 791,
+   "output_tokens": 35
+  },
+  {
+   "id": "regular-경기도-의왕시-식당-맛집",
+   "group": "regular",
+   "destination": "경기 의왕시",
+   "query": "맛집",
+   "category_filter": "식당",
+   "gold_sido": "경기도",
+   "gold_sigungu": "의왕시",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "경기도 의왕시",
+   "queries": [
+    "경기도 의왕시",
+    "경기도 의왕시 맛집",
+    "경기도 의왕시 재미있는 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "민속두부마을",
+     "region": "경기도 의왕시",
+     "category": "식당"
+    },
+    {
+     "name": "의왕천장어",
+     "region": "경기도 의왕시",
+     "category": "식당"
+    },
+    {
+     "name": "로",
+     "region": "경기도 의왕시",
+     "category": "식당"
+    },
+    {
+     "name": "복진면 의왕본점",
+     "region": "경기도 의왕시",
+     "category": "식당"
+    },
+    {
+     "name": "농군의집",
+     "region": "경기도 의왕시",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08774399757385254,
+   "llm_calls": 2,
+   "input_tokens": 788,
+   "output_tokens": 33
+  },
+  {
+   "id": "regular-충청남도-청양군-카페-카페",
+   "group": "regular",
+   "destination": "충남 청양군",
+   "query": "카페",
+   "category_filter": "카페",
+   "gold_sido": "충청남도",
+   "gold_sigungu": "청양군",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "청양군",
+   "queries": [
+    "청양군 카페",
+    "청양군 조용한 카페",
+    "청양군 휴식 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "춘소커피",
+     "region": "충청남도 청양군",
+     "category": "카페"
+    },
+    {
+     "name": "카페515",
+     "region": "충청남도 청양군",
+     "category": "카페"
+    },
+    {
+     "name": "미스터브리즈커피 청양점",
+     "region": "충청남도 청양군",
+     "category": "카페"
+    },
+    {
+     "name": "토프레소 충남청양점",
+     "region": "충청남도 청양군",
+     "category": "카페"
+    },
+    {
+     "name": "늘청춘카페",
+     "region": "충청남도 청양군",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09025979042053223,
+   "llm_calls": 2,
+   "input_tokens": 791,
+   "output_tokens": 40
+  },
+  {
+   "id": "regular-전북특별자치도-익산시-관광지-관광지",
+   "group": "regular",
+   "destination": "전북 익산시",
+   "query": "관광지",
+   "category_filter": "관광지",
+   "gold_sido": "전북특별자치도",
+   "gold_sigungu": "익산시",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "전북특별자치도 익산시",
+   "queries": [
+    "익산시 관광지",
+    "익산시 조용한 관광지",
+    "익산시 휴식처 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "미륵사지",
+     "region": "전북특별자치도 익산시",
+     "category": "관광지"
+    },
+    {
+     "name": "익산 교도소 세트장",
+     "region": "전북특별자치도 익산시",
+     "category": "관광지"
+    },
+    {
+     "name": "왕궁 포레스트",
+     "region": "전북특별자치도 익산시",
+     "category": "관광지"
+    },
+    {
+     "name": "익산산림조합산림문화체험관",
+     "region": "전북특별자치도 익산시",
+     "category": "관광지"
+    },
+    {
+     "name": "달빛소리수목원",
+     "region": "전북특별자치도 익산시",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08855080604553223,
+   "llm_calls": 2,
+   "input_tokens": 797,
+   "output_tokens": 38
+  },
+  {
+   "id": "landmark-부산광역시-해운대구-식당-해운대 맛집",
+   "group": "landmark",
+   "destination": "부산",
+   "query": "해운대 맛집",
+   "category_filter": "식당",
+   "gold_sido": "부산광역시",
+   "gold_sigungu": "해운대구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "부산광역시",
+   "queries": [
+    "부산광역시 맛집",
+    "부산광역시 해운대 맛집",
+    "부산광역시 해운대 뷔페 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "언양불고기 부산집",
+     "region": "부산광역시 수영구",
+     "category": "식당"
+    },
+    {
+     "name": "국제밀면 본점",
+     "region": "부산광역시 연제구",
+     "category": "식당"
+    },
+    {
+     "name": "대연밀면",
+     "region": "부산광역시 남구",
+     "category": "식당"
+    },
+    {
+     "name": "밥심",
+     "region": "부산광역시 북구",
+     "category": "식당"
+    },
+    {
+     "name": "해쉬",
+     "region": "부산광역시 남구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.0,
+   "region_hit1": 0,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.12108802795410156,
+   "llm_calls": 2,
+   "input_tokens": 779,
+   "output_tokens": 43
+  },
+  {
+   "id": "landmark-부산광역시-수영구-카페-광안리 카페",
+   "group": "landmark",
+   "destination": "부산",
+   "query": "광안리 카페",
+   "category_filter": "카페",
+   "gold_sido": "부산광역시",
+   "gold_sigungu": "수영구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "부산광역시",
+   "queries": [
+    "부산광역시",
+    "부산 광안리 카페",
+    "부산 광안리 조용한 카페",
+    "부산 광안리 분위기 카페"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "프론트커피 광안리",
+     "region": "부산광역시 수영구",
+     "category": "카페"
+    },
+    {
+     "name": "할리스 부산광안리점",
+     "region": "부산광역시 수영구",
+     "category": "카페"
+    },
+    {
+     "name": "파스쿠찌 센트로광안리점",
+     "region": "부산광역시 수영구",
+     "category": "카페"
+    },
+    {
+     "name": "카페오뜨 광안비치점",
+     "region": "부산광역시 수영구",
+     "category": "카페"
+    },
+    {
+     "name": "티앤북스 광안점",
+     "region": "부산광역시 수영구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.1245722770690918,
+   "llm_calls": 2,
+   "input_tokens": 781,
+   "output_tokens": 51
+  },
+  {
+   "id": "landmark-부산광역시-부산진구-식당-서면 맛집",
+   "group": "landmark",
+   "destination": "부산",
+   "query": "서면 맛집",
+   "category_filter": "식당",
+   "gold_sido": "부산광역시",
+   "gold_sigungu": "부산진구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "부산광역시",
+   "queries": [
+    "부산광역시",
+    "부산광역시 서면 맛집",
+    "부산광역시 서면 맛집 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "한끼맛있다 서면점",
+     "region": "부산광역시 부산진구",
+     "category": "식당"
+    },
+    {
+     "name": "착한돼지 서면점",
+     "region": "부산광역시 부산진구",
+     "category": "식당"
+    },
+    {
+     "name": "족발쌀롱 서면점",
+     "region": "부산광역시 부산진구",
+     "category": "식당"
+    },
+    {
+     "name": "춘하추동밀면 서면본점",
+     "region": "부산광역시 부산진구",
+     "category": "식당"
+    },
+    {
+     "name": "본가제일면가",
+     "region": "부산광역시 수영구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.8,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09565901756286621,
+   "llm_calls": 2,
+   "input_tokens": 778,
+   "output_tokens": 37
+  },
+  {
+   "id": "landmark-서울특별시-마포구-카페-홍대 카페",
+   "group": "landmark",
+   "destination": "서울",
+   "query": "홍대 카페",
+   "category_filter": "카페",
+   "gold_sido": "서울특별시",
+   "gold_sigungu": "마포구",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "서울특별시",
+   "queries": [
+    "서울 카페",
+    "서울 홍대 카페",
+    "서울 홍대 재즈 카페 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "카멜 성수점",
+     "region": "서울특별시 성동구",
+     "category": "카페"
+    },
+    {
+     "name": "섬광",
+     "region": "서울특별시 중구",
+     "category": "카페"
+    },
+    {
+     "name": "세이레스커피",
+     "region": "서울특별시 강남구",
+     "category": "카페"
+    },
+    {
+     "name": "호텔수선화",
+     "region": "서울특별시 중구",
+     "category": "카페"
+    },
+    {
+     "name": "더체어",
+     "region": "서울특별시 강남구",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.0,
+   "region_hit1": 0,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.08527207374572754,
+   "llm_calls": 2,
+   "input_tokens": 777,
+   "output_tokens": 32
+  },
+  {
+   "id": "landmark-서울특별시-강남구-식당-강남역 맛집",
+   "group": "landmark",
+   "destination": "서울",
+   "query": "강남역 맛집",
+   "category_filter": "식당",
+   "gold_sido": "서울특별시",
+   "gold_sigungu": "강남구",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "서울특별시",
+   "queries": [
+    "서울특별시 맛집",
+    "서울특별시 강남역 맛집",
+    "서울특별시 강남역 데이트 분위기 맛집"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "고미정",
+     "region": "서울특별시 서대문구",
+     "category": "식당"
+    },
+    {
+     "name": "자인뭉티기",
+     "region": "서울특별시 서초구",
+     "category": "식당"
+    },
+    {
+     "name": "능라도 강남점",
+     "region": "서울특별시 강남구",
+     "category": "식당"
+    },
+    {
+     "name": "면동떡볶이",
+     "region": "서울특별시 중랑구",
+     "category": "식당"
+    },
+    {
+     "name": "서울뼈구이 본점",
+     "region": "서울특별시 동대문구",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.2,
+   "region_hit1": 0,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.11531186103820801,
+   "llm_calls": 2,
+   "input_tokens": 777,
+   "output_tokens": 39
+  },
+  {
+   "id": "landmark-전북특별자치도-전주시-관광지-전주 한옥마을 관광지",
+   "group": "landmark",
+   "destination": "전북",
+   "query": "전주 한옥마을 관광지",
+   "category_filter": "관광지",
+   "gold_sido": "전북특별자치도",
+   "gold_sigungu": "전주시",
+   "gold_category": "관광지",
+   "ok": true,
+   "target_region": "전북도",
+   "queries": [
+    "전북도",
+    "전북도 한옥마을 관광지",
+    "전북도 한옥마을 관광지 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "전북특별자치도어린이창의체험관",
+     "region": "전북특별자치도 전주시",
+     "category": "관광지"
+    },
+    {
+     "name": "전주동물원",
+     "region": "전북특별자치도 전주시",
+     "category": "관광지"
+    },
+    {
+     "name": "전주종합관광안내소",
+     "region": "전북특별자치도 전주시",
+     "category": "관광지"
+    },
+    {
+     "name": "고원화목원",
+     "region": "전북특별자치도 진안군",
+     "category": "관광지"
+    },
+    {
+     "name": "임실치즈테마파크",
+     "region": "전북특별자치도 임실군",
+     "category": "관광지"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.6,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09778213500976562,
+   "llm_calls": 2,
+   "input_tokens": 780,
+   "output_tokens": 33
+  },
+  {
+   "id": "landmark-경상북도-경주시-카페-경주 황리단길 카페",
+   "group": "landmark",
+   "destination": "경북",
+   "query": "경주 황리단길 카페",
+   "category_filter": "카페",
+   "gold_sido": "경상북도",
+   "gold_sigungu": "경주시",
+   "gold_category": "카페",
+   "ok": true,
+   "target_region": "경북도",
+   "queries": [
+    "경북도",
+    "경북도 황리단길 카페",
+    "경북도 조용한 카페"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "카페1-21",
+     "region": "경상북도 울진군",
+     "category": "카페"
+    },
+    {
+     "name": "신라당 경주",
+     "region": "경상북도 경주시",
+     "category": "카페"
+    },
+    {
+     "name": "가배향주",
+     "region": "경상북도 경주시",
+     "category": "카페"
+    },
+    {
+     "name": "향미사",
+     "region": "경상북도 경주시",
+     "category": "카페"
+    },
+    {
+     "name": "테라로사 경주점",
+     "region": "경상북도 경주시",
+     "category": "카페"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 0.8,
+   "region_hit1": 0,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.09946489334106445,
+   "llm_calls": 2,
+   "input_tokens": 781,
+   "output_tokens": 30
+  },
+  {
+   "id": "landmark-강원특별자치도-속초시-식당-속초 중앙시장 맛집",
+   "group": "landmark",
+   "destination": "강원",
+   "query": "속초 중앙시장 맛집",
+   "category_filter": "식당",
+   "gold_sido": "강원특별자치도",
+   "gold_sigungu": "속초시",
+   "gold_category": "식당",
+   "ok": true,
+   "target_region": "강원도",
+   "queries": [
+    "속초",
+    "속초 중앙시장 맛집",
+    "속초 중앙시장 맛집 추천",
+    "속초 중앙시장 맛집 분위기"
+   ],
+   "fallback_used": false,
+   "top": [
+    {
+     "name": "청초수물회 속초본점",
+     "region": "강원특별자치도 속초시",
+     "category": "식당"
+    },
+    {
+     "name": "팔팔순대국",
+     "region": "강원특별자치도 속초시",
+     "category": "식당"
+    },
+    {
+     "name": "청호활어회센터",
+     "region": "강원특별자치도 속초시",
+     "category": "식당"
+    },
+    {
+     "name": "이모네식당",
+     "region": "강원특별자치도 속초시",
+     "category": "식당"
+    },
+    {
+     "name": "코끼리분식",
+     "region": "강원특별자치도 속초시",
+     "category": "식당"
+    }
+   ],
+   "empty": 0,
+   "returned": 5,
+   "region_acc": 1.0,
+   "region_hit1": 1,
+   "category_acc": 1.0,
+   "diversity": 1.0,
+   "latency_s": 0.1358180046081543,
+   "llm_calls": 2,
+   "input_tokens": 780,
+   "output_tokens": 42
+  }
+ ]
+}
