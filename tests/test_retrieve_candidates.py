@@ -76,3 +76,12 @@ async def test_primary_path_caps_at_five(fake_tools, monkeypatch):
     monkeypatch.setattr(tools, "_search_docs", many)
     r = await tools.retrieve_candidates("맛집", "부산 중구", "식당", anchor="부산 중구")
     assert len(r["candidates"]) == 5
+
+
+async def test_dedupe_keeps_same_name_in_different_regions(fake_tools, monkeypatch):
+    async def same_name(q, k=20):
+        return [doc("원조국밥", "부산광역시 중구"), doc("원조국밥", "대구광역시 중구"), doc("원조국밥", "부산광역시 중구")]
+    monkeypatch.setattr(tools, "_search_docs", same_name)
+    r = await tools.retrieve_candidates("맛집", "부산 중구", "식당", anchor="부산 중구")
+    assert [(d.metadata["장소명"], d.metadata["지역"]) for d in r["candidates"]] == [
+        ("원조국밥", "부산광역시 중구"), ("원조국밥", "대구광역시 중구")]

@@ -311,8 +311,9 @@ async def retrieve_candidates(query: str, destination: str, category_filter: str
     for docs in results_list:
         for doc in docs:
             p_name = doc.metadata.get('장소명', '')
-            if p_name and p_name not in seen_places and p_name not in exclude_places:
-                seen_places.add(p_name)
+            key = (p_name, doc.metadata.get('지역', ''))  # 이름만으로 합치면 다른 지역 동명 가게가 사라짐
+            if p_name and key not in seen_places and p_name not in exclude_places:
+                seen_places.add(key)
                 aggregated_docs.append(doc)
     print(f" 통합된 문서 수: {len(aggregated_docs)} -> 필터링 진입")
     
