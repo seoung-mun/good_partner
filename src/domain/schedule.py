@@ -1,6 +1,8 @@
 """일정 도메인 로직 (외부 의존 없음)."""
 from itertools import permutations
 
+from src.domain.models import Slot
+
 
 def _solve_tsp(duration_matrix, start_fixed, n):
     """TSP 알고리즘"""
@@ -31,3 +33,18 @@ def _solve_tsp(duration_matrix, start_fixed, n):
             best_order_indices = current_indices
             
     return best_order_indices, min_duration
+
+
+# 기존 graph_flow 규칙: 1일차 12시 점심 시작 4곳, 중간 날 10시 시작 5곳, 마지막 날 관광 1곳
+_FIRST = [("식당", "점심"), ("카페", None), ("관광지", None), ("식당", "저녁")]
+_MIDDLE = [("관광지", None), ("식당", "점심"), ("카페", None), ("관광지", None), ("식당", "저녁")]
+_LAST = [("관광지", None)]
+
+
+def build_slots(days: int) -> list[Slot]:
+    slots = []
+    for d in range(1, days + 1):
+        template = _FIRST if d == 1 else _LAST if d == days else _MIDDLE
+        for i, (cat, meal) in enumerate(template, start=1):
+            slots.append(Slot(slot_id=f"d{d}-s{i}", day=d, order=i, category=cat, meal=meal))
+    return slots

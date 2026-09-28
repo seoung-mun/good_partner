@@ -103,3 +103,18 @@ def region_matches(address: str, target: str) -> bool:
     if not t_sido:  # 시도 없는 타깃('해운대구')은 시군구만 비교
         return a_sigungu == t_sigungu
     return a_sido == t_sido and (not t_sigungu or a_sigungu == t_sigungu)
+
+
+def resolve_destination(text: str) -> tuple[str, str] | None:
+    """사용자 목적지 → (시도, 시군구). 시군구만 적었으면 전국에서 유일할 때만 확정, 모호하면 None."""
+    parts = (text or "").split()
+    if not parts:
+        return None
+    sido = _sido_of(parts[0])
+    if sido:
+        if len(parts) == 1:
+            return (sido, "")
+        sigungu = _sigungu_of(parts[1], sido)
+        return (sido, sigungu if sigungu in REGION_STRUCTURE[sido] else "")
+    hits = [(s, g) for s, names in REGION_STRUCTURE.items() for g in names if parts[0] in (g, g[:-1])]
+    return hits[0] if len(hits) == 1 else None
