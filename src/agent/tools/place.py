@@ -4,8 +4,8 @@ from typing import List
 
 from langchain_core.tools import tool
 
-from src.tools.chains import desc_chain
-from src.tools.retrieval import _extract_reviews, retrieve_candidates
+from src.agent.chains import desc_chain
+from src.retrieval.retriever import _extract_reviews, retrieve_candidates
 
 
 @tool

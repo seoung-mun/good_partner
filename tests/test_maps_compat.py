@@ -1,6 +1,6 @@
 import pytest
-from src import maps_compat
-from src.maps_compat import RoutesCompatClient
+from src.services import maps_client as maps_compat
+from src.services.maps_client import RoutesCompatClient
 
 KEY = "AIzaFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAK"
 

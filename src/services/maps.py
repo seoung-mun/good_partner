@@ -1,10 +1,10 @@
-"""지오코딩·거리·경로·행정구역 해석 (Google Maps)."""
+"""Google Maps 서비스: 지오코딩, 경로, 행정구역 해석."""
 import asyncio
 import datetime
-import math
 
 from src.config import GMAPS_CLIENT
-from src.region_cut_fuzz import normalize_region_name
+from src.domain.geo import calculate_distance_time, calculate_haversine_distance  # noqa: F401 (재수출)
+from src.domain.region import normalize_region_name
 
 
 async def get_coordinates(location_name: str):
@@ -18,31 +18,6 @@ async def get_coordinates(location_name: str):
     except Exception as e:
         print(f" 좌표 변환 실패 ({location_name}): {e}")
     return None, None
-
-def calculate_haversine_distance(lat1, lon1, lat2, lon2):
-    """두 좌표 간의 직선 거리(km) 계산 (Pure Python)"""
-    try:
-        lat1, lon1, lat2, lon2 = map(float, [lat1, lon1, lat2, lon2])
-    except (ValueError, TypeError):
-        return 9999.0
-
-    R = 6371   
-    d_lat = math.radians(lat2 - lat1)
-    d_lon = math.radians(lon2 - lon1)
-    a = math.sin(d_lat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(d_lon / 2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
-
-def calculate_distance_time(start_lat, start_lng, end_lat, end_lng, mode="driving"):
-    """좌표 간 단순 직선 거리 및 예상 시간 추정"""
-    dist = calculate_haversine_distance(start_lat, start_lng, end_lat, end_lng)
-    
-    speed = 4.0 if mode == "walking" else 30.0
-    seconds = int((dist / speed) * 3600)
-    
-    if seconds < 3600: text = f"{seconds // 60}분"
-    else: text = f"{seconds // 3600}시간 {(seconds % 3600) // 60}분"
-    return dist, seconds, text
 
 async def get_detailed_route(start_place: str, end_place: str, mode="transit", departure_time=None):
     """상세 경로 조회 (Google Maps Directions API)"""

@@ -1,15 +1,15 @@
 import ast
 from pathlib import Path
 
-from src.embeddings import pick_device
+from src.retrieval.store import pick_device
 
 
 def test_config_has_single_definitions():
     tree = ast.parse(Path("src/config.py").read_text())
-    funcs = [n.name for n in tree.body if isinstance(n, ast.FunctionDef)]
     llm_assigns = [n for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", "") == "LLM" for t in n.targets)]
-    assert funcs.count("load_faiss_index") == 1
     assert len(llm_assigns) == 1
+    store = ast.parse(Path("src/retrieval/store.py").read_text())
+    assert [n.name for n in store.body if isinstance(n, ast.FunctionDef)].count("load_faiss_index") == 1
 
 
 def test_pick_device_env_override(monkeypatch):
@@ -26,5 +26,5 @@ def test_pick_device_defaults_to_cpu_for_service(monkeypatch):
 
 
 def test_all_embedding_construction_goes_through_factory():
-    for f in ["src/config.py", "src/rag_updater.py"]:
+    for f in ["src/config.py", "src/rag_updater.py", "src/retrieval/retriever.py"]:
         assert "HuggingFaceEmbeddings(" not in Path(f).read_text(), f

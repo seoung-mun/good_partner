@@ -1,13 +1,11 @@
-"""날씨 예보 tool (OpenWeatherMap)."""
+"""OpenWeatherMap 예보 조회·요약."""
 import datetime
 import os
 
 import requests
-from langchain_core.tools import tool
 
 
-@tool
-def get_weather_forecast(destination: str, dates: str) -> str:
+def forecast_summary(destination: str, dates: str) -> str:
     """
     도시명(destination)으로 위도/경도를 조회하고, 그 좌표로 5일 예보를 조회하여,
     사용자가 요청한 날짜(dates)의 날씨만 요약해 반환합니다. (3단계 날짜 파싱 적용)

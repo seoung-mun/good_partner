@@ -2,8 +2,8 @@
 
 
 def _tools():
-    from src import tools
-    return tools
+    from src.retrieval import retriever
+    return retriever
 
 
 def doc_to_cand(doc) -> dict:

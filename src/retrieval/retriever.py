@@ -2,10 +2,10 @@
 import asyncio
 from typing import Any, Dict, List
 
-from src.config import load_faiss_index
-from src.region_cut_fuzz import canonical_region, region_matches
-from src.tools.chains import query_gen_chain, region_chain
-from src.tools.geo import calculate_haversine_distance, get_coordinates, resolve_admin_region
+from src.retrieval.store import load_faiss_index
+from src.domain.region import canonical_region, region_matches
+from src.agent.chains import query_gen_chain, region_chain
+from src.services.maps import calculate_haversine_distance, get_coordinates, resolve_admin_region
 
 
 async def _search_docs(query_str: str, k: int = 20):

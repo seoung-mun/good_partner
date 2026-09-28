@@ -2,7 +2,8 @@ import datetime
 from typing import List, Dict
 import re
 import asyncio
-from src.tools import get_detailed_route, GMAPS_CLIENT
+from src.config import GMAPS_CLIENT
+from src.services.maps import get_detailed_route
 
 DEFAULT_DURATIONS = {
     "식당": 90, "카페": 60, "관광지": 120, "산책로": 60, "테마파크": 180, "숙소": 0

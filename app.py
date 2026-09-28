@@ -9,7 +9,7 @@ import streamlit as st
 from datetime import date, timedelta
 import time
 from concurrent.futures import ThreadPoolExecutor
-from src.config import load_faiss_index
+from src.retrieval.store import load_faiss_index
 
 
 if "executor" not in st.session_state:

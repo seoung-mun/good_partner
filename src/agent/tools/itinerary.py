@@ -2,12 +2,12 @@
 import asyncio
 import json
 import traceback
-from itertools import permutations
 from typing import Dict, List
 
 from langchain_core.tools import tool
 
 from src.config import GMAPS_CLIENT
+from src.domain.schedule import _solve_tsp
 
 
 @tool
@@ -43,36 +43,6 @@ async def plan_itinerary_timeline(itinerary: List[Dict]) -> str:
         print(f"ERROR: 스케줄링 실패: {e}")
         traceback.print_exc()
         return json.dumps(itinerary, ensure_ascii=False)
-
-def _solve_tsp(duration_matrix, start_fixed, n):
-    """TSP 알고리즘"""
-    min_duration = float('inf')
-    best_order_indices = []
-    
-    indices = list(range(n))
-    if start_fixed: indices = list(range(1, n))
-
-    if len(indices) > 8:
-        current = 0
-        unvisited = set(indices)
-        path = [0]
-        cost = 0
-        while unvisited:
-            nxt = min(unvisited, key=lambda i: duration_matrix[current][i])
-            cost += duration_matrix[current][nxt]
-            path.append(nxt)
-            unvisited.remove(nxt)
-            current = nxt
-        return path, cost
-
-    for p in permutations(indices):
-        current_indices = [0] + list(p) if start_fixed else list(p)
-        current_dur = sum(duration_matrix[current_indices[i]][current_indices[i+1]] for i in range(len(current_indices)-1))
-        if current_dur < min_duration:
-            min_duration = current_dur
-            best_order_indices = current_indices
-            
-    return best_order_indices, min_duration
 
 @tool
 async def optimize_and_get_routes(places: List[str], start_location: str = "") -> str:

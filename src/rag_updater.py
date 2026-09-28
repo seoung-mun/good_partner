@@ -5,7 +5,7 @@ import emoji
 import streamlit as st
 import os
 from langchain_core.documents import Document
-from src.embeddings import make_embeddings
+from src.retrieval.store import make_embeddings
 from langchain_community.vectorstores import FAISS
 from src.config import review_faiss 
 

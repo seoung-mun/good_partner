@@ -1,7 +1,7 @@
 import pytest
 from langchain_core.documents import Document
 
-from src.region_cut_fuzz import region_matches
+from src.domain.region import region_matches
 
 
 @pytest.mark.parametrize("address,target,expected", [
@@ -26,7 +26,7 @@ def test_region_matches(address, target, expected):
 
 
 async def test_filter_candidates_excludes_other_gwangju():
-    from src.tools import _filter_candidates
+    from src.retrieval.retriever import _filter_candidates
     docs = [Document(page_content="x", metadata={"장소명": "A", "지역": "광주광역시 서구", "카테고리": "식당"}),
             Document(page_content="x", metadata={"장소명": "B", "지역": "경기도 광주시", "카테고리": "식당"})]
     out = await _filter_candidates(docs, "경기도 광주시", [], "식당")

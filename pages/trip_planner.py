@@ -8,7 +8,7 @@ from fpdf import FPDF
 import time
 import os
 from fpdf.enums import XPos, YPos
-from src.config import load_faiss_index
+from src.retrieval.store import load_faiss_index
 
 with st.spinner("여행 데이터를 불러오는 중입니다..."):
     DB = load_faiss_index()

@@ -1,6 +1,7 @@
 from langchain_core.documents import Document
 
-from src.tools import _extract_reviews, find_and_select_best_place
+from src.agent.tools.place import find_and_select_best_place
+from src.retrieval.retriever import _extract_reviews
 
 
 def test_exclude_places_default_is_not_shared_list():
