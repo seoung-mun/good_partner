@@ -49,7 +49,7 @@ class LLM:
     def __init__(self):
         self.calls = 0
 
-    def with_structured_output(self, schema):
+    def with_structured_output(self, schema, **kw):
         def run(_):
             self.calls += 1
             if schema is TripPreferences:
@@ -83,7 +83,7 @@ async def test_workflow_end_to_end_with_two_llm_calls():
 
 async def test_workflow_survives_llm_failures():
     class Broken:
-        def with_structured_output(self, schema):
+        def with_structured_output(self, schema, **kw):
             def boom(_):
                 raise ValueError("bad json")
             return RunnableLambda(boom)
@@ -111,7 +111,7 @@ def codes(out):
 
 async def test_llm_failures_are_recorded_as_step_errors():
     class Broken:
-        def with_structured_output(self, schema):
+        def with_structured_output(self, schema, **kw):
             return RunnableLambda(lambda _: (_ for _ in ()).throw(ValueError("bad json")))
     out = await build_workflow(llm=Broken(), load_db=lambda: DB(), route_fn=route, weather_fn=lambda d, t: "맑음").ainvoke({"request": REQ})
     assert codes(out) == ["LLM_OUTPUT_INVALID", "LLM_OUTPUT_INVALID"]
@@ -147,7 +147,7 @@ async def test_llm_timeout_is_recorded_and_service_continues():
     import asyncio
 
     class Slow:
-        def with_structured_output(self, schema):
+        def with_structured_output(self, schema, **kw):
             async def hang(_):
                 await asyncio.sleep(10)
             return RunnableLambda(hang)
@@ -164,7 +164,7 @@ async def test_independent_steps_run_in_parallel():
     import time
 
     class SlowLLM(LLM):
-        def with_structured_output(self, schema):
+        def with_structured_output(self, schema, **kw):
             inner = super().with_structured_output(schema)
 
             async def run(x):
@@ -194,7 +194,7 @@ async def test_stream_plan_shows_itinerary_before_briefing():
     from src.agent.workflow import stream_plan
 
     class SlowBriefLLM(LLM):
-        def with_structured_output(self, schema):
+        def with_structured_output(self, schema, **kw):
             inner = super().with_structured_output(schema)
 
             async def run(x):

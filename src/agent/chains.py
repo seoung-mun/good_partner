@@ -1,5 +1,8 @@
 """LLM 체인: 여행 요청 → 취향 키워드, 일정 → 근거 기반 브리핑. 둘 다 Pydantic 구조화 출력."""
+import re
+
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableLambda
 
 from src.domain.models import Briefing, ItineraryItem, TripPreferences
 
@@ -18,9 +21,39 @@ BRIEFING_PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 
+PREFERENCE_MAX_TOKENS = 128   # 정상 출력은 수십 토큰. 폭주 생성(관측: 1,300토큰·45초)을 짧게 끊는다
+
+
+def salvage_keywords(text: str, limit: int = 4) -> list[str]:
+    """깨진 구조화 출력에서 keywords 목록만 복구. 소형 모델이 따옴표를 잘못 닫고 잡담을 이어 붙이는 경우 대비."""
+    m = re.search(r'"keywords"\s*:\s*\[(.*?)(?:\]|<|\n|$)', text, re.S)
+    if not m:
+        return []
+    return re.findall(r'["\']([^"\'\[\],]{1,15})["\']', m.group(1))[:limit]
+
+
+def _preferences_or_salvage(result) -> TripPreferences:
+    """include_raw 결과 → 파싱 성공이면 그대로, 실패면 원문에서 키워드 복구, 그래도 없으면 예외(호출부가 StepError 기록)."""
+    if isinstance(result, TripPreferences):
+        return result
+    if result.get("parsed") is not None:
+        return result["parsed"]
+    raw = getattr(result.get("raw"), "content", "") or ""
+    keywords = salvage_keywords(raw if isinstance(raw, str) else str(raw))
+    if not keywords:
+        raise ValueError(f"취향 파싱 실패: {result.get('parsing_error')}")
+    return TripPreferences(keywords=keywords, avoid=[])
+
+
+PREFERENCE_MAX_TOKENS = 128   # 정상 출력은 수십 토큰. 폭주 생성(관측: 1,300토큰·45초)을 짧게 끊는다
+
+
 def build_preference_chain(llm):
-    """여행 요청 → TripPreferences(취향 키워드) 체인."""
-    return PREFERENCE_PROMPT | llm.with_structured_output(TripPreferences)
+    """여행 요청 → TripPreferences(취향 키워드) 체인. 출력 토큰 상한을 이 체인에만 더 낮게 걸고, 깨진 출력은 복구."""
+    if getattr(llm, "num_predict", None):
+        llm = llm.model_copy(update={"num_predict": PREFERENCE_MAX_TOKENS})
+    structured = llm.with_structured_output(TripPreferences, include_raw=True)
+    return PREFERENCE_PROMPT | structured | RunnableLambda(_preferences_or_salvage)
 
 
 def build_briefing_chain(llm):

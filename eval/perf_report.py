@@ -16,10 +16,8 @@ def _f(v, d):
 
 def render_perf(before: dict, after: dict) -> str:
     b, a = dict(before["summary"]["all"]), after["summary"]["all"]
-    # 베이스라인 UI는 모든 단계가 끝난 뒤 한 번에 표시 → 첫 일정 표시 = 전체 지연
-    b.setdefault("first_plan_p50", None)
-    b["first_plan_p50"] = b["first_plan_p50"] or b["latency_p50_all"]
-    b["first_plan_p95"] = b.get("first_plan_p95") or b["latency_p95_all"]
+    # 베이스라인 UI는 선표시 없이 모든 단계가 끝난 뒤 한 번에 표시 → 사용자 기준 첫 일정 표시 = 전체 지연
+    b["first_plan_p50"], b["first_plan_p95"] = b["latency_p50_all"], b["latency_p95_all"]
     out = ["# 성능 최적화 전후 (E2E 20건, 같은 모델·같은 환경에서 연속 측정)", "",
            "| 지표 | 최적화 전 | 최적화 후 |", "|---|---|---|"]
     for label, key, d in LATENCY:

@@ -15,3 +15,10 @@ def test_render_perf_includes_latency_quality_and_nodes():
     assert "| 첫 일정 표시 p50(초) | 30.0 | **9.0** |" in md        # 베이스라인은 완료 시점에 한 번에 표시
     assert "| 일정 생성 성공률 | 1.00 | 1.00 |" in md
     assert "compose" in md and "brief" in md
+
+
+def test_baseline_first_plan_is_total_latency_even_if_node_time_recorded():
+    b = summ(36.0, 77.7, 7.1, {}, 653)             # 베이스라인도 plan_routes 노드는 7초에 끝났지만 UI는 완료 후 표시
+    a = summ(21.4, 62.4, 6.3, {}, 450)
+    md = render_perf(b, a)
+    assert "| 첫 일정 표시 p50(초) | 36.0 | **6.3** |" in md

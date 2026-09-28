@@ -38,8 +38,9 @@ class ItineraryItem(BaseModel):
 
 class TripPreferences(BaseModel):
     """LLM이 추출한 취향 키워드 (검색 쿼리에 사용)."""
-    keywords: list[str] = Field(description="리뷰 검색에 쓸 취향 키워드 1~4개 (예: 조용한, 바다뷰, 노포)")
-    avoid: list[str] = Field(description="피하고 싶은 것 (없으면 빈 목록)")
+    # maxItems: 구조화 출력 문법이 목록 길이를 강제 → 소형 모델이 키워드를 끝없이 생성하는 것을 막음
+    keywords: list[str] = Field(max_length=4, description="리뷰 검색에 쓸 취향 키워드 1~4개 (예: 조용한, 바다뷰, 노포)")
+    avoid: list[str] = Field(max_length=4, description="피하고 싶은 것 (없으면 빈 목록)")
 
 
 class SlotReason(BaseModel):
