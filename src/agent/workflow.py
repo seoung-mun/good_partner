@@ -56,12 +56,14 @@ def _where(item: ItineraryItem) -> str:
     return p.address or f"{p.region} {p.name}"
 
 
-async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None = None
+async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None = None, trim: bool = True
                      ) -> tuple[list[ItineraryItem], list[StepError]]:
     """같은 날 연속한 장소 쌍 + 매일 마지막 장소→숙소(마지막 날 제외) 경로를 병렬 조회하고 시간표를 다시 계산.
 
     request의 mode(transit|driving)·start_time(1일차 도착)·end_time(마지막 날 귀가 출발)·days·start_location(숙소)을 반영.
     실패한 구간은 기본 이동 시간.
+    trim: 마지막 날 귀가 시각을 넘는 장소를 뺄지. 초안 생성은 True(템플릿 채우기), 사용자 수정 뒤에는 False —
+          사용자가 고른 장소를 조용히 지우지 않고 안내만 한다.
     """
     req = request or {}
     mode, days = req.get("mode") or "transit", req.get("days")
@@ -93,8 +95,12 @@ async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None 
         errors.append(StepError.from_error("plan_routes", ExternalServiceError("Google Maps", "; ".join(failures[:3]))))
     reset = [i.model_copy(update={"move_min": None, "move_detail": None, "lodging_min": None, "lodging_detail": None})
              for i in items]
-    timed = assign_times(reset, legs, first_start=req.get("start_time") or "12:00", last_end=req.get("end_time"),
+    end = req.get("end_time")
+    timed = assign_times(reset, legs, first_start=req.get("start_time") or "12:00", last_end=end if trim else None,
                          last_day=days)
+    if not trim and end and any(i.slot.day == days and i.end and i.end > end for i in timed):
+        errors.append(StepError(step="plan_routes", code="OVER_END_TIME",
+                                message=f"마지막 날 일정이 출발 시각({end})을 넘겨요. 장소를 하나 빼는 걸 추천해요."))
     return [i.model_copy(update=dict(zip(("lodging_min", "lodging_detail"), home_legs[i.slot.slot_id])))
             if i.slot.slot_id in home_legs else i for i in timed], errors
 

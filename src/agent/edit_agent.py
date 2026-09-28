@@ -10,7 +10,7 @@ from src.agent.chains import format_plan_for_briefing
 from src.agent.edit_tools import make_edit_tools
 from src.agent.render import render_markdown
 from src.agent.workflow import reschedule
-from src.domain.models import ItineraryItem
+from src.domain.models import ItineraryItem, StepError
 
 SYSTEM = ("당신은 여행 일정 편집자입니다. 사용자의 수정 요청을 replace_slot·remove_slot·add_slot 도구로 반영하세요. "
           "슬롯은 반드시 [현재 일정]에 있는 slot_id로 지정하세요. 도구 결과의 ok가 false면 이유를 사용자에게 알리세요. "
@@ -27,6 +27,7 @@ class EditState(AgentState):
     """수정 에이전트 상태: 대화 메시지 + 일정·요청·지역 + 사용자가 뺀 장소(재추천 금지)."""
     items: list[ItineraryItem]
     rejected: list[tuple[str, str]]
+    errors: list[StepError]                  # 시간표 재계산 안내 (경로 실패, 귀가 시각 초과)
     request: dict
     region: str
     final_text: str
@@ -48,8 +49,8 @@ def build_edit_app(llm=None, load_db=None, route_fn=None):
 
     async def finalize(state: EditState) -> dict:
         """수정 반영 후 시간표 재계산·렌더. 경로 실패는 기본 이동 시간 + 안내."""
-        items, errors = await reschedule(state["items"], route_fn, state["request"])
-        return {"items": items, "final_text": render_markdown(state["request"], items, None, "", errors)}
+        items, errors = await reschedule(state["items"], route_fn, state["request"], trim=False)
+        return {"items": items, "errors": errors, "final_text": render_markdown(state["request"], items, None, "", errors)}
 
     g = StateGraph(EditState)
     g.add_node("agent", agent)

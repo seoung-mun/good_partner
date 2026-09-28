@@ -257,7 +257,8 @@ async def create_plan(status):
 async def edit_plan(text: str):
     plan = st.session_state.plan
     out = await edit(EDIT_APP, {k: plan[k] for k in ("request", "region", "items", "rejected")}, text)
-    st.session_state.plan = {**plan, "items": out["items"], "rejected": out.get("rejected") or plan["rejected"]}
+    st.session_state.plan = {**plan, "items": out["items"], "rejected": out.get("rejected") or plan["rejected"],
+                             "errors": out.get("errors") or []}
     reply = next((m.content for m in reversed(out["messages"]) if isinstance(m, AIMessage) and m.content), "")
     st.session_state.messages.append(AIMessage(content=reply or "일정을 수정했어요."))
 
@@ -266,9 +267,10 @@ def swap(slot_id: str, place):
     """카드의 대안 선택 → 교체, 뺀 장소는 재추천 금지, 시간표 재계산."""
     plan = st.session_state.plan
     old = next(i.place for i in plan["items"] if i.slot.slot_id == slot_id)
-    items, _ = loop.run_until_complete(reschedule(swap_place(plan["items"], slot_id, place), get_detailed_route,
-                                                  plan["request"]))
-    st.session_state.plan = {**plan, "items": items, "rejected": [*plan["rejected"], (old.name, old.region)]}
+    items, errors = loop.run_until_complete(reschedule(swap_place(plan["items"], slot_id, place), get_detailed_route,
+                                                       plan["request"], trim=False))
+    st.session_state.plan = {**plan, "items": items, "errors": errors,
+                             "rejected": [*plan["rejected"], (old.name, old.region)]}
 
 
 # --- 초기 실행: 초안 생성 ---

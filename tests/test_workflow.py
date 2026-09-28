@@ -272,3 +272,13 @@ async def test_reschedule_adds_return_to_lodging_except_last_day():
     out, _ = await reschedule(items, r, {"destination": "부산", "start_location": "부산역", "days": 2})
     assert out[1].lodging_min == 20 and out[0].lodging_min is None and out[2].lodging_min is None
     assert ("r B", "부산 부산역") in asked                          # 그날 마지막 장소 → 숙소(목적지 + 출발지)
+
+
+async def test_reschedule_after_edit_keeps_places_and_warns_instead_of_trimming():
+    from src.agent.workflow import reschedule
+    items = [it("d1-s1", 1, 1, "식당", "A"), it("d1-s2", 1, 2, "관광지", "B"), it("d1-s3", 1, 3, "식당", "C")]
+    req = {"days": 1, "start_time": "15:00", "end_time": "18:00"}
+    trimmed, _ = await reschedule(items, route, req)
+    kept, errors = await reschedule(items, route, req, trim=False)
+    assert len(trimmed) < 3 and len(kept) == 3                      # 수정 후에는 사용자가 고른 장소를 지우지 않음
+    assert any("18:00" in e.message for e in errors)
