@@ -4,15 +4,8 @@ EMBED_MODEL = "upskyy/bge-m3-korean"
 
 
 def pick_device() -> str:
-    """쿼리 임베딩은 CPU에서 4~11초, MPS에서 0.17초 (결과 벡터 동일). 가능한 가속기를 쓴다."""
-    if os.getenv("EMBED_DEVICE"):
-        return os.environ["EMBED_DEVICE"]
-    import torch
-    if torch.cuda.is_available():
-        return "cuda"
-    if torch.backends.mps.is_available():
-        return "mps"
-    return "cpu"
+    """서비스 배포 대상은 CPU 서버(의도된 설계). 개발·평가 시에만 EMBED_DEVICE=mps|cuda로 가속기 사용."""
+    return os.getenv("EMBED_DEVICE", "cpu")
 
 
 def make_embeddings():
