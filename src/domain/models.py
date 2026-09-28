@@ -47,3 +47,19 @@ class Briefing(BaseModel):
     overview: str = Field(description="일정 전체를 소개하는 2~3문장")
     weather_tip: str = Field(description="날씨 데이터를 한 문장으로 요약한 조언")
     reasons: list[SlotReason]
+
+
+class StepError(BaseModel):
+    """워크플로우 단계에서 발생한 오류. 예외를 던지는 대신 상태에 쌓아 서비스를 계속 진행한다."""
+
+    step: str                                     # 발생 단계 (parse_request, search, ...)
+    code: str                                     # AppError.code
+    message: str                                  # 사용자에게 보여줄 안내
+    detail: str = ""                              # 로그·디버깅용 원인
+
+    @classmethod
+    def from_error(cls, step: str, err: Exception) -> "StepError":
+        """AppError면 code·user_message를, 그 외 예외는 일반 오류로 변환."""
+        return cls(step=step, code=getattr(err, "code", "APP_ERROR"),
+                   message=getattr(err, "user_message", "요청을 처리하는 중 문제가 발생했어요."),
+                   detail=getattr(err, "detail", "") or f"{type(err).__name__}: {err}")

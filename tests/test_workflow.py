@@ -102,3 +102,57 @@ async def test_unresolvable_destination_uses_fallback_resolver():
 
 async def _async(v):
     return v
+
+
+# --- 단계별 실패는 StepError로 기록하고 서비스는 계속 ---------------------------------
+def codes(out):
+    return [e.code for e in out.get("errors", [])]
+
+
+async def test_llm_failures_are_recorded_as_step_errors():
+    class Broken:
+        def with_structured_output(self, schema):
+            return RunnableLambda(lambda _: (_ for _ in ()).throw(ValueError("bad json")))
+    out = await build_workflow(llm=Broken(), load_db=lambda: DB(), route_fn=route, weather_fn=lambda d, t: "맑음").ainvoke({"request": REQ})
+    assert codes(out) == ["LLM_OUTPUT_INVALID", "LLM_OUTPUT_INVALID"]
+    assert "AI 응답을 해석하지 못해" in out["final_text"]
+
+
+async def test_vector_store_failure_does_not_crash():
+    def no_db():
+        raise FileNotFoundError("review_faiss_mean")
+    out = await build_workflow(llm=LLM(), load_db=no_db, route_fn=route, weather_fn=lambda d, t: "맑음").ainvoke({"request": REQ})
+    assert "VECTOR_STORE_UNAVAILABLE" in codes(out)
+    assert all(i.place is None for i in out["items"])
+    assert "장소 데이터베이스를 불러오지 못했어요" in out["final_text"]
+
+
+async def test_region_not_found_is_reported():
+    out = await build_workflow(llm=LLM(), load_db=lambda: DB(), route_fn=route, weather_fn=lambda d, t: "",
+                               resolve_fallback=lambda dest: _async("")).ainvoke({"request": {**REQ, "destination": "중구"}})
+    assert "REGION_NOT_FOUND" in codes(out)
+    assert "시/도와 시/군/구를 함께" in out["final_text"]
+
+
+async def test_route_and_weather_failures_use_defaults():
+    async def bad_route(a, b, mode="transit", departure_time=None):
+        raise TimeoutError("maps timeout")
+    out = await build_workflow(llm=LLM(), load_db=lambda: DB(), route_fn=bad_route,
+                               weather_fn=lambda d, t: "오류: Forecast API 호출 중 문제 발생").ainvoke({"request": REQ})
+    assert codes(out).count("EXTERNAL_SERVICE_FAILED") == 2          # Maps 1건(요약), 날씨 1건
+    assert out["items"][1].move_min == 30                             # 경로 없으면 기본 이동 시간
+
+
+async def test_llm_timeout_is_recorded_and_service_continues():
+    import asyncio
+
+    class Slow:
+        def with_structured_output(self, schema):
+            async def hang(_):
+                await asyncio.sleep(10)
+            return RunnableLambda(hang)
+    app = build_workflow(llm=Slow(), load_db=lambda: DB(), route_fn=route, weather_fn=lambda d, t: "맑음", llm_timeout=0.05)
+    out = await asyncio.wait_for(app.ainvoke({"request": REQ}), timeout=5)
+    assert codes(out) == ["LLM_OUTPUT_INVALID", "LLM_OUTPUT_INVALID"]
+    assert "TimeoutError" in out["errors"][0].detail
+    assert out["items"][0].place.name == "식당0"

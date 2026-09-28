@@ -43,9 +43,10 @@ def build_edit_app(llm=None, load_db=None, route_fn=None):
         middleware=[ModelCallLimitMiddleware(run_limit=6), ToolCallLimitMiddleware(run_limit=6), ToolErrorMiddleware(on_error=_tool_error)],
     )
 
-    async def finalize(state: EditState):
-        items = await reschedule(state["items"], route_fn)
-        return {"items": items, "final_text": render_markdown(state["request"], items, None, "")}
+    async def finalize(state: EditState) -> dict:
+        """수정 반영 후 시간표 재계산·렌더. 경로 실패는 기본 이동 시간 + 안내."""
+        items, errors = await reschedule(state["items"], route_fn)
+        return {"items": items, "final_text": render_markdown(state["request"], items, None, "", errors)}
 
     g = StateGraph(EditState)
     g.add_node("agent", agent)
@@ -56,7 +57,7 @@ def build_edit_app(llm=None, load_db=None, route_fn=None):
     return g.compile()
 
 
-async def edit(app, state: dict, user_text: str) -> dict:
+async def edit(app, state: dict, user_text: str, config: dict | None = None) -> dict:
     """현재 일정 상태 + 사용자 요청 → 수정된 상태. 현재 일정은 slot_id와 함께 매 요청에 제공."""
     msg = HumanMessage(content=f"[현재 일정]\n{format_plan_for_briefing(state['items'])}\n\n[요청]\n{user_text}")
-    return await app.ainvoke({**state, "messages": [msg]})
+    return await app.ainvoke({**state, "messages": [msg]}, config=config)
