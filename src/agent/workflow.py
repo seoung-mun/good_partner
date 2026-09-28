@@ -161,7 +161,8 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
         req = state["request"]
         dates = date.fromisoformat(req["start_date"]).strftime("%Y년 %m월 %d일")
         try:
-            text = await asyncio.to_thread(weather_fn, req["destination"], dates)
+            place = state.get("region") or req["destination"]   # 정식 지역명 → 날씨 서비스가 좌표로 해석
+            text = await asyncio.to_thread(weather_fn, place, dates)
             if not text or text.startswith(("오류", "정보:")):
                 raise RuntimeError(text or "empty")
             return {"weather": text}

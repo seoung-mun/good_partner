@@ -28,3 +28,4 @@ def test_build_slots_follows_legacy_template():
         (3, "관광지")]
     assert s[0].slot_id == "d1-s1" and s[0].meal == "점심" and s[3].meal == "저녁"
     assert [x.category for x in build_slots(1)] == ["식당", "카페", "관광지", "식당"]
+

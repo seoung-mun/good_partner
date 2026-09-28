@@ -4,6 +4,16 @@ import os
 
 import requests
 
+from src.logging_config import get_logger
+
+log = get_logger(__name__)
+
+
+def _google_client():
+    """Google Maps 클라이언트 (지오코딩 fallback). 테스트에서 교체 가능하도록 함수로 감쌈."""
+    from src.config import GMAPS_CLIENT
+    return GMAPS_CLIENT
+
 
 def forecast_summary(destination: str, dates: str) -> str:
     """
@@ -24,10 +34,18 @@ def forecast_summary(destination: str, dates: str) -> str:
         if geo_data:
             lat = geo_data[0]['lat']
             lon = geo_data[0]['lon']
-        else:
-            return f"오류: '{destination}'의 좌표(Geocoding)를 찾을 수 없습니다."
     except Exception as e:
-        return f"오류: Geocoding API 호출 중 문제 발생: {e}"
+        log.warning("OWM 지오코딩 실패: %s", e)
+    if lat is None:  # OWM은 '강릉', '부산 중구' 같은 한국 지명을 자주 못 찾음 → Google Geocoding 좌표
+        try:
+            res = _google_client().geocode(destination, language="ko")
+            if res:
+                loc = res[0]["geometry"]["location"]
+                lat, lon = loc["lat"], loc["lng"]
+        except Exception as e:
+            log.warning("Google 지오코딩 실패: %s", e)
+    if lat is None:
+        return f"오류: '{destination}'의 좌표(Geocoding)를 찾을 수 없습니다."
 
     forecast_url = "https://api.openweathermap.org/data/2.5/forecast"
     forecast_params = {'lat': lat, 'lon': lon, 'appid': API_KEY, 'units': 'metric', 'lang': 'kr'}

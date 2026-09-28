@@ -118,3 +118,4 @@ def resolve_destination(text: str) -> tuple[str, str] | None:
         return (sido, sigungu if sigungu in REGION_STRUCTURE[sido] else "")
     hits = [(s, g) for s, names in REGION_STRUCTURE.items() for g in names if parts[0] in (g, g[:-1])]
     return hits[0] if len(hits) == 1 else None
+
