@@ -245,9 +245,9 @@ def build_request() -> dict:
             "end_time": st.session_state.get("leave_time", "20:00")}
 
 
-async def create_plan(status):
-    """초안 생성. 노드가 끝날 때마다 진행 단계를 표시."""
-    out = await stream_plan(WORKFLOW, build_request(),
+async def create_plan(status, preview):
+    """초안 생성. 노드가 끝날 때마다 진행 단계를, 시간표가 나오면 브리핑(LLM)을 기다리지 않고 일정부터 표시."""
+    out = await stream_plan(WORKFLOW, build_request(), on_plan=preview.markdown,
                             on_step=lambda n: status.write(f":material/check: {STEP_LABEL.get(n, n)}"))
     st.session_state.plan = {**{k: out.get(k) for k in ("request", "region", "items", "weather", "briefing", "errors")},
                              "keywords": out["preferences"].keywords if out.get("preferences") else [],
@@ -276,7 +276,8 @@ def swap(slot_id: str, place):
 # --- 초기 실행: 초안 생성 ---
 if st.session_state.plan is None:
     with st.status("여행 계획을 만드는 중이에요", expanded=True) as status:
-        loop.run_until_complete(create_plan(status))
+        preview = st.empty()
+        loop.run_until_complete(create_plan(status, preview))
         status.update(label="여행 계획을 만들었어요", state="complete", expanded=False)
     st.rerun()
 
@@ -297,9 +298,12 @@ elif plan.get("weather"):
 
 taken = {(i.place.name, i.place.region) for i in items if i.place} | {tuple(k) for k in plan["rejected"]}
 days = sorted({i.slot.day for i in items})
-for day, tab in zip(days, st.tabs([f"Day {d}" for d in days])):
+# 탭 대신 선택한 날만 렌더 — 숨겨진 탭 안의 pydeck 지도는 크기 0으로 초기화돼 빈 화면이 된다
+day = st.segmented_control("일차", days, format_func=lambda d: f"Day {d}", default=days[0] if days else None,
+                           label_visibility="collapsed") or (days[0] if days else None)
+for day in [day] if day else []:
     today = [i for i in items if i.slot.day == day]
-    with tab:
+    with st.container():
         left, right = st.columns([1.2, 1], gap="large")
         with left:
             n = 0

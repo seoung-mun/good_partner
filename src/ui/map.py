@@ -1,4 +1,6 @@
 """하루 동선 지도 (pydeck — Streamlit 내장). 번호 핀 + 방문 순서 경로선."""
+import math
+
 import pydeck as pdk
 
 from src.domain.models import ItineraryItem
@@ -8,11 +10,8 @@ PATH = [55, 138, 221]
 
 
 def _zoom(span: float) -> float:
-    """좌표 범위(도) → 대략적인 줌 레벨."""
-    for limit, z in ((0.02, 14), (0.05, 13), (0.1, 12), (0.25, 11), (0.6, 10)):
-        if span < limit:
-            return z
-    return 9
+    """좌표 범위(도) → 모든 핀이 들어오는 줌 레벨 (웹 메르카토르: 줌 1 오를 때 보이는 범위 절반)."""
+    return max(8.0, min(14.0, math.log2(360 / max(span, 0.005)) - 2.2))
 
 
 def day_map(items: list[ItineraryItem]) -> pdk.Deck | None:
@@ -32,4 +31,5 @@ def day_map(items: list[ItineraryItem]) -> pdk.Deck | None:
         pdk.Layer("TextLayer", pts, get_position="[lng, lat]", get_text="n", get_color=[255, 255, 255],
                   get_size=13, get_alignment_baseline="'center'"),
     ]
-    return pdk.Deck(layers=layers, initial_view_state=view, tooltip={"text": "{n}. {name}"})
+    return pdk.Deck(layers=layers, initial_view_state=view, tooltip={"text": "{n}. {name}"},
+                    map_style=pdk.map_styles.CARTO_LIGHT)

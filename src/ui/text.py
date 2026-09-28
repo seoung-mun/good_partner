@@ -18,3 +18,10 @@ def highlight(text: str, keywords: list[str]) -> str:
     for k in sorted({k for k in keywords if k}, key=len, reverse=True):
         text = text.replace(k, f":orange-background[{k}]")
     return text
+
+
+def compact_route(detail: str | None) -> str:
+    """경로 요약: 이모지를 글자로, 연속으로 반복되는 구간(도보 → 도보)은 하나로."""
+    parts = [p.strip() for p in to_plain(detail or "").split("→") if p.strip()]
+    merged = [p for n, p in enumerate(parts) if n == 0 or p != parts[n - 1]]
+    return " → ".join(merged) or "이동"
