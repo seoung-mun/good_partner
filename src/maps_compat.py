@@ -6,6 +6,7 @@
 import hashlib
 import json
 import os
+import time
 from pathlib import Path
 
 import googlemaps
@@ -39,6 +40,7 @@ class _NetworkError(Exception):
 class RoutesCompatClient(googlemaps.Client):
     calls = 0
     network_calls = 0
+    network_seconds = 0.0
 
     def __init__(self, key: str, **kw):
         super().__init__(key=key, **kw)
@@ -55,10 +57,13 @@ class RoutesCompatClient(googlemaps.Client):
             if path.exists():
                 return json.loads(path.read_text())
         RoutesCompatClient.network_calls += 1
+        t0 = time.perf_counter()
         try:
             result = fetch()
         except _NetworkError as e:  # 일시 오류(429·타임아웃 등)는 캐시하지 않고 '결과 없음'만 반환
             return e.fallback
+        finally:
+            RoutesCompatClient.network_seconds += time.perf_counter() - t0
         if path is not None:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(result, ensure_ascii=False))

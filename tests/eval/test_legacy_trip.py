@@ -42,3 +42,16 @@ async def test_run_returns_itinerary_and_last_ai_message():
            "messages": [HumanMessage("q"), AIMessage("계획표")]}
     r = await run_legacy_trip(App(result=res), TRIP, date(2026, 10, 1))
     assert r["ok"] and r["itinerary"][0]["name"] == "a" and r["final_message"] == "계획표"
+
+
+async def test_run_passes_callbacks_to_graph():
+    seen = {}
+
+    class Spy(App):
+        async def ainvoke(self, state, config=None):
+            seen.update(config)
+            return {"itinerary": [], "messages": []}
+
+    marker = object()
+    await run_legacy_trip(Spy(), TRIP, date(2026, 10, 1), callbacks=[marker])
+    assert seen["callbacks"] == [marker] and seen["recursion_limit"] == 50

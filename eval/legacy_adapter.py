@@ -56,9 +56,10 @@ def initial_state(trip: dict, start: date) -> dict:
             "dialog_stage": "planning", "last_deleted_spot": None, "ban_list": []}
 
 
-async def run_legacy_trip(app, trip: dict, start: date) -> dict:
+async def run_legacy_trip(app, trip: dict, start: date, callbacks: list | None = None) -> dict:
     from langchain_core.messages import AIMessage
-    config = {"configurable": {"thread_id": f"eval-{trip['id']}"}, "recursion_limit": 50}
+    config = {"configurable": {"thread_id": f"eval-{trip['id']}"}, "recursion_limit": 50,
+              "callbacks": callbacks or []}
     try:
         res = await app.ainvoke(initial_state(trip, start), config=config)
     except Exception as e:

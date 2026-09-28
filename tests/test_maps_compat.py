@@ -92,3 +92,10 @@ def test_real_no_route_is_cached(client, monkeypatch):
     client.directions("A", "B", mode="transit")
     client.directions("A", "B", mode="transit")
     assert len(hits) == 1          # 정상 200 '경로 없음'은 캐시
+
+
+def test_network_time_is_accumulated(client, monkeypatch):
+    RoutesCompatClient.network_seconds = 0.0
+    monkeypatch.setattr(maps_compat.requests, "post", lambda *a, **k: FakeResp(ROUTE))
+    client.directions("C", "D", mode="transit")
+    assert RoutesCompatClient.network_seconds > 0

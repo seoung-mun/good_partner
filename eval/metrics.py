@@ -2,6 +2,7 @@
 from collections import defaultdict
 
 from eval.regions import region_match
+from eval.trace import percentile
 
 FIRST = ["식당", "카페", "관광지", "식당"]
 MIDDLE = ["관광지", "식당", "카페", "관광지", "식당"]
@@ -99,7 +100,7 @@ def trip_outcome(row: dict) -> str:
     return "success" if row.get("n_places", 0) > 0 else "empty"
 
 
-def summarize_e2e(rows: list[dict], quality_keys: list[str]) -> dict:
+def summarize_e2e(rows: list[dict], quality_keys: list[str], all_keys: list[str] = ()) -> dict:
     """비율은 전체 기준, 품질·비용 지표는 성공한 여행만 평균. 비용은 실패 포함 전체 평균(*_all)도 함께."""
     outcomes = [trip_outcome(r) for r in rows]
     ok_rows = [r for r, o in zip(rows, outcomes) if o == "success"]
@@ -108,4 +109,7 @@ def summarize_e2e(rows: list[dict], quality_keys: list[str]) -> dict:
     return {"n": len(rows), "n_success": len(ok_rows), "success_rate": rate("success"),
             "empty_rate": rate("empty"), "error_rate": rate("error"),
             **{k: mean_or_none([r.get(k) for r in ok_rows]) for k in quality_keys},
-            **{f"{k}_all": mean_or_none([r.get(k) for r in rows]) for k in cost_keys}}
+            **{f"{k}_all": mean_or_none([r.get(k) for r in rows]) for k in [*cost_keys, *all_keys]},
+            # 서비스 지연은 실패 포함 전체 요청 기준 백분위수
+            "latency_p50_all": percentile([r["latency_s"] for r in rows if "latency_s" in r], 50),
+            "latency_p95_all": percentile([r["latency_s"] for r in rows if "latency_s" in r], 95)}

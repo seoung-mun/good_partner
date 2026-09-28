@@ -103,3 +103,12 @@ def test_move_time_is_none_without_timeline():
     assert no_tl["has_timeline"] == 0 and no_tl["total_move_min"] is None
     tl = e2e_trip_metrics([p("a", "식당", 1), {"type": "move", "duration_min": 32, "day": 1}, p("b", "카페", 1)], trip)
     assert tl["has_timeline"] == 1 and tl["total_move_min"] == 32
+
+
+def test_summarize_e2e_service_metrics_over_all_trips():
+    from eval.metrics import summarize_e2e
+    rows = [{"ok": 1.0, "n_places": 2, "latency_s": 10, "tool_error_rate": 0.0},
+            {"ok": 0.0, "n_places": 0, "latency_s": 100, "tool_error_rate": 0.5}]
+    s = summarize_e2e(rows, [], all_keys=["tool_error_rate"])
+    assert s["tool_error_rate_all"] == 0.25
+    assert s["latency_p50_all"] == 10 and s["latency_p95_all"] == 100
