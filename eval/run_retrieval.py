@@ -27,7 +27,8 @@ async def main(args):
         counter.reset()
         t0 = time.time()
         try:
-            r = await legacy_retrieve(it["query"], it["destination"], it["category_filter"])
+            r = await legacy_retrieve(it["query"], it["destination"], it["category_filter"],
+                                      user_info=it.get("user_info", ""))
             cands = [doc_to_cand(d) for d in r["candidates"]]
             row = {**it, "ok": True, "target_region": r["target_region"], "queries": r["queries"],
                    "fallback_used": r["fallback_used"], "top": cands[: args.k],

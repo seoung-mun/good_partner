@@ -68,7 +68,22 @@ def build_items(seed: int = 42, n_regular: int = 30) -> list[dict]:
     return items
 
 
+def build_pref_items(trips: list[dict]) -> list[dict]:
+    """취향 쿼리 세트: B층 여행 요청의 상세 취향 × 카테고리. 관련도(LLM-as-judge) 측정용."""
+    from eval.legacy_adapter import build_preference
+    items = []
+    for t in trips:
+        for cat in CATS:
+            items.append({**t, "id": f"pref-{t['id']}-{cat}", "group": "pref", "query": QUERY[cat],
+                          "category_filter": cat, "gold_category": cat, "user_info": build_preference(t)})
+    return items
+
+
 def main():
+    trips = [json.loads(l) for l in Path("eval/data/golden_trips.jsonl").read_text().splitlines() if l.strip()]
+    pref = build_pref_items(trips)
+    Path("eval/data/golden_pref.jsonl").write_text("\n".join(json.dumps(i, ensure_ascii=False) for i in pref) + "\n")
+    print(f"{len(pref)} pref items → eval/data/golden_pref.jsonl")
     items = build_items()
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(json.dumps(i, ensure_ascii=False) for i in items) + "\n")
