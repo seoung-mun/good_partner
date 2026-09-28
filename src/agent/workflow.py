@@ -31,6 +31,23 @@ def _where(item: ItineraryItem) -> str:
     return p.address or f"{p.region} {p.name}"
 
 
+async def reschedule(items: list[ItineraryItem], route_fn) -> list[ItineraryItem]:
+    """같은 날 연속한 장소 쌍의 경로를 병렬 조회(I/O)하고 시간표를 다시 계산."""
+    pairs, prev = [], None
+    for it in items:
+        if prev is not None and prev.slot.day != it.slot.day:
+            prev = None
+        if it.place is not None:
+            if prev is not None:
+                pairs.append((it.slot.slot_id, prev, it))
+            prev = it
+    results = await asyncio.gather(*[route_fn(_where(a), _where(b), mode="transit") for _, a, b in pairs],
+                                   return_exceptions=True)
+    legs = {sid: (r["duration_value"] // 60, " ➡️ ".join(r.get("steps", [])))
+            for (sid, _, _), r in zip(pairs, results) if isinstance(r, dict)}
+    return assign_times([i.model_copy(update={"move_min": None, "move_detail": None}) for i in items], legs)
+
+
 def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
     """평가·PDF가 읽는 기존 itinerary 형식(type/name/address/day + move 항목)으로 변환."""
     out = []
@@ -81,19 +98,7 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
         return {"items": [ItineraryItem(slot=s, place=picks[s.slot_id]) for s in state["slots"]]}
 
     async def plan_routes(state: PlanState):
-        items, pairs, prev = state["items"], [], None
-        for it in items:
-            if prev is not None and prev.slot.day != it.slot.day:
-                prev = None
-            if it.place is not None:
-                if prev is not None:
-                    pairs.append((it.slot.slot_id, prev, it))
-                prev = it
-        results = await asyncio.gather(*[route_fn(_where(a), _where(b), mode="transit") for _, a, b in pairs],
-                                       return_exceptions=True)
-        legs = {sid: (r["duration_value"] // 60, " ➡️ ".join(r.get("steps", [])))
-                for (sid, _, _), r in zip(pairs, results) if isinstance(r, dict)}
-        return {"items": assign_times(items, legs)}
+        return {"items": await reschedule(state["items"], route_fn)}
 
     async def fetch_weather(state: PlanState):
         req = state["request"]
