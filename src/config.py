@@ -11,7 +11,8 @@ load_faiss_index_start_time = None
 load_dotenv()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-review_faiss = os.path.join(os.path.dirname(current_dir), "review_faiss") 
+# 문서 인덱스는 쿼리(HuggingFaceEmbeddings = Mean 풀링)와 같은 풀링이어야 함. 원본 CLS 인덱스는 review_faiss
+review_faiss = os.path.join(os.path.dirname(current_dir), os.getenv("INDEX_DIR", "review_faiss_mean"))
 
 LLM = make_llm()
 
@@ -59,7 +60,8 @@ load_faiss_index_start_time = None
 load_dotenv()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-review_faiss = os.path.join(os.path.dirname(current_dir), "review_faiss") 
+# 문서 인덱스는 쿼리(HuggingFaceEmbeddings = Mean 풀링)와 같은 풀링이어야 함. 원본 CLS 인덱스는 review_faiss
+review_faiss = os.path.join(os.path.dirname(current_dir), os.getenv("INDEX_DIR", "review_faiss_mean"))
 
 LLM = make_llm()
 
