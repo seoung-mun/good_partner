@@ -60,3 +60,42 @@ desc_prompt = PromptTemplate.from_template("""
 - 문장 끝은 '해요', '좋아요' 등으로 자연스럽게 마무리.
 """)
 desc_chain = desc_prompt | LLM | StrOutputParser()
+
+
+# --- P3 워크플로우용 구조화 체인 (LLM 호출은 요청당 이 2개뿐) ---------------------
+from langchain_core.prompts import ChatPromptTemplate  # noqa: E402
+
+from src.domain.models import Briefing, ItineraryItem, TripPreferences  # noqa: E402
+
+PREFERENCE_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", "여행 요청에서 리뷰 검색에 쓸 취향 키워드를 뽑으세요. 키워드는 리뷰에 실제로 나올 법한 짧은 한국어 "
+               "형용사·명사 1~4개(예: 조용한, 바다뷰, 노포, 아이와). 지역명·카테고리명(맛집, 카페, 관광지)은 넣지 마세요."),
+    ("human", "동행: {group_type}\n스타일: {style}\n상세 요청: {detail}"),
+])
+
+BRIEFING_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", "당신은 여행 일정 가이드입니다. 주어진 일정과 각 장소의 리뷰만 근거로 브리핑을 작성하세요. "
+               "리뷰에 없는 사실(메뉴, 시설, 가격 등)은 추측하지 마세요. 장소를 바꾸거나 추가하지 마세요. "
+               "reasons에는 장소가 있는 slot_id마다 사용자 요청과 연결한 1~2문장 추천 사유를 쓰세요."),
+    ("human", "[사용자 요청]\n{request}\n\n[날씨]\n{weather}\n\n[일정]\n{plan}"),
+])
+
+
+def build_preference_chain(llm):
+    return PREFERENCE_PROMPT | llm.with_structured_output(TripPreferences)
+
+
+def build_briefing_chain(llm):
+    return BRIEFING_PROMPT | llm.with_structured_output(Briefing)
+
+
+def format_plan_for_briefing(items: list[ItineraryItem]) -> str:
+    lines = []
+    for it in items:
+        head = f"- {it.slot.slot_id} (Day {it.slot.day}, {it.slot.meal or it.slot.category})"
+        if it.place is None:
+            lines.append(f"{head}: 비어 있음")
+            continue
+        reviews = " / ".join(r[:120] for r in it.place.reviews[:2])
+        lines.append(f"{head}: {it.place.name} [{it.place.region}] 리뷰: {reviews}")
+    return "\n".join(lines)
