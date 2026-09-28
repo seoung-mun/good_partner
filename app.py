@@ -84,6 +84,8 @@ if st.button("AI 플래너에게 정보 전달하고 시작하기", type="primar
         st.session_state.start_date = start_date
         st.session_state.end_date = end_date
         st.session_state.group_type = gathering_type 
+        st.session_state.travel_style = travel_style
+        st.session_state.detail_preference = detail_preference
         
         days = (end_date - start_date).days + 1 
         travel_dates_str = f"{start_date.strftime('%Y년 %m월 %d일')}부터 {days}일간"

@@ -1,9 +1,10 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
-from src.graph_flow import build_graph
+from src.agent.edit_agent import build_edit_app, edit
+from src.agent.workflow import build_workflow, to_legacy_itinerary
 import re
 import asyncio
-from datetime import datetime
+from datetime import date, datetime
 from fpdf import FPDF
 import time
 import os
@@ -169,18 +170,19 @@ def create_itinerary_pdf(itinerary, destination, dates, weather, final_routes, t
                 if item.get('description'):
                     if has_korean_font: pdf.set_font('NanumGothic', '', 10)
                     pdf.set_x(20)
-                    pdf.multi_cell(0, 5, text=f"{item['description']}")
+                    pdf.multi_cell(0, 5, text=f"{item['description']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                     pdf.ln(2)
 
                 reviews = item.get('reviews', [])
                 if reviews and isinstance(reviews, list):
                     if has_korean_font: pdf.set_font('NanumGothic', '', 9)
-                    pdf.set_x(20)
                     for review in reviews:
                         if isinstance(review, str): review_text = review
                         elif isinstance(review, dict): review_text = review.get('text', str(review))
                         else: review_text = str(review)
-                        pdf.multi_cell(0, 4, text=f"  • {review_text}")
+                        # 매 줄 왼쪽 여백에서 시작 — 기본값(new_x=RIGHT)이면 두 번째 리뷰부터 쓸 공간이 없어 예외
+                        pdf.set_x(20)
+                        pdf.multi_cell(0, 4, text=f"  • {review_text}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                     pdf.ln(2)
 
         pdf.ln(10)
@@ -219,131 +221,72 @@ if "preferences_collected" not in st.session_state:
     st.stop()
 
 if "messages" not in st.session_state: st.session_state.messages = []
-if "itinerary" not in st.session_state: st.session_state.itinerary = []
-if "show_pdf_button" not in st.session_state: st.session_state.show_pdf_button = False
-if "current_weather" not in st.session_state: st.session_state.current_weather = ""
-if "current_anchor" not in st.session_state: st.session_state.current_anchor = ""
-if "dialog_stage" not in st.session_state: st.session_state.dialog_stage = "planning"
-if "last_deleted_spot" not in st.session_state: st.session_state.last_deleted_spot = None
-if "ban_list" not in st.session_state: st.session_state.ban_list = []
+if "plan" not in st.session_state: st.session_state.plan = None  # request, region, items, weather
 
 if "event_loop" not in st.session_state:
     st.session_state.event_loop = asyncio.new_event_loop()
     asyncio.set_event_loop(st.session_state.event_loop)
 loop = st.session_state.event_loop
 
-def get_graph_app():
-    return build_graph()
 
-APP = get_graph_app()
+@st.cache_resource(show_spinner=False)
+def get_apps():
+    """초안 생성은 결정적 워크플로우, 수정은 tool calling 에이전트."""
+    return build_workflow(), build_edit_app()
 
-async def run_ai_agent():
-    thread_id = st.session_state.session_id if 'session_id' in st.session_state else "streamlit_user"
-    config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 50}
-    
-    current_state = {
-        "messages": st.session_state.messages,
-        "itinerary": st.session_state.itinerary,
-        "destination": st.session_state.get('destination', ''),
-        "dates": st.session_state.get('dates', ''),
-        "group_type": st.session_state.get('group_type', '정보없음'),
-        "style": st.session_state.get('preference', ''),
-        "preference": st.session_state.get('preference', ''),
-        "total_days": st.session_state.get('total_days', 1),
-        "current_weather": st.session_state.get('current_weather', ''),
-        "show_pdf_button": st.session_state.get('show_pdf_button', False),
-        "current_anchor": st.session_state.get('current_anchor', st.session_state.get('destination', '')),
-        "dialog_stage": st.session_state.get("dialog_stage", "planning"),
-        "last_deleted_spot": st.session_state.get("last_deleted_spot"),
-        "ban_list": st.session_state.get("ban_list", [])
-    }
-    
-    with st.spinner("AI가 여행 계획을 생성/수정 중입니다..."):
-        response = await APP.ainvoke(current_state, config=config)
 
-    st.session_state.messages = response.get('messages', [])
-    st.session_state.itinerary = response.get('itinerary', [])
-    
-    try:
-        st.session_state.itinerary = _normalize_itinerary_for_pdf(st.session_state.itinerary, st.session_state.get('total_days', None))
-    except Exception as e:
-        print("itinerary 정규화 실패:", e)
+WORKFLOW, EDIT_APP = get_apps()
 
-    st.session_state.current_weather = response.get('current_weather', '')
-    st.session_state.show_pdf_button = response.get('show_pdf_button', False)
-    st.session_state.current_anchor = response.get('current_anchor', '')
-    
-    if 'dialog_stage' in response:
-        st.session_state.dialog_stage = response['dialog_stage']
 
-    if 'last_deleted_spot' in response:
-        st.session_state.last_deleted_spot = response['last_deleted_spot']
+def build_request() -> dict:
+    start = st.session_state.get("start_date") or date.today()
+    return {"destination": st.session_state.destination,
+            "start_location": st.session_state.get("start_location", ""),
+            "start_date": start.isoformat(), "days": int(st.session_state.get("total_days", 1)),
+            "group_type": st.session_state.get("group_type", "친구"),
+            "style": st.session_state.get("travel_style") or st.session_state.get("preference", ""),
+            "detail": st.session_state.get("detail_preference", "")}
 
-    if 'ban_list' in response:
-        st.session_state.ban_list = response['ban_list']
 
-# --- 6. 초기 실행 트리거 ---
-if not st.session_state.messages:
-    if 'session_id' not in st.session_state:
-        st.session_state.session_id = str(time.time())
+async def create_plan():
+    out = await WORKFLOW.ainvoke({"request": build_request()})
+    st.session_state.plan = {k: out.get(k) for k in ("request", "region", "items", "weather")}
+    st.session_state.messages.append(AIMessage(content=out["final_text"]))
 
-    initial_prompt = f"""
-    안녕하세요! 아래 정보로 여행 계획을 세워주세요.
-    - 목적지: {st.session_state.get('destination')}
-    - 일정: {st.session_state.get('dates')} (총 {st.session_state.get('total_days')}일)
-    - 스타일: {st.session_state.get('preference')}
-    - 동행: {st.session_state.get('group_type')}
-    
-    날씨 확인 후, 1일차 일정부터 바로 시작해주세요.
-    """
-    st.session_state.messages.append(HumanMessage(content=initial_prompt))
-    
-    loop.run_until_complete(run_ai_agent())
+
+async def edit_plan(text: str):
+    out = await edit(EDIT_APP, st.session_state.plan, text)
+    st.session_state.plan = {**st.session_state.plan, "items": out["items"]}
+    reply = next((m.content for m in reversed(out["messages"]) if isinstance(m, AIMessage) and m.content), "")
+    st.session_state.messages.append(AIMessage(content=(f"{reply}\n\n" if reply else "") + out["final_text"]))
+
+
+# --- 초기 실행: 초안 생성 ---
+if st.session_state.plan is None:
+    with st.spinner("여행 계획을 만드는 중입니다..."):
+        loop.run_until_complete(create_plan())
     st.rerun()
 
 for msg in st.session_state.messages:
-    if isinstance(msg, HumanMessage):
-        st.chat_message("user").markdown(msg.content)
-    elif isinstance(msg, AIMessage) and msg.content:
-        content_str = normalize_to_string(msg.content)
-        if content_str.strip():
-            clean_content = re.sub(r"\[(ADD|REPLACE|DELETE)_PLACE\].*?\[/\1_PLACE\]", "", content_str, flags=re.DOTALL)
-            if "FINISH" in clean_content and len(clean_content) < 10:
-                continue
-            if clean_content.strip():
-                st.chat_message("assistant").markdown(clean_content)
+    role = "user" if isinstance(msg, HumanMessage) else "assistant"
+    content = normalize_to_string(msg.content)
+    if content.strip():
+        st.chat_message(role).markdown(content)
 
-if st.session_state.show_pdf_button:
-    weather_info = st.session_state.get('current_weather', '날씨 정보 없음')
-    
-    with st.expander("📊 PDF 생성 데이터 확인 (Debug)", expanded=False):
-        st.write("데이터 구조 검증 중...")
-        st.json(st.session_state.itinerary)
-
-    pdf_bytes = create_itinerary_pdf(
-        st.session_state.itinerary,
-        st.session_state.destination,
-        st.session_state.dates,
-        weather_info,
-        "", 
-        st.session_state.total_days,
-        st.session_state.get("start_location") 
-    )
-    
+# --- PDF ---
+plan = st.session_state.plan
+if plan and plan.get("items"):
+    itinerary = to_legacy_itinerary(plan["items"])
+    pdf_bytes = create_itinerary_pdf(itinerary, st.session_state.destination, st.session_state.get("dates", ""),
+                                     plan.get("weather") or "날씨 정보 없음", "", st.session_state.get("total_days", 1),
+                                     st.session_state.get("start_location"))
     if pdf_bytes:
-        st.success("✅ PDF 생성 완료!")
-        st.download_button(
-            label="📄 여행 계획 PDF 다운로드",
-            data=pdf_bytes,
-            file_name=f"{st.session_state.destination}_여행계획.pdf",
-            mime="application/pdf"
-        )
-    else:
-        st.error("PDF 생성 실패")
+        st.download_button(label="📄 여행 계획 PDF 다운로드", data=pdf_bytes,
+                           file_name=f"{st.session_state.destination}_여행계획.pdf", mime="application/pdf")
 
-# --- 9. 사용자 입력 처리 ---
-if user_input := st.chat_input("메시지를 입력하세요..."):
+# --- 수정 요청: 에이전트 ---
+if user_input := st.chat_input("수정할 내용을 입력하세요 (예: d1-s2 카페를 조용한 곳으로 바꿔줘)"):
     st.session_state.messages.append(HumanMessage(content=user_input))
-    st.chat_message("user").markdown(user_input)
-    loop.run_until_complete(run_ai_agent())
+    with st.spinner("일정을 수정하는 중입니다..."):
+        loop.run_until_complete(edit_plan(user_input))
     st.rerun()

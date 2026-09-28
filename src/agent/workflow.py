@@ -56,9 +56,10 @@ def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
             continue
         if it.move_min is not None:
             out.append({"type": "move", "duration_min": it.move_min, "day": it.slot.day,
-                        "transport_detail": it.move_detail or ""})
+                        "transport_detail": it.move_detail or "", "transport": it.move_detail or "이동",
+                        "duration_text": f"약 {it.move_min}분"})
         out.append({"type": it.place.category, "name": it.place.name, "address": it.place.region,
-                    "day": it.slot.day, "slot_id": it.slot.slot_id, "start": it.start, "end": it.end,
+                    "day": it.slot.day, "category": it.place.category, "slot_id": it.slot.slot_id, "start": it.start, "end": it.end,
                     "description": it.reason, "reviews": it.place.reviews})
     return out
 
