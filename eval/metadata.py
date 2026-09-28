@@ -36,3 +36,10 @@ def _reviews_index() -> dict[tuple[str, str, str | None], list[str]]:
 
 def reviews_for(name: str, region: str, limit: int = 5) -> list[str]:
     return _reviews_index().get((name, *canonical_region(region)), [])[:limit]
+
+
+def ungrounded_rate(places: list[dict]) -> float | None:
+    """DB에 없는 장소 비율 = 검색 결과가 아니라 LLM이 지어낸 장소."""
+    if not places:
+        return None
+    return sum(not reviews_for(p.get("name", ""), p.get("address", "")) for p in places) / len(places)

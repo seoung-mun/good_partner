@@ -25,10 +25,21 @@
    "output_tokens": 5971.0,
    "maps_calls": 7.333333333333333,
    "latency_s": 304.30914984809027,
+   "ungrounded_rate": 0.0,
    "llm_calls_all": 23.95,
    "input_tokens_all": 47879.75,
    "output_tokens_all": 3632.95,
-   "latency_s_all": 240.23055661916732
+   "latency_s_all": 240.23055661916732,
+   "tool_error_rate_all": null,
+   "invalid_tool_call_rate_all": null,
+   "redundant_tool_calls_all": null,
+   "tool_soft_errors_all": null,
+   "llm_time_s_all": null,
+   "search_time_s_all": null,
+   "maps_time_s_all": null,
+   "other_time_s_all": null,
+   "latency_p50_all": 108.9325761795044,
+   "latency_p95_all": 644.3225231170654
   }
  },
  "rows": [
@@ -59,7 +70,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t02",
@@ -125,7 +137,8 @@
    "region_acc": 0.25,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": 0.0
   },
   {
    "id": "t03",
@@ -154,7 +167,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t04",
@@ -202,7 +216,8 @@
    "region_acc": 0.5,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": 0.0
   },
   {
    "id": "t05",
@@ -259,7 +274,8 @@
    "region_acc": 1.0,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": 0.0
   },
   {
    "id": "t06",
@@ -288,7 +304,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t07",
@@ -317,7 +334,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t08",
@@ -383,7 +401,8 @@
    "region_acc": 1.0,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": 0.0
   },
   {
    "id": "t09",
@@ -412,7 +431,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t10",
@@ -469,7 +489,8 @@
    "region_acc": 0.6666666666666666,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": 0.0
   },
   {
    "id": "t11",
@@ -498,7 +519,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t12",
@@ -564,7 +586,8 @@
    "region_acc": 0.25,
    "dup_rate": 0.25,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": 0.0
   },
   {
    "id": "t13",
@@ -593,7 +616,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t14",
@@ -622,7 +646,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t15",
@@ -663,7 +688,8 @@
    "region_acc": 1.0,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": 0.0
   },
   {
    "id": "t16",
@@ -692,7 +718,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t17",
@@ -721,7 +748,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   },
   {
    "id": "t18",
@@ -762,7 +790,8 @@
    "region_acc": 1.0,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": 0.0
   },
   {
    "id": "t19",
@@ -827,7 +856,8 @@
    "region_acc": 1.0,
    "dup_rate": 0.0,
    "total_move_min": 32,
-   "has_timeline": 1
+   "has_timeline": 1,
+   "ungrounded_rate": 0.0
   },
   {
    "id": "t20",
@@ -856,7 +886,8 @@
    "region_acc": null,
    "dup_rate": 0.0,
    "total_move_min": null,
-   "has_timeline": 0
+   "has_timeline": 0,
+   "ungrounded_rate": null
   }
  ]
 }

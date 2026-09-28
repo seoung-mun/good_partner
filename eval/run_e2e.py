@@ -9,7 +9,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from eval.instrument import LLMCallCounter, attach_counter, configure_caches
-from eval.metrics import e2e_trip_metrics, mean_or_none, summarize_e2e
+from eval.metrics import e2e_trip_metrics, summarize_e2e
 from eval.trace import AgentTracer, timed, timed_sync
 
 KEYS = ["n_places", "slot_fill", "category_adherence", "overflow", "region_acc", "dup_rate",
@@ -21,10 +21,12 @@ SERVICE_KEYS = ["tool_error_rate", "invalid_tool_call_rate", "redundant_tool_cal
 
 
 def resummarize(path: str) -> None:
+    from eval.metadata import ungrounded_rate
     """저장된 결과로 행별 지표와 summary를 다시 계산 (LLM 재실행 없음)."""
     d = json.loads(Path(path).read_text())
     for r in d["rows"]:  # 지표 정의가 바뀌어도 저장된 itinerary로 행별 지표를 다시 계산
         r.update(e2e_trip_metrics(r["itinerary"], r))
+        r["ungrounded_rate"] = ungrounded_rate([x for x in r["itinerary"] if x.get("type") != "move"])
     d["summary"] = {"all": summarize_e2e(d["rows"], KEYS, SERVICE_KEYS)}
     Path(path).write_text(json.dumps(d, ensure_ascii=False, indent=1, default=str))
     print(json.dumps(d["summary"], ensure_ascii=False, indent=1))
@@ -36,7 +38,7 @@ async def main(args):
     from src.config import LLM
     from src.graph_flow import build_graph
     from src.services.maps_client import RoutesCompatClient
-    from eval.metadata import reviews_for
+    from eval.metadata import ungrounded_rate
     from src.agent.tools import AVAILABLE_TOOLS
     search_acc = {"t": 0.0, "n": 0}
     if args.system == "legacy":
@@ -75,8 +77,7 @@ async def main(args):
                "maps_time_s": RoutesCompatClient.network_seconds - mt0,
                "search_time_s": search_acc["t"], "search_calls": search_acc["n"],
                # DB에 없는 장소 = 검색 결과가 아닌 LLM이 지어낸 장소
-               "ungrounded_rate": mean_or_none([float(not reviews_for(p.get("name", ""), p.get("address", "")))
-                                                for p in places]),
+               "ungrounded_rate": ungrounded_rate(places),
                **e2e_trip_metrics(r["itinerary"], trip)}
         row["other_time_s"] = latency - tr["llm_time_s"] - row["search_time_s"] - row["maps_time_s"]
         row["ok"] = float(row["ok"])

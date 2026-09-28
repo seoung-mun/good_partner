@@ -14,3 +14,10 @@ def test_reviews_for_known_place():
     revs = reviews_for("이정태본참치", "부산광역시 중구")
     assert revs and all(isinstance(r, str) for r in revs)
     assert reviews_for("없는장소이름", "부산광역시 중구") == []
+
+
+def test_ungrounded_rate():
+    from eval.metadata import ungrounded_rate
+    places = [{"name": "이정태본참치", "address": "부산광역시 중구"}, {"name": "지어낸가게", "address": "부산광역시 중구"}]
+    assert ungrounded_rate(places) == 0.5
+    assert ungrounded_rate([]) is None
