@@ -1,11 +1,11 @@
 import json
 
-from langchain_core.documents import Document
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage, ToolMessage
 
 from src.agent.edit_agent import build_edit_app, edit
 from src.domain.models import ItineraryItem, Place, Slot
+from tests.fakes import make_db, meta
 
 
 class ToolFake(GenericFakeChatModel):
@@ -13,20 +13,12 @@ class ToolFake(GenericFakeChatModel):
         return self
 
 
-def doc(name, cat):
-    return Document(page_content="x", metadata={"장소명": name, "지역": "부산광역시 중구", "카테고리": cat, "리뷰": "좋음"})
 
 
-class Emb:
-    def embed_documents(self, texts):
-        return [[0.0]] * len(texts)
-
-
-class DB:
-    embedding_function = Emb()
-
-    def similarity_search_by_vector(self, v, k=4):
-        return [doc("기존카페", "카페"), doc("조용한카페", "카페"), doc("새식당", "식당")]
+def DB():
+    return make_db([meta("기존카페", "부산광역시 중구", "카페", "기존카페 좋음"),
+                    meta("조용한카페", "부산광역시 중구", "카페", "조용한카페 좋음"),
+                    meta("새식당", "부산광역시 중구", "식당", "새식당 좋음")])
 
 
 async def route(a, b, mode="transit", departure_time=None):

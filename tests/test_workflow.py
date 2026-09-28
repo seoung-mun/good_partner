@@ -1,9 +1,9 @@
-from langchain_core.documents import Document
 from langchain_core.runnables import RunnableLambda
 
 from src.agent.workflow import build_workflow, to_legacy_itinerary
 from src.domain.models import Briefing, ItineraryItem, Place, Slot, SlotReason, TripPreferences
 from src.domain.schedule import assign_times
+from tests.fakes import make_db, meta
 
 
 def it(sid, day, order, cat, name=None):
@@ -28,21 +28,10 @@ def test_assign_times_skips_empty_slots_and_defaults_move():
 
 
 # --- 워크플로우 E2E (가짜 의존성) -------------------------------------------------
-def doc(name, cat):
-    return Document(page_content="x", metadata={"장소명": name, "지역": "부산광역시 중구", "카테고리": cat,
-                                                "상세 주소": f"{name} 주소", "별점": 4.0, "리뷰": f"{name} 좋아요"})
-
-
-class Emb:
-    def embed_documents(self, texts):
-        return [[0.0]] * len(texts)
-
-
-class DB:
-    embedding_function = Emb()
-
-    def similarity_search_by_vector(self, v, k=4):
-        return [doc(f"식당{i}", "식당") for i in range(3)] + [doc("카페0", "카페"), doc("명소0", "관광지")]
+def DB():
+    return make_db([meta(f"식당{i}", "부산광역시 중구", "식당", f"식당{i} 좋아요") for i in range(3)]
+                   + [meta("카페0", "부산광역시 중구", "카페", "카페0 좋아요"),
+                      meta("명소0", "부산광역시 중구", "관광지", "명소0 좋아요")])
 
 
 class LLM:

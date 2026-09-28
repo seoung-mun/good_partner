@@ -53,17 +53,20 @@ class Catalog:
             if isinstance(md.get("리뷰"), str) and md["리뷰"]:  # 결측 리뷰는 NaN(float)
                 st.reviews.append(md["리뷰"])
         self._by_region = {k: np.array(v, dtype="int64") for k, v in by_region.items()}
-        self._region_cache: dict[str, np.ndarray] = {}
+        self._category = np.array([md.get("카테고리", "") for md in self.meta])
+        self._region_cache: dict[tuple, np.ndarray] = {}
         rated = [p.rating for p in self.places.values() if p.rating is not None]
         self.C = statistics.mean(rated) if rated else 0.0
         self.m = statistics.median(p.n_reviews for p in self.places.values()) if self.places else 1
 
-    def ids_for_region(self, target: str) -> np.ndarray:
-        """목표 지역(시도 [+ 시군구]) 안의 행 id. 고유 지역 문자열(~250개)에만 region_matches 적용."""
-        if target not in self._region_cache:
+    def ids_for_region(self, target: str, category: str | None = None) -> np.ndarray:
+        """목표 지역(시도 [+ 시군구]) [및 카테고리] 안의 행 id. 고유 지역 문자열(~250개)에만 region_matches 적용."""
+        key = (target, category)
+        if key not in self._region_cache:
             parts = [ids for region, ids in self._by_region.items() if region_matches(region, target)]
-            self._region_cache[target] = np.concatenate(parts) if parts else np.array([], dtype="int64")
-        return self._region_cache[target]
+            ids = np.concatenate(parts) if parts else np.array([], dtype="int64")
+            self._region_cache[key] = ids[self._category[ids] == category] if category else ids
+        return self._region_cache[key]
 
     def popularity(self, key: tuple[str, str]) -> float:
         """인기 점수 = 보정 별점 × log(1 + 리뷰 수)."""
