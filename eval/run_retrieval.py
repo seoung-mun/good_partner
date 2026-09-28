@@ -7,7 +7,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from eval.instrument import LLMCallCounter, attach_counter, enable_llm_cache
+from eval.instrument import LLMCallCounter, attach_counter, configure_caches
 from eval.metrics import aggregate, retrieval_item_metrics
 
 KEYS = ["empty", "returned", "region_acc", "region_hit1", "category_acc", "diversity", "llm_calls", "latency_s"]
@@ -15,8 +15,7 @@ KEYS = ["empty", "returned", "region_acc", "region_hit1", "category_acc", "diver
 
 async def main(args):
     load_dotenv(".env")
-    if not args.no_cache:
-        enable_llm_cache()
+    cache_state = configure_caches(args.no_cache)
     from src.config import LLM
     from eval.legacy_adapter import doc_to_cand, legacy_retrieve
     counter = LLMCallCounter()
@@ -39,7 +38,7 @@ async def main(args):
         rows.append(row)
         print(f"[{n}/{len(items)}] {it['id']}  region_acc={row['region_acc']:.2f}  cat={row['category_acc']:.2f}")
 
-    out = {"llm_model": os.environ["LLM_MODEL"], "k": args.k, "cache": not args.no_cache,
+    out = {"llm_model": os.environ["LLM_MODEL"], "k": args.k, "cache": cache_state,
            "summary": aggregate(rows, KEYS, by="group"), "rows": rows}
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, ensure_ascii=False, indent=1))

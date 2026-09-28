@@ -8,7 +8,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from eval.instrument import enable_llm_cache
+from eval.instrument import configure_caches
 from eval.judge import build_judge_chain, judge_place
 from eval.legacy_adapter import build_preference
 from eval.metadata import reviews_for
@@ -17,8 +17,7 @@ from eval.metrics import mean_or_none
 
 async def main(args):
     load_dotenv(".env")
-    if not args.no_cache:
-        enable_llm_cache()
+    cache_state = configure_caches(args.no_cache)
     from src.llm_factory import make_llm
     model = os.getenv("JUDGE_MODEL") or os.environ["LLM_MODEL"]
     chain = build_judge_chain(make_llm(model))
@@ -35,7 +34,7 @@ async def main(args):
     per_trip = {}
     for j in judged:
         per_trip.setdefault(j["trip_id"], []).append(j["score"])
-    out = {"judge_model": model, "status_counts": status,
+    out = {"judge_model": model, "cache": cache_state, "status_counts": status,
            "mean_score": mean_or_none([j["score"] for j in judged]),
            "mean_trip_score": mean_or_none([mean_or_none(v) for v in per_trip.values()]),
            "rows": judged}

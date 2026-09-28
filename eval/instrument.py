@@ -36,3 +36,13 @@ def enable_llm_cache(path: str = ".cache/llm.sqlite") -> None:
     from langchain_core.globals import set_llm_cache
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     set_llm_cache(SQLiteCache(database_path=path))
+
+
+def configure_caches(no_cache: bool) -> dict:
+    """공식 측정(--no-cache)은 LLM·Maps 캐시를 모두 끈다."""
+    import os
+    if no_cache:
+        os.environ["MAPS_CACHE"] = "0"
+    else:
+        enable_llm_cache()
+    return {"llm_cache": not no_cache, "maps_cache": os.getenv("MAPS_CACHE", "1") != "0"}

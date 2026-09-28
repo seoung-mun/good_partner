@@ -8,17 +8,16 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from eval.instrument import LLMCallCounter, attach_counter, enable_llm_cache
-from eval.metrics import aggregate, e2e_trip_metrics
+from eval.instrument import LLMCallCounter, attach_counter, configure_caches
+from eval.metrics import e2e_trip_metrics, summarize_e2e
 
-KEYS = ["ok", "n_places", "slot_fill", "category_adherence", "overflow", "region_acc", "dup_rate",
+KEYS = ["n_places", "slot_fill", "category_adherence", "overflow", "region_acc", "dup_rate",
         "total_move_min", "llm_calls", "input_tokens", "output_tokens", "maps_calls", "latency_s"]
 
 
 async def main(args):
     load_dotenv(".env")
-    if not args.no_cache:
-        enable_llm_cache()
+    cache_state = configure_caches(args.no_cache)
     from src.config import LLM
     from src.graph_flow import build_graph
     from src.maps_compat import RoutesCompatClient
@@ -45,7 +44,7 @@ async def main(args):
               f"region={row['region_acc']} llm={row['llm_calls']} {row['latency_s']:.0f}s")
 
     out = {"llm_model": os.environ["LLM_MODEL"], "start_date": start.isoformat(),
-           "cache": not args.no_cache, "summary": aggregate(rows, KEYS), "rows": rows}
+           "cache": cache_state, "summary": {"all": summarize_e2e(rows, KEYS)}, "rows": rows}
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str))
     print(json.dumps(out["summary"], ensure_ascii=False, indent=1))

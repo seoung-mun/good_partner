@@ -31,6 +31,11 @@ def _latlng(loc: dict) -> dict:
     return {"lat": ll.get("latitude"), "lng": ll.get("longitude")}
 
 
+class _NetworkError(Exception):
+    def __init__(self, fallback):
+        self.fallback = fallback
+
+
 class RoutesCompatClient(googlemaps.Client):
     calls = 0
     network_calls = 0
@@ -50,13 +55,16 @@ class RoutesCompatClient(googlemaps.Client):
             if path.exists():
                 return json.loads(path.read_text())
         RoutesCompatClient.network_calls += 1
-        result = fetch()
+        try:
+            result = fetch()
+        except _NetworkError as e:  # 일시 오류(429·타임아웃 등)는 캐시하지 않고 '결과 없음'만 반환
+            return e.fallback
         if path is not None:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(result, ensure_ascii=False))
         return result
 
-    def _post(self, url: str, body: dict, mask: str):
+    def _post(self, url: str, body: dict, mask: str, fallback):
         headers = {"X-Goog-Api-Key": self._api_key, "X-Goog-FieldMask": mask,
                    "Content-Type": "application/json"}
         try:
@@ -65,7 +73,7 @@ class RoutesCompatClient(googlemaps.Client):
             return r.json()
         except Exception as e:  # legacy 코드는 예외 대신 '결과 없음'을 처리하도록 짜여 있음
             print(f"Routes API 실패: {e}")
-            return None
+            raise _NetworkError(fallback)
 
     # --- geocoding (Geocoding API는 그대로, 캐시만) ----------------------
     def geocode(self, address, **kw):
@@ -83,7 +91,7 @@ class RoutesCompatClient(googlemaps.Client):
                 "travelMode": MODES.get(mode, "TRANSIT"), "languageCode": "ko"}
 
         def fetch():
-            data = self._post(ROUTES_URL, body, ROUTE_MASK) or {}
+            data = self._post(ROUTES_URL, body, ROUTE_MASK, fallback=[]) or {}
             if not data.get("routes"):
                 return []
             leg = data["routes"][0]["legs"][0]
@@ -113,7 +121,9 @@ class RoutesCompatClient(googlemaps.Client):
                 "travelMode": MODES.get(mode, "TRANSIT")}
 
         def fetch():
-            data = self._post(MATRIX_URL, body, "originIndex,destinationIndex,duration,condition") or []
+            empty = [{"elements": [{"status": "ZERO_RESULTS"} for _ in destinations]} for _ in origins]
+            data = self._post(MATRIX_URL, body, "originIndex,destinationIndex,duration,condition",
+                              fallback={"rows": empty}) or []
             rows = [{"elements": [{"status": "ZERO_RESULTS"} for _ in destinations]} for _ in origins]
             for e in data:
                 secs = _secs(e.get("duration"))

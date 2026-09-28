@@ -76,3 +76,13 @@ def test_aggregate_ignores_none_and_groups():
     assert mean_or_none([None, None]) is None
     out = aggregate(rows, ["v"], by="g")
     assert out["all"]["v"] == 0.5 and out["x"]["v"] == 1.0 and out["y"]["n"] == 1
+
+
+def test_summarize_e2e_excludes_failed_trips_from_quality():
+    from eval.metrics import summarize_e2e
+    rows = [{"ok": 1.0, "slot_fill": 1.0, "dup_rate": 0.2, "llm_calls": 30},
+            {"ok": 0.0, "slot_fill": 0.0, "dup_rate": 0.0, "llm_calls": 50}]
+    s = summarize_e2e(rows, ["slot_fill", "dup_rate", "llm_calls"])
+    assert s["n"] == 2 and s["ok"] == 0.5 and s["n_ok"] == 1
+    assert s["slot_fill"] == 1.0 and s["dup_rate"] == 0.2   # 실패 건 제외
+    assert s["llm_calls"] == 30

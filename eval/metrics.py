@@ -88,3 +88,11 @@ def aggregate(rows: list[dict], keys: list[str], by: str | None = None) -> dict:
             groups.setdefault(r[by], []).append(r)
     return {g: {"n": len(rs), **{k: mean_or_none([r.get(k) for r in rs]) for k in keys}}
             for g, rs in groups.items()}
+
+
+def summarize_e2e(rows: list[dict], quality_keys: list[str]) -> dict:
+    """성공률은 전체 기준, 품질·비용 지표는 성공한 여행만 평균 (실패가 품질 평균을 왜곡하지 않도록)."""
+    ok_rows = [r for r in rows if r.get("ok")]
+    return {"n": len(rows), "n_ok": len(ok_rows),
+            "ok": mean_or_none([float(bool(r.get("ok"))) for r in rows]),
+            **{k: mean_or_none([r.get(k) for r in ok_rows]) for k in quality_keys}}

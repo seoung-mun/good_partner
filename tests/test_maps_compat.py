@@ -75,3 +75,20 @@ def test_cache_avoids_second_network_call(client, monkeypatch):
 def test_http_error_returns_empty_not_raise(client, monkeypatch):
     monkeypatch.setattr(maps_compat.requests, "post", lambda *a, **k: FakeResp({"error": {}}, 403))
     assert client.directions("A", "B", mode="transit") == []
+
+
+def test_http_error_is_not_cached(client, monkeypatch):
+    hits = []
+    monkeypatch.setattr(maps_compat.requests, "post",
+                        lambda *a, **k: hits.append(1) or FakeResp({"error": {}}, 429))
+    client.directions("A", "B", mode="transit")
+    client.directions("A", "B", mode="transit")
+    assert len(hits) == 2          # 실패 응답은 캐시하지 않고 다음 호출에서 재시도
+
+
+def test_real_no_route_is_cached(client, monkeypatch):
+    hits = []
+    monkeypatch.setattr(maps_compat.requests, "post", lambda *a, **k: hits.append(1) or FakeResp({}))
+    client.directions("A", "B", mode="transit")
+    client.directions("A", "B", mode="transit")
+    assert len(hits) == 1          # 정상 200 '경로 없음'은 캐시
