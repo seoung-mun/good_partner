@@ -86,3 +86,30 @@ async def test_tool_exception_becomes_error_envelope():
     p = tool_payloads(out)[0]
     assert p["ok"] is False and "index missing" in p["error"]
     assert out["items"][1].place.name == "기존카페"
+
+
+async def test_replaced_place_is_rejected_and_never_comes_back():
+    # 기존카페 → 조용한카페로 교체 후, 다시 교체해도 방금 뺀 기존카페는 후보가 아님 (남은 카페 없음 → 실패)
+    out = await edit(app_with(call("replace_slot", {"slot_id": "d1-s2", "query": ""}), AIMessage("바꿨어요")),
+                     {**STATE, "items": plan()}, "카페 바꿔줘")
+    assert ("기존카페", "부산광역시 중구") in out["rejected"]
+    out2 = await edit(app_with(call("replace_slot", {"slot_id": "d1-s2", "query": ""}), AIMessage("없어요")),
+                      {**STATE, "items": out["items"], "rejected": out["rejected"]}, "또 바꿔줘")
+    assert tool_payloads(out2)[-1]["ok"] is False and out2["items"][1].place.name == "조용한카페"
+
+
+async def test_removed_place_is_not_added_back():
+    items = [i for i in plan() if i.slot.slot_id != "d1-s1"]      # 식당 없음
+    out = await edit(app_with(call("add_slot", {"day": 1, "category": "식당", "query": ""}), AIMessage("추가")),
+                     {**STATE, "items": items, "rejected": [("새식당", "부산광역시 중구")]}, "식당 추가")
+    assert tool_payloads(out)[-1]["ok"] is False
+
+
+def test_swap_place_replaces_and_drops_it_from_alternatives():
+    from src.domain.schedule import swap_place
+    items = plan()
+    new = Place(name="대안카페", region="부산광역시 중구", category="카페")
+    items[1] = items[1].model_copy(update={"alternatives": [new], "reason": "옛 사유"})
+    out = swap_place(items, "d1-s2", new)
+    assert out[1].place.name == "대안카페" and out[1].alternatives == [] and out[1].reason == ""
+    assert out[0] is items[0]

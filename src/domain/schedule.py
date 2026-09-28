@@ -64,6 +64,13 @@ def assign_places(slots: list[Slot], candidates: dict[str, list[Place]],
     return picks, alts
 
 
+def swap_place(items: list[ItineraryItem], slot_id: str, place: Place) -> list[ItineraryItem]:
+    """slot_id의 장소를 place로 교체 (사유 초기화, 대안 목록에서 제거). 시간표는 호출부가 다시 계산."""
+    return [i.model_copy(update={"place": place, "reason": "",
+                                 "alternatives": [a for a in i.alternatives if (a.name, a.region) != (place.name, place.region)]})
+            if i.slot.slot_id == slot_id else i for i in items]
+
+
 STAY_MIN = {"식당": 90, "카페": 60, "관광지": 120}
 
 

@@ -8,6 +8,7 @@ from langgraph.types import Command
 from pydantic import BaseModel, Field
 
 from src.domain.models import ItineraryItem, Slot
+from src.domain.schedule import swap_place
 from src.retrieval.retriever import search_candidates
 
 
@@ -29,22 +30,25 @@ class AddSlotInput(BaseModel):
     query: str = Field(description="장소 조건 키워드. 없으면 빈 문자열")
 
 
-def _result(runtime: ToolRuntime, name: str, ok: bool, items=None, **payload) -> Command:
-    """tool 결과를 envelope(ToolMessage)로 만들고, 성공 시 일정(items)도 함께 갱신하는 Command."""
+def _result(runtime: ToolRuntime, name: str, ok: bool, items=None, dropped=None, **payload) -> Command:
+    """tool 결과를 envelope(ToolMessage)로 만들고, 성공 시 일정(items)과 뺀 장소 목록(rejected)도 갱신하는 Command."""
     msg = ToolMessage(content=json.dumps({"ok": ok, "tool_name": name, **payload}, ensure_ascii=False),
                       tool_call_id=runtime.tool_call_id)
     update = {"messages": [msg]}
     if items is not None:
         update["items"] = items
+    if dropped is not None:
+        update["rejected"] = [*(runtime.state.get("rejected") or []), (dropped.name, dropped.region)]
     return Command(update=update)
 
 
 def make_edit_tools(load_db):
     """수정 tool 3종을 만든다. load_db는 벡터 스토어 로더(테스트에서 주입)."""
     def find(runtime: ToolRuntime, category: str, query: str):
-        """현재 일정에 없는 후보 중 첫 번째 (없으면 None)."""
+        """현재 일정에 없고 사용자가 뺀 적도 없는 후보 중 첫 번째 (없으면 None)."""
         items: list[ItineraryItem] = runtime.state["items"]
         used = {(i.place.name, i.place.region) for i in items if i.place}
+        used |= {tuple(k) for k in runtime.state.get("rejected") or []}
         cands = search_candidates(load_db(), runtime.state["region"], [category], query.split(), k=50)[category]
         return next((p for p in cands if (p.name, p.region) not in used), None)
 
@@ -62,9 +66,8 @@ def make_edit_tools(load_db):
         place = find(runtime, items[idx].slot.category, query)
         if place is None:
             return _result(runtime, "replace_slot", False, error="조건에 맞는 다른 장소가 없습니다")
-        new = [*items]
-        new[idx] = items[idx].model_copy(update={"place": place, "reason": ""})
-        return _result(runtime, "replace_slot", True, new, data={"slot_id": slot_id, "place": place.name})
+        return _result(runtime, "replace_slot", True, swap_place(items, slot_id, place), dropped=items[idx].place,
+                       data={"slot_id": slot_id, "place": place.name})
 
     @tool("remove_slot", args_schema=RemoveSlotInput, description=(
         "일정에서 특정 슬롯(장소 하나)을 삭제한다. 사용자가 '빼줘', '삭제해줘', '안 갈래' 처럼 제거를 요청할 때 사용. "
@@ -75,8 +78,9 @@ def make_edit_tools(load_db):
         items: list[ItineraryItem] = runtime.state["items"]
         if not any(i.slot.slot_id == slot_id for i in items):
             return _result(runtime, "remove_slot", False, error=f"없는 slot_id: {slot_id}")
+        removed = next(i.place for i in items if i.slot.slot_id == slot_id)
         return _result(runtime, "remove_slot", True, [i for i in items if i.slot.slot_id != slot_id],
-                       data={"slot_id": slot_id})
+                       dropped=removed, data={"slot_id": slot_id})
 
     @tool("add_slot", args_schema=AddSlotInput, description=(
         "지정한 일차의 마지막에 새 장소를 하나 추가한다. 사용자가 '하나 더', '추가해줘' 처럼 장소 추가를 요청할 때 사용. "

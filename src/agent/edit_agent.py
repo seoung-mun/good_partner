@@ -24,8 +24,9 @@ def _tool_error(error: Exception, request) -> str:
 
 
 class EditState(AgentState):
-    """수정 에이전트 상태: 대화 메시지 + 일정·요청·지역."""
+    """수정 에이전트 상태: 대화 메시지 + 일정·요청·지역 + 사용자가 뺀 장소(재추천 금지)."""
     items: list[ItineraryItem]
+    rejected: list[tuple[str, str]]
     request: dict
     region: str
     final_text: str
