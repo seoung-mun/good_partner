@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from eval.instrument import LLMCallCounter, attach_counter, configure_caches
 from eval.metrics import e2e_trip_metrics, mean_or_none, summarize_e2e
-from eval.trace import AgentTracer, timed
+from eval.trace import AgentTracer, timed, timed_sync
 
 KEYS = ["n_places", "slot_fill", "category_adherence", "overflow", "region_acc", "dup_rate",
         "has_timeline", "total_move_min", "llm_calls", "input_tokens", "output_tokens", "maps_calls", "latency_s",
@@ -36,16 +36,26 @@ async def main(args):
     from src.config import LLM
     from src.graph_flow import build_graph
     from src.services.maps_client import RoutesCompatClient
-    from eval.legacy_adapter import run_legacy_trip
     from eval.metadata import reviews_for
-    import src.retrieval.retriever as T
     from src.agent.tools import AVAILABLE_TOOLS
     search_acc = {"t": 0.0, "n": 0}
-    T._search_docs = timed(T._search_docs, search_acc)  # 임베딩+FAISS 시간 계측 (로직 동일)
+    if args.system == "legacy":
+        import src.retrieval.retriever as T
+        from eval.legacy_adapter import run_legacy_trip as run_trip
+        T._search_docs = timed(T._search_docs, search_acc)  # 임베딩+FAISS 시간 계측 (로직 동일)
+        known_tools = set(AVAILABLE_TOOLS)
+    else:
+        import src.agent.workflow as WF
+        from eval.new_adapter import run_new_trip as run_trip
+        WF.search_candidates = timed_sync(WF.search_candidates, search_acc)
+        known_tools = set()
 
     counter = LLMCallCounter()
     attach_counter(LLM, counter)
-    app = build_graph()
+    if args.system == "legacy":
+        app = build_graph()
+    else:
+        app = WF.build_workflow()
     start = date.today() + timedelta(days=1)
     trips = [json.loads(l) for l in Path(args.golden).read_text().splitlines() if l.strip()][: args.limit]
     rows = []
@@ -53,9 +63,9 @@ async def main(args):
         counter.reset()
         m0, net0, mt0 = RoutesCompatClient.calls, RoutesCompatClient.network_calls, RoutesCompatClient.network_seconds
         search_acc.update(t=0.0, n=0)
-        tracer = AgentTracer(known_tools=set(AVAILABLE_TOOLS))
+        tracer = AgentTracer(known_tools=known_tools)
         t0 = time.time()
-        r = await run_legacy_trip(app, trip, start, callbacks=[tracer])
+        r = await run_trip(app, trip, start, callbacks=[tracer])
         latency = time.time() - t0
         tr = tracer.summary()
         places = [x for x in r["itinerary"] if x.get("type") != "move"]
@@ -76,7 +86,7 @@ async def main(args):
               f"(llm {tr['llm_time_s']:.0f}s, search {row['search_time_s']:.0f}s, maps {row['maps_time_s']:.0f}s) "
               f"tool_err={tr['tool_error_rate']}", flush=True)
 
-    out = {"llm_model": os.environ["LLM_MODEL"], "start_date": start.isoformat(),
+    out = {"system": args.system, "llm_model": os.environ["LLM_MODEL"], "start_date": start.isoformat(),
            "cache": cache_state, "summary": {"all": summarize_e2e(rows, KEYS, SERVICE_KEYS)}, "rows": rows}
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str))
@@ -90,5 +100,6 @@ if __name__ == "__main__":
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--no-cache", action="store_true")
     ap.add_argument("--resummarize", metavar="RESULT_JSON")
+    ap.add_argument("--system", choices=["legacy", "new"], default="legacy")
     a = ap.parse_args()
     resummarize(a.resummarize) if a.resummarize else asyncio.run(main(a))

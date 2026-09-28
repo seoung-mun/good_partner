@@ -75,3 +75,9 @@ async def test_soft_errors_and_invalid_tool_calls():
     assert s["tool_soft_errors"] == 1
     assert s["tool_calls_requested"] == 3 and s["invalid_tool_calls"] == 2   # 파싱 실패 1 + 없는 도구 1
     assert s["invalid_tool_call_rate"] == pytest.approx(2 / 3)
+
+
+def test_timed_sync_accumulates():
+    from eval.trace import timed_sync
+    acc = {"t": 0.0, "n": 0}
+    assert timed_sync(lambda x: x + 1, acc)(1) == 2 and acc["n"] == 1

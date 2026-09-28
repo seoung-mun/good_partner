@@ -26,6 +26,18 @@ def timed(fn, acc: dict):
     return wrapper
 
 
+def timed_sync(fn, acc: dict):
+    """동기 함수용 timed."""
+    def wrapper(*args, **kwargs):
+        t0 = time.perf_counter()
+        try:
+            return fn(*args, **kwargs)
+        finally:
+            acc["t"] += time.perf_counter() - t0
+            acc["n"] += 1
+    return wrapper
+
+
 # 예외 없이 '실패'를 문자열로 돌려주는 legacy tool 응답 패턴
 SOFT_ERROR_MARKERS = ("추천 장소 없음", "시스템에러", "최적화 실패", "오류:", "Error:", "API 키 없음")
 
