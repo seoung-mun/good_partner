@@ -112,3 +112,9 @@ def test_summarize_e2e_service_metrics_over_all_trips():
     s = summarize_e2e(rows, [], all_keys=["tool_error_rate"])
     assert s["tool_error_rate_all"] == 0.25
     assert s["latency_p50_all"] == 10 and s["latency_p95_all"] == 100
+
+
+def test_node_time_mean():
+    from eval.run_e2e import node_time_mean
+    rows = [{"node_time_s": {"a": 1.0, "b": 2.0}}, {"node_time_s": {"a": 3.0}}]
+    assert node_time_mean(rows) == {"a": 2.0, "b": 1.0}

@@ -52,6 +52,18 @@ class AgentTracer(AsyncCallbackHandler):
         self.tool_events: list[dict] = []
         self.requested = 0
         self.invalid = 0
+        self.node_time: dict[str, float] = {}
+
+    async def on_chain_start(self, serialized, inputs, *, run_id, metadata=None, name=None, **kw):
+        node = (metadata or {}).get("langgraph_node")
+        if node and name == node:  # 그래프 노드 자체의 실행 (노드 내부 체인 제외)
+            self._start[run_id] = ("node", node, time.perf_counter())
+
+    async def on_chain_end(self, outputs, *, run_id, **kw):
+        v = self._start.get(run_id)
+        if isinstance(v, tuple) and v[0] == "node":
+            self._start.pop(run_id)
+            self.node_time[v[1]] = self.node_time.get(v[1], 0.0) + time.perf_counter() - v[2]
 
     async def on_chat_model_start(self, serialized, messages, *, run_id, **kw):
         self._start[run_id] = time.perf_counter()
@@ -108,4 +120,5 @@ class AgentTracer(AsyncCallbackHandler):
             "redundant_tool_calls": sum(c - 1 for c in keys.values() if c > 1),
             "tool_calls_by_name": dict(Counter(e["name"] for e in ev)),
             "tool_time_by_name_s": {k: round(v, 3) for k, v in by_name_time.items()},
+            "node_time_s": {k: round(v, 3) for k, v in self.node_time.items()},
         }

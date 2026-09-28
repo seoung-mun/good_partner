@@ -20,6 +20,12 @@ SERVICE_KEYS = ["tool_error_rate", "invalid_tool_call_rate", "redundant_tool_cal
                 "llm_time_s", "search_time_s", "maps_time_s", "other_time_s"]
 
 
+def node_time_mean(rows: list[dict]) -> dict:
+    """노드별 평균 실행 시간(초) — 병렬 노드는 겹쳐 실행되므로 합이 총 지연보다 클 수 있음."""
+    nodes = {k for r in rows for k in r.get("node_time_s", {})}
+    return {k: round(sum(r.get("node_time_s", {}).get(k, 0) for r in rows) / len(rows), 2) for k in sorted(nodes)}
+
+
 def resummarize(path: str) -> None:
     from eval.metadata import ungrounded_rate
     """저장된 결과로 행별 지표와 summary를 다시 계산 (LLM 재실행 없음)."""
@@ -79,7 +85,8 @@ async def main(args):
               f"tool_err={tr['tool_error_rate']}", flush=True)
 
     out = {"system": args.system, "llm_model": os.environ["LLM_MODEL"], "start_date": start.isoformat(),
-           "cache": cache_state, "summary": {"all": summarize_e2e(rows, KEYS, SERVICE_KEYS)}, "rows": rows}
+           "cache": cache_state, "summary": {"all": {**summarize_e2e(rows, KEYS, SERVICE_KEYS),
+                                                  "node_time_mean": node_time_mean(rows)}}, "rows": rows}
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str))
     print(json.dumps(out["summary"], ensure_ascii=False, indent=1))

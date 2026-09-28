@@ -81,3 +81,25 @@ def test_timed_sync_accumulates():
     from eval.trace import timed_sync
     acc = {"t": 0.0, "n": 0}
     assert timed_sync(lambda x: x + 1, acc)(1) == 2 and acc["n"] == 1
+
+
+async def test_tracer_records_langgraph_node_durations():
+    import asyncio
+    from typing import TypedDict
+    from langgraph.graph import END, START, StateGraph
+
+    class S(TypedDict, total=False):
+        x: int
+
+    async def slow(_):
+        await asyncio.sleep(0.02)
+        return {"x": 1}
+
+    g = StateGraph(S)
+    g.add_node("a", slow)
+    g.add_node("b", slow)
+    g.add_edge(START, "a"); g.add_edge("a", "b"); g.add_edge("b", END)
+    tr = AgentTracer()
+    await g.compile().ainvoke({}, config={"callbacks": [tr]})
+    nodes = tr.summary()["node_time_s"]
+    assert set(nodes) == {"a", "b"} and all(v >= 0.02 for v in nodes.values())
