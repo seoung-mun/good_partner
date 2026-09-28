@@ -1,7 +1,7 @@
 """일정 도메인 로직 (외부 의존 없음)."""
 from itertools import permutations
 
-from src.domain.models import Slot
+from src.domain.models import Place, Slot
 
 
 def _solve_tsp(duration_matrix, start_fixed, n):
@@ -48,3 +48,14 @@ def build_slots(days: int) -> list[Slot]:
         for i, (cat, meal) in enumerate(template, start=1):
             slots.append(Slot(slot_id=f"d{d}-s{i}", day=d, order=i, category=cat, meal=meal))
     return slots
+
+
+def assign_places(slots: list[Slot], candidates: dict[str, list[Place]]) -> dict[str, Place | None]:
+    """슬롯 순서대로 카테고리 후보의 앞에서부터 배정. 한 일정 안에서 같은 장소는 한 번만."""
+    used, out = set(), {}
+    for s in slots:
+        pick = next((p for p in candidates.get(s.category, []) if (p.name, p.region) not in used), None)
+        if pick:
+            used.add((pick.name, pick.region))
+        out[s.slot_id] = pick
+    return out
