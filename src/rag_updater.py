@@ -5,7 +5,7 @@ import emoji
 import streamlit as st
 import os
 from langchain_core.documents import Document
-from langchain_huggingface import HuggingFaceEmbeddings 
+from src.embeddings import make_embeddings
 from langchain_community.vectorstores import FAISS
 from src.config import review_faiss 
 
@@ -111,10 +111,7 @@ def update_vector_db_if_needed(new_reviews_file="new_reviews.csv"):
     print(f"---  리뷰 {len(df)}개 DB 업데이트 시작 ---")
 
     try:
-        embeddings = HuggingFaceEmbeddings(
-            model_name="upskyy/bge-m3-korean",
-            model_kwargs={"device": "cpu"}
-        )
+        embeddings = make_embeddings()
         
         existing_db = None
         if os.path.exists(review_faiss):
