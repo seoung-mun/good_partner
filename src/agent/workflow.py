@@ -271,17 +271,23 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
     return g.compile()
 
 
-async def stream_plan(app, request: dict, on_plan=None) -> dict:
-    """워크플로우를 스트리밍 실행. 시간표가 나오는 즉시(브리핑 전) on_plan(임시 마크다운)을 한 번 호출하고 최종 상태를 반환.
+async def stream_plan(app, request: dict, on_plan=None, on_step=None) -> dict:
+    """워크플로우를 스트리밍 실행하고 최종 상태를 반환.
 
-    UI 체감 지연을 줄이기 위한 것: 사용자는 LLM 브리핑을 기다리지 않고 일정부터 본다.
+    on_step(노드 이름): 노드가 끝날 때마다 — UI 진행 단계 표시용.
+    on_plan(임시 마크다운): 시간표가 나오는 즉시(브리핑 전) 한 번 — 사용자는 LLM 브리핑을 기다리지 않고 일정부터 본다.
     """
     final, shown = {}, False
-    async for state in app.astream({"request": request}, stream_mode="values"):
-        final = state
-        items = state.get("items") or []
-        if on_plan and not shown and not state.get("final_text") and any(i.start for i in items):
-            on_plan(render_markdown(request, items, None, state.get("weather", ""), state.get("errors", []))
+    async for mode, chunk in app.astream({"request": request}, stream_mode=["updates", "values"]):
+        if mode == "updates":
+            for node in chunk:
+                if on_step:
+                    on_step(node)
+            continue
+        final = chunk
+        items = chunk.get("items") or []
+        if on_plan and not shown and not chunk.get("final_text") and any(i.start for i in items):
+            on_plan(render_markdown(request, items, None, chunk.get("weather", ""), chunk.get("errors", []))
                     + "\n\n_추천 사유를 작성하고 있어요..._")
             shown = True
     return final

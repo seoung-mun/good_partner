@@ -243,3 +243,13 @@ async def test_reschedule_passes_travel_mode_and_times_from_request():
     items = [it("d1-s1", 1, 1, "식당", "A"), it("d1-s2", 1, 2, "카페", "B")]
     out, _ = await reschedule(items, r, {"mode": "driving", "start_time": "15:00", "days": 1})
     assert modes == ["driving"] and out[0].start == "15:00"
+
+
+async def test_stream_plan_reports_each_finished_step():
+    from src.agent.workflow import stream_plan
+    steps = []
+    app = build_workflow(geocode_fn=no_geo, llm=LLM(), load_db=lambda: DB(), route_fn=route, weather_fn=lambda d, t: "맑음")
+    out = await stream_plan(app, REQ, on_step=steps.append)
+    assert {"resolve_region", "search", "locate", "plan_routes", "brief", "render"} <= set(steps)
+    assert steps.index("search") < steps.index("locate") < steps.index("render")
+    assert out["final_text"]
