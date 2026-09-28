@@ -1,7 +1,7 @@
 import pytest
 from langchain_core.documents import Document
 
-from src import tools
+from src.tools import retrieval as tools  # 검색 단계 전역(체인·검색 함수)이 있는 모듈을 패치
 from eval import legacy_adapter
 
 

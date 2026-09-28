@@ -38,7 +38,7 @@ async def main(args):
     from src.maps_compat import RoutesCompatClient
     from eval.legacy_adapter import run_legacy_trip
     from eval.metadata import reviews_for
-    import src.tools as T
+    import src.tools.retrieval as T
     from src.tools import AVAILABLE_TOOLS
     search_acc = {"t": 0.0, "n": 0}
     T._search_docs = timed(T._search_docs, search_acc)  # 임베딩+FAISS 시간 계측 (로직 동일)
