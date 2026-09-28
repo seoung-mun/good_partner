@@ -35,4 +35,6 @@ def render_markdown(req: dict, items: list[ItineraryItem], briefing: Briefing | 
         out.append(f"- **[{it.start}] {it.place.name}** ({it.place.category})")
         if it.reason:
             out.append(f"  > 💡 {it.reason}")
+        if it.lodging_min is not None:
+            out.append(f"   🏨 숙소로 이동: {it.lodging_detail or '이동'} (약 {it.lodging_min}분)")
     return "\n".join(out)

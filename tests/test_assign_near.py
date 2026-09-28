@@ -41,3 +41,11 @@ def test_relaxes_radius_when_nothing_is_near_and_never_duplicates():
     picks, _ = assign_places(slots, cands, anchors={1: ANCHOR, 2: ANCHOR})
     names = [picks[s].name if picks[s] else None for s in ("d1-s1", "d2-s1", "d2-s2")]
     assert sorted(n for n in names if n) == ["먼곳", "좌표없음"] and names.count(None) == 1
+
+
+def test_breakfast_slot_uses_breakfast_candidates():
+    slots = [Slot(slot_id="d2-s1", day=2, order=1, category="식당", meal="아침"),
+             Slot(slot_id="d2-s2", day=2, order=2, category="식당", meal="점심")]
+    cands = {"식당": [P("국수집", "식당"), P("해장국집", "식당")], "아침": [P("해장국집", "식당")]}
+    picks, _ = assign_places(slots, cands)
+    assert picks["d2-s1"].name == "해장국집" and picks["d2-s2"].name == "국수집"

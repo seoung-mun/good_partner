@@ -5,10 +5,14 @@ from src.domain.geo import calculate_haversine_distance
 from src.domain.models import ItineraryItem, Place, Slot
 
 
-# 슬롯 템플릿: 1일차 도착 후 점심부터 4곳, 중간 날 10시 시작 5곳, 마지막 날 관광·점심·카페 (귀가 시각 넘으면 잘림)
-_FIRST = [("식당", "점심"), ("카페", None), ("관광지", None), ("식당", "저녁")]
-_MIDDLE = [("관광지", None), ("식당", "점심"), ("카페", None), ("관광지", None), ("식당", "저녁")]
-_LAST = [("관광지", None), ("식당", "점심"), ("카페", None)]
+# 슬롯 템플릿 (각 날 끝은 숙소 복귀). 당일치기는 첫날, 1박 2일은 첫날+마지막 날, 2박 이상은 중간 날 반복.
+#   첫날: 도착 후 점심 → 관광 → 카페 → 저녁
+#   중간 날: 아침 → 관광 → 점심 → 관광 → 카페 → 저녁
+#   마지막 날: 아침 → 관광 → 점심 → 귀가 (귀가 시각을 넘기면 잘림)
+_FIRST = [("식당", "점심"), ("관광지", None), ("카페", None), ("식당", "저녁")]
+_MIDDLE = [("식당", "아침"), ("관광지", None), ("식당", "점심"), ("관광지", None), ("카페", None), ("식당", "저녁")]
+_LAST = [("식당", "아침"), ("관광지", None), ("식당", "점심")]
+DAY_START = "09:00"          # 2일차부터 하루 시작(아침 식사)
 
 
 def build_slots(days: int) -> list[Slot]:
@@ -24,6 +28,11 @@ def build_slots(days: int) -> list[Slot]:
 MAX_KM = {"transit": 5.0, "driving": 15.0}   # 직전 장소에서 이 거리(직선) 안의 후보만 — 없으면 해제
 RANK_KM = 0.3                                # 검색 순위 한 칸 = 0.3km: 순위를 조금 양보하고 가까운 곳을 고르는 비율
 N_ALTERNATIVES = 3
+
+
+def candidate_key(slot: Slot) -> str:
+    """슬롯이 쓸 후보 목록 키: 아침 식사는 아침용 검색 결과('아침'), 나머지는 카테고리."""
+    return "아침" if slot.meal == "아침" else slot.category
 
 
 def _km(a: tuple[float, float] | None, p: Place, unknown: float) -> float:
@@ -48,7 +57,8 @@ def assign_places(slots: list[Slot], candidates: dict[str, list[Place]],
         if s.day != day:
             day = s.day
             prev = (anchors or {}).get(day)
-        pool = [(i, p) for i, p in enumerate(candidates.get(s.category, [])) if (p.name, p.region) not in used]
+        key = candidate_key(s) if candidate_key(s) in candidates else s.category
+        pool = [(i, p) for i, p in enumerate(candidates.get(key, [])) if (p.name, p.region) not in used]
         if anchors is None:
             ranked = [p for _, p in pool]
         else:
@@ -72,12 +82,13 @@ def swap_place(items: list[ItineraryItem], slot_id: str, place: Place) -> list[I
 
 
 STAY_MIN = {"식당": 90, "카페": 60, "관광지": 120}
+BREAKFAST_MIN = 60
 
 
 def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | None]], default_move: int = 30,
                  first_start: str = "12:00", last_end: str | None = None, last_day: int | None = None
                  ) -> list[ItineraryItem]:
-    """일차별 시작(1일차 first_start, 이후 10:00)부터 체류·이동 시간을 누적. legs: slot_id → (이동 분, 교통편).
+    """일차별 시작(1일차 first_start, 이후 DAY_START)부터 체류·이동 시간을 누적. legs: slot_id → (이동 분, 교통편).
 
     last_day의 장소 중 last_end(귀가 출발 시각)를 넘겨 끝나는 곳은 일정에서 뺀다.
     """
@@ -86,7 +97,7 @@ def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | No
     for it in items:
         if it.slot.day != day:
             day, prev_placed = it.slot.day, False
-            cursor = datetime(2000, 1, 1, h, m) if day == 1 else datetime(2000, 1, 1, 10, 0)
+            cursor = datetime(2000, 1, 1, h, m) if day == 1 else datetime(2000, 1, 1, *map(int, DAY_START.split(":")))
         if closed and day == last_day:
             continue
         if it.place is None:
@@ -97,7 +108,8 @@ def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | No
             mv, detail = legs.get(it.slot.slot_id, (default_move, None))
             at = cursor + timedelta(minutes=mv)
             update.update(move_min=mv, move_detail=detail)
-        end = at + timedelta(minutes=STAY_MIN.get(it.slot.category, 90))
+        stay = BREAKFAST_MIN if it.slot.meal == "아침" else STAY_MIN.get(it.slot.category, 90)
+        end = at + timedelta(minutes=stay)
         if last_end and day == last_day and end.strftime("%H:%M") > last_end:
             closed = True                             # 귀가 시각을 넘김 → 이 장소부터 그날 나머지 제외
             continue

@@ -5,9 +5,10 @@ from collections import defaultdict
 from eval.regions import region_match
 from eval.trace import percentile
 
-FIRST = ["식당", "카페", "관광지", "식당"]
-MIDDLE = ["관광지", "식당", "카페", "관광지", "식당"]
-LAST = ["관광지", "식당", "카페"]   # P5: 마지막 날 관광·점심·카페 (P4 이전은 관광 1곳)
+# P5 템플릿 (P4 이전: 첫날 식당·카페·관광·식당, 중간 관광·식당·카페·관광·식당, 마지막 관광 1곳)
+FIRST = ["식당", "관광지", "카페", "식당"]
+MIDDLE = ["식당", "관광지", "식당", "관광지", "카페", "식당"]
+LAST = ["식당", "관광지", "식당"]
 
 
 def mean_or_none(xs):

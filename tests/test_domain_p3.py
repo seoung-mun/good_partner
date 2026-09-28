@@ -22,10 +22,12 @@ def test_resolve_destination(text, expected):
 
 def test_build_slots_template():
     s = build_slots(3)
-    assert [(x.day, x.category) for x in s] == [
-        (1, "식당"), (1, "카페"), (1, "관광지"), (1, "식당"),
-        (2, "관광지"), (2, "식당"), (2, "카페"), (2, "관광지"), (2, "식당"),
-        (3, "관광지"), (3, "식당"), (3, "카페")]
-    assert s[0].slot_id == "d1-s1" and s[0].meal == "점심" and s[3].meal == "저녁"
-    assert [x.category for x in build_slots(1)] == ["식당", "카페", "관광지", "식당"]
+    assert [(x.day, x.category, x.meal) for x in s] == [
+        (1, "식당", "점심"), (1, "관광지", None), (1, "카페", None), (1, "식당", "저녁"),
+        (2, "식당", "아침"), (2, "관광지", None), (2, "식당", "점심"), (2, "관광지", None), (2, "카페", None),
+        (2, "식당", "저녁"),
+        (3, "식당", "아침"), (3, "관광지", None), (3, "식당", "점심")]
+    assert s[0].slot_id == "d1-s1"
+    assert [x.category for x in build_slots(1)] == ["식당", "관광지", "카페", "식당"]     # 당일치기 = 첫날
+    assert [x.day for x in build_slots(2)] == [1] * 4 + [2] * 3                          # 1박 2일 = 첫날 + 마지막 날
 

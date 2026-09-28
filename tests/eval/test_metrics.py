@@ -31,9 +31,9 @@ def test_retrieval_diversity_counts_same_place_once():
 
 
 def test_expected_slots():
-    assert expected_slots(1) == [["식당", "카페", "관광지", "식당"]]
-    assert expected_slots(3) == [["식당", "카페", "관광지", "식당"],
-                                 ["관광지", "식당", "카페", "관광지", "식당"], ["관광지", "식당", "카페"]]
+    assert expected_slots(1) == [["식당", "관광지", "카페", "식당"]]
+    assert expected_slots(3) == [["식당", "관광지", "카페", "식당"],
+                                 ["식당", "관광지", "식당", "관광지", "카페", "식당"], ["식당", "관광지", "식당"]]
 
 
 def test_category_group():
@@ -54,7 +54,7 @@ def test_e2e_metrics():
     m = e2e_trip_metrics(itin, trip)
     assert m["n_places"] == 6
     assert m["slot_fill"] == pytest.approx(6 / 7)          # day1 4/4, day2 2/3 (관광·점심·카페)
-    assert m["category_adherence"] == pytest.approx(4 / 7)  # day1 3번째 식당≠관광지, day2 2번째 관광지≠식당
+    assert m["category_adherence"] == pytest.approx(3 / 7)  # day1 식당·(카페≠관광)·(식당≠카페)·식당, day2 (관광≠식당)·관광
     assert m["overflow"] == 0
     assert m["region_acc"] == pytest.approx(5 / 6)
     assert m["dup_rate"] == pytest.approx(1 - 5 / 6)

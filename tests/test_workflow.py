@@ -17,7 +17,7 @@ def test_assign_times_day1_noon_and_moves():
     assert (out[0].start, out[0].end) == ("12:00", "13:30")          # 1일차 12시, 식당 90분
     assert (out[1].move_min, out[1].start, out[1].end) == (20, "13:50", "14:50")
     assert out[1].move_detail == "버스 402"
-    assert out[2].start == "10:00"                                    # 2일차 10시
+    assert out[2].start == "09:00"                                    # 2일차부터 9시 (아침 식사)
 
 
 def test_assign_times_skips_empty_slots_and_defaults_move():
@@ -65,12 +65,12 @@ async def test_workflow_end_to_end_with_two_llm_calls():
     out = await app.ainvoke({"request": REQ})
     items = out["items"]
     assert out["region"] == "부산광역시 중구"
-    assert [i.place.name if i.place else None for i in items] == ["식당0", "카페0", "명소0", "식당1"]
+    assert [i.place.name if i.place else None for i in items] == ["식당0", "명소0", "카페0", "식당1"]
     assert items[0].reason == "노포 리뷰" and items[1].move_min == 15
     assert llm.calls == 2
     assert "식당0" in out["final_text"] and "우산" in out["final_text"]
     legacy = to_legacy_itinerary(items)
-    assert [x["type"] for x in legacy][:3] == ["식당", "move", "카페"]
+    assert [x["type"] for x in legacy][:3] == ["식당", "move", "관광지"]
     assert legacy[0]["address"] == "부산광역시 중구" and legacy[1]["duration_min"] == 15
 
 
@@ -222,15 +222,21 @@ async def test_locate_uses_start_location_as_anchor_and_keeps_alternatives():
 def test_assign_times_uses_arrival_time_and_trims_after_departure():
     items = [it("d1-s1", 1, 1, "식당", "A"), it("d2-s1", 2, 1, "관광지", "B"), it("d2-s2", 2, 2, "식당", "C"),
              it("d2-s3", 2, 3, "카페", "D")]
-    out = assign_times(items, {}, first_start="14:00", last_end="13:30", last_day=2)
+    out = assign_times(items, {}, first_start="14:00", last_end="12:30", last_day=2)
     assert out[0].start == "14:00"
-    assert [i.place.name for i in out if i.slot.day == 2] == ["B"]    # 10:00-12:00 관광만 13:30 전에 끝남
+    assert [i.place.name for i in out if i.slot.day == 2] == ["B"]    # 09:00-11:00 관광 뒤 식당(90분)은 12:30을 넘김
 
 
-def test_last_day_template_has_sightseeing_lunch_cafe():
+def test_last_day_template_is_breakfast_sightseeing_lunch():
     from src.domain.schedule import build_slots
     last = [(s.category, s.meal) for s in build_slots(2) if s.day == 2]
-    assert last == [("관광지", None), ("식당", "점심"), ("카페", None)]
+    assert last == [("식당", "아침"), ("관광지", None), ("식당", "점심")]
+
+
+def test_breakfast_stays_one_hour():
+    items = [ItineraryItem(slot=Slot(slot_id="d2-s1", day=2, order=1, category="식당", meal="아침"),
+                           place=Place(name="A", region="r", category="식당"))]
+    assert assign_times(items, {})[0].end == "10:00"
 
 
 async def test_reschedule_passes_travel_mode_and_times_from_request():
@@ -253,3 +259,16 @@ async def test_stream_plan_reports_each_finished_step():
     assert {"resolve_region", "search", "locate", "plan_routes", "brief", "render"} <= set(steps)
     assert steps.index("search") < steps.index("locate") < steps.index("render")
     assert out["final_text"]
+
+
+async def test_reschedule_adds_return_to_lodging_except_last_day():
+    from src.agent.workflow import reschedule
+    asked = []
+
+    async def r(a, b, mode="transit", departure_time=None):
+        asked.append((a, b))
+        return {"duration_value": 1200, "steps": ["[버스] 5"]}
+    items = [it("d1-s1", 1, 1, "식당", "A"), it("d1-s2", 1, 2, "카페", "B"), it("d2-s1", 2, 1, "관광지", "C")]
+    out, _ = await reschedule(items, r, {"destination": "부산", "start_location": "부산역", "days": 2})
+    assert out[1].lodging_min == 20 and out[0].lodging_min is None and out[2].lodging_min is None
+    assert ("r B", "부산 부산역") in asked                          # 그날 마지막 장소 → 숙소(목적지 + 출발지)

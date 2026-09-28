@@ -31,6 +31,7 @@ log = get_logger(__name__)
 
 GEOCODE_TOP = 50          # 카테고리별 상위 몇 곳까지 좌표를 구할지 (지오코딩은 디스크 캐시 — 장소당 평생 1회)
 GEOCODE_CONCURRENCY = 8
+BREAKFAST_KEYWORDS = ["아침", "해장국", "브런치"]
 
 
 class PlanState(TypedDict, total=False):
@@ -57,13 +58,15 @@ def _where(item: ItineraryItem) -> str:
 
 async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None = None
                      ) -> tuple[list[ItineraryItem], list[StepError]]:
-    """같은 날 연속한 장소 쌍의 경로를 병렬 조회하고 시간표를 다시 계산. 실패한 구간은 기본 이동 시간.
+    """같은 날 연속한 장소 쌍 + 매일 마지막 장소→숙소(마지막 날 제외) 경로를 병렬 조회하고 시간표를 다시 계산.
 
-    request의 mode(transit|driving)·start_time(1일차 도착)·end_time(마지막 날 귀가 출발)·days를 반영.
+    request의 mode(transit|driving)·start_time(1일차 도착)·end_time(마지막 날 귀가 출발)·days·start_location(숙소)을 반영.
+    실패한 구간은 기본 이동 시간.
     """
     req = request or {}
-    mode = req.get("mode") or "transit"
-    pairs, prev = [], None
+    mode, days = req.get("mode") or "transit", req.get("days")
+    lodging = f"{req.get('destination', '')} {req['start_location']}".strip() if req.get("start_location") else None
+    pairs, prev, last_of_day = [], None, {}
     for it in items:
         if prev is not None and prev.slot.day != it.slot.day:
             prev = None
@@ -71,7 +74,10 @@ async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None 
             if prev is not None:
                 pairs.append((it.slot.slot_id, prev, it))
             prev = it
+            last_of_day[it.slot.day] = it
+    home = [(d, it) for d, it in last_of_day.items() if lodging and days and d < days]
     results = await asyncio.gather(*[route_fn(_where(a), _where(b), mode=mode) for _, a, b in pairs],
+                                   *[route_fn(_where(it), lodging, mode=mode) for _, it in home],
                                    return_exceptions=True)
     legs, failures = {}, []
     for (sid, _, _), r in zip(pairs, results):
@@ -79,13 +85,18 @@ async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None 
             legs[sid] = (r["duration_value"] // 60, " ➡️ ".join(r.get("steps", [])))
         elif isinstance(r, Exception):
             failures.append(f"{sid}: {type(r).__name__}: {r}")
+    home_legs = {it.slot.slot_id: (r["duration_value"] // 60, " ➡️ ".join(r.get("steps", [])))
+                 for (_, it), r in zip(home, results[len(pairs):]) if isinstance(r, dict)}
     errors = []
     if failures:
         log.warning("경로 조회 실패 %d/%d건: %s", len(failures), len(pairs), failures[:3])
         errors.append(StepError.from_error("plan_routes", ExternalServiceError("Google Maps", "; ".join(failures[:3]))))
-    reset = [i.model_copy(update={"move_min": None, "move_detail": None}) for i in items]
-    return assign_times(reset, legs, first_start=req.get("start_time") or "12:00", last_end=req.get("end_time"),
-                        last_day=req.get("days")), errors
+    reset = [i.model_copy(update={"move_min": None, "move_detail": None, "lodging_min": None, "lodging_detail": None})
+             for i in items]
+    timed = assign_times(reset, legs, first_start=req.get("start_time") or "12:00", last_end=req.get("end_time"),
+                         last_day=days)
+    return [i.model_copy(update=dict(zip(("lodging_min", "lodging_detail"), home_legs[i.slot.slot_id])))
+            if i.slot.slot_id in home_legs else i for i in timed], errors
 
 
 def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
@@ -100,7 +111,8 @@ def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
                         "duration_text": f"약 {it.move_min}분"})
         out.append({"type": it.place.category, "name": it.place.name, "address": it.place.region,
                     "day": it.slot.day, "category": it.place.category, "slot_id": it.slot.slot_id, "meal": it.slot.meal,
-                    "start": it.start, "end": it.end, "description": it.reason, "reviews": it.place.reviews})
+                    "start": it.start, "end": it.end, "description": it.reason, "reviews": it.place.reviews,
+                    "lodging_min": it.lodging_min})
     return out
 
 
@@ -183,7 +195,14 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
             log.error("벡터 인덱스 로드 실패: %s", e)
             return {"candidates": {}, "errors": [StepError.from_error("search", VectorStoreUnavailableError(str(e)))]}
         cats = list(dict.fromkeys(s.category for s in state["slots"]))
-        cands = await asyncio.to_thread(search_candidates, db, state["region"], cats, state["preferences"].keywords)
+        kws = state["preferences"].keywords
+
+        def run():
+            out = search_candidates(db, state["region"], cats, kws)
+            if any(s.meal == "아침" for s in state["slots"]):   # 아침 식사는 아침 메뉴 리뷰로 따로 검색
+                out["아침"] = search_candidates(db, state["region"], ["식당"], BREAKFAST_KEYWORDS)["식당"]
+            return out
+        cands = await asyncio.to_thread(run)
         log.info("검색 완료: %s", {c: len(v) for c, v in cands.items()})
         return {"candidates": cands}
 
