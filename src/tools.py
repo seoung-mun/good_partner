@@ -271,20 +271,11 @@ async def _filter_candidates(docs, target_region: str, exclude_places: List[str]
             
     return candidates
 
-@tool
-async def find_and_select_best_place(query: str,
-                                    destination: str,
-                                    anchor: str = "",
-                                    exclude_places: List[str] = [],
-                                    user_info: str = "", 
-                                    category_filter: str = "") -> str:
-    """
-    [핵심 도구] 최적의 장소 1곳을 반환합니다.
-    [수정] Google Maps 좌표 오류(문경시 문제) 방지를 위해 LLM 지역명 정규화를 우선 사용
-    """
-    print(f"\n--- find_and_select_best_place 호출 ---")
-    
- 
+async def retrieve_candidates(query: str, destination: str, category_filter: str = "",
+                              anchor: str = "", exclude_places: List[str] | None = None,
+                              user_info: str = "") -> Dict[str, Any]:
+    """지역 해석 → 멀티쿼리 검색 → 필터 → (없으면) 2차 검색. find_and_select_best_place의 검색 단계."""
+    exclude_places = exclude_places or []
     target_input = anchor if anchor else query
     target_region = ""
     
@@ -339,17 +330,15 @@ async def find_and_select_best_place(query: str,
                 aggregated_docs.append(doc)
     print(f" 통합된 문서 수: {len(aggregated_docs)} -> 필터링 진입")
     
-    try:
-        candidates = await _filter_candidates(aggregated_docs, target_region, exclude_places, category_filter)
-    except Exception as e:
-        print(f" 필터링 함수 내부 에러: {e}")
-        return json.dumps({"name": "시스템에러", "type": "에러", "description": "필터링 중 에러 발생"}, ensure_ascii=False)
+    candidates = await _filter_candidates(aggregated_docs, target_region, exclude_places, category_filter)
     
     if len(candidates) > 5:
         print(f" 후보군 {len(candidates)}개 -> 상위 5개로 제한")
         candidates = candidates[:5]
 
+    fallback_used = False
     if not candidates:
+        fallback_used = True
         print(f" 1차 검색 결과 없음 -> 2차 검색(선호 제외) 전환")
         
         search_query_v2 = f"{target_region} {query} {category_filter}"
@@ -374,6 +363,31 @@ async def find_and_select_best_place(query: str,
             
             candidates_with_score.sort(key=lambda x: x[0])
             candidates = [x[1] for x in candidates_with_score]
+
+    return {"target_region": target_region, "queries": search_queries,
+            "candidates": candidates, "fallback_used": fallback_used}
+
+
+@tool
+async def find_and_select_best_place(query: str,
+                                    destination: str,
+                                    anchor: str = "",
+                                    exclude_places: List[str] = [],
+                                    user_info: str = "", 
+                                    category_filter: str = "") -> str:
+    """
+    [핵심 도구] 최적의 장소 1곳을 반환합니다.
+    [수정] Google Maps 좌표 오류(문경시 문제) 방지를 위해 LLM 지역명 정규화를 우선 사용
+    """
+    print(f"\n--- find_and_select_best_place 호출 ---")
+    
+ 
+    try:
+        r = await retrieve_candidates(query, destination, category_filter, anchor, exclude_places, user_info)
+    except Exception as e:
+        print(f" 필터링 함수 내부 에러: {e}")
+        return json.dumps({"name": "시스템에러", "type": "에러", "description": "필터링 중 에러 발생"}, ensure_ascii=False)
+    candidates = r["candidates"]
 
     if not candidates:
         return json.dumps({"name": "추천 장소 없음", "type": "정보없음", "description": "조건에 맞는 장소를 찾지 못했습니다.", "reviews": []}, ensure_ascii=False)
