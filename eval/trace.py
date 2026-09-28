@@ -53,6 +53,8 @@ class AgentTracer(AsyncCallbackHandler):
         self.requested = 0
         self.invalid = 0
         self.node_time: dict[str, float] = {}
+        self.node_end: dict[str, float] = {}      # 추적 시작부터 노드 첫 완료까지(초) — 예: 첫 일정 표시 시점
+        self._t0 = time.perf_counter()
 
     async def on_chain_start(self, serialized, inputs, *, run_id, metadata=None, name=None, **kw):
         node = (metadata or {}).get("langgraph_node")
@@ -63,7 +65,9 @@ class AgentTracer(AsyncCallbackHandler):
         v = self._start.get(run_id)
         if isinstance(v, tuple) and v[0] == "node":
             self._start.pop(run_id)
-            self.node_time[v[1]] = self.node_time.get(v[1], 0.0) + time.perf_counter() - v[2]
+            now = time.perf_counter()
+            self.node_time[v[1]] = self.node_time.get(v[1], 0.0) + now - v[2]
+            self.node_end.setdefault(v[1], now - self._t0)
 
     async def on_chat_model_start(self, serialized, messages, *, run_id, **kw):
         self._start[run_id] = time.perf_counter()
@@ -121,4 +125,5 @@ class AgentTracer(AsyncCallbackHandler):
             "tool_calls_by_name": dict(Counter(e["name"] for e in ev)),
             "tool_time_by_name_s": {k: round(v, 3) for k, v in by_name_time.items()},
             "node_time_s": {k: round(v, 3) for k, v in self.node_time.items()},
+            "node_end_s": {k: round(v, 3) for k, v in self.node_end.items()},
         }

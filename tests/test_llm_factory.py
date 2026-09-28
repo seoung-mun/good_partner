@@ -15,3 +15,8 @@ def test_ollama_output_capped_and_timeout(monkeypatch):
     kw = llm_kwargs("ollama:qwen2.5:7b-instruct-q4_K_M")
     assert kw["num_predict"] > 0                 # 무한 생성 방지
     assert llm_kwargs("openai:gpt-5-mini")["timeout"] > 0
+
+
+def test_ollama_model_stays_loaded():
+    from src.llm_factory import llm_kwargs
+    assert llm_kwargs("ollama:qwen2.5:7b-instruct-q4_K_M")["keep_alive"] == "30m"

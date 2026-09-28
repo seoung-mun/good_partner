@@ -10,7 +10,8 @@ API_TIMEOUT_S = 60
 def llm_kwargs(model: str) -> dict:
     """provider별 생성 옵션. gpt-5 계열은 temperature 미지원."""
     if model.startswith("ollama:"):
-        return {"temperature": 0, "num_predict": OLLAMA_MAX_TOKENS}
+        # keep_alive: 유휴 후 첫 요청의 모델 재로드(수 초) 방지
+        return {"temperature": 0, "num_predict": OLLAMA_MAX_TOKENS, "keep_alive": "30m"}
     kw = {"timeout": API_TIMEOUT_S, "max_retries": 1}
     return kw if model.startswith("openai:gpt-5") else {**kw, "temperature": 0}
 

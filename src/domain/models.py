@@ -45,12 +45,12 @@ class TripPreferences(BaseModel):
 class SlotReason(BaseModel):
     """슬롯별 추천 사유."""
     slot_id: str
-    reason: str = Field(description="근거 리뷰에 기반한 1~2문장 추천 사유")
+    reason: str = Field(description="근거 리뷰에 기반한 추천 사유 1문장(60자 이내)")
 
 
 class Briefing(BaseModel):
     """LLM 브리핑: 개요, 날씨 팁, 슬롯별 사유."""
-    overview: str = Field(description="일정 전체를 소개하는 2~3문장")
+    overview: str = Field(description="일정 전체를 소개하는 1~2문장")
     weather_tip: str = Field(description="날씨 데이터를 한 문장으로 요약한 조언")
     reasons: list[SlotReason]
 

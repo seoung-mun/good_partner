@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from eval.instrument import LLMCallCounter, attach_counter, configure_caches
 from eval.metrics import e2e_trip_metrics, summarize_e2e
-from eval.trace import AgentTracer, timed_sync
+from eval.trace import AgentTracer, percentile, timed_sync
 
 KEYS = ["n_places", "slot_fill", "category_adherence", "overflow", "region_acc", "dup_rate",
         "has_timeline", "total_move_min", "llm_calls", "input_tokens", "output_tokens", "maps_calls", "latency_s",
@@ -77,6 +77,8 @@ async def main(args):
                "ungrounded_rate": ungrounded_rate(places),
                **e2e_trip_metrics(r["itinerary"], trip)}
         row["other_time_s"] = latency - tr["llm_time_s"] - row["search_time_s"] - row["maps_time_s"]
+        # 사용자에게 일정(시간표 포함)을 처음 보여줄 수 있는 시점 — UI는 이때 일정을 먼저 표시하고 브리핑을 기다림
+        row["first_plan_s"] = tr["node_end_s"].get("plan_routes")
         row["ok"] = float(row["ok"])
         rows.append(row)
         print(f"[{n}/{len(trips)}] {trip['id']} ok={r['ok']} places={row['n_places']} "
@@ -86,7 +88,9 @@ async def main(args):
 
     out = {"system": args.system, "llm_model": os.environ["LLM_MODEL"], "start_date": start.isoformat(),
            "cache": cache_state, "summary": {"all": {**summarize_e2e(rows, KEYS, SERVICE_KEYS),
-                                                  "node_time_mean": node_time_mean(rows)}}, "rows": rows}
+                                                  "node_time_mean": node_time_mean(rows),
+                                                  "first_plan_p50": percentile([r["first_plan_s"] for r in rows if r.get("first_plan_s")], 50),
+                                                  "first_plan_p95": percentile([r["first_plan_s"] for r in rows if r.get("first_plan_s")], 95)}}, "rows": rows}
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str))
     print(json.dumps(out["summary"], ensure_ascii=False, indent=1))

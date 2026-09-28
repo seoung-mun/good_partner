@@ -103,3 +103,23 @@ async def test_tracer_records_langgraph_node_durations():
     await g.compile().ainvoke({}, config={"callbacks": [tr]})
     nodes = tr.summary()["node_time_s"]
     assert set(nodes) == {"a", "b"} and all(v >= 0.02 for v in nodes.values())
+
+
+async def test_tracer_records_node_end_offsets():
+    import asyncio
+    from typing import TypedDict
+    from langgraph.graph import END, START, StateGraph
+
+    class S(TypedDict, total=False):
+        x: int
+
+    async def slow(_):
+        await asyncio.sleep(0.05)
+        return {"x": 1}
+
+    g = StateGraph(S)
+    g.add_node("plan_routes", slow)
+    g.add_edge(START, "plan_routes"); g.add_edge("plan_routes", END)
+    tr = AgentTracer()
+    await g.compile().ainvoke({}, config={"callbacks": [tr]})
+    assert tr.summary()["node_end_s"]["plan_routes"] >= 0.05

@@ -156,3 +156,56 @@ async def test_llm_timeout_is_recorded_and_service_continues():
     assert codes(out) == ["LLM_OUTPUT_INVALID", "LLM_OUTPUT_INVALID"]
     assert "TimeoutError" in out["errors"][0].detail
     assert out["items"][0].place.name == "식당0"
+
+
+async def test_independent_steps_run_in_parallel():
+    """날씨 ∥ 취향 LLM, 경로 ∥ 브리핑 LLM — 순차 합(1.2s)보다 확실히 짧아야 한다."""
+    import asyncio
+    import time
+
+    class SlowLLM(LLM):
+        def with_structured_output(self, schema):
+            inner = super().with_structured_output(schema)
+
+            async def run(x):
+                await asyncio.sleep(0.3)
+                return inner.invoke(x)
+            return RunnableLambda(run)
+
+    async def slow_route(a, b, mode="transit", departure_time=None):
+        await asyncio.sleep(0.3)
+        return {"duration_value": 600, "steps": []}
+
+    def slow_weather(d, t):
+        time.sleep(0.3)
+        return "맑음"
+
+    llm = SlowLLM()
+    app = build_workflow(llm=llm, load_db=lambda: DB(), route_fn=slow_route, weather_fn=slow_weather)
+    t0 = time.perf_counter()
+    out = await app.ainvoke({"request": REQ})
+    elapsed = time.perf_counter() - t0
+    assert elapsed < 0.75, elapsed                     # 병렬이면 ~0.6s (pref∥weather, route∥brief). 순차면 1.2s
+    assert llm.calls == 2 and out["items"][0].reason == "노포 리뷰" and out["items"][1].move_min == 10
+
+
+async def test_stream_plan_shows_itinerary_before_briefing():
+    import asyncio
+    from src.agent.workflow import stream_plan
+
+    class SlowBriefLLM(LLM):
+        def with_structured_output(self, schema):
+            inner = super().with_structured_output(schema)
+
+            async def run(x):
+                if schema is not TripPreferences:
+                    await asyncio.sleep(0.2)            # 브리핑이 경로보다 늦게 끝남
+                return inner.invoke(x)
+            return RunnableLambda(run)
+
+    shown = []
+    app = build_workflow(llm=SlowBriefLLM(), load_db=lambda: DB(), route_fn=route, weather_fn=lambda d, t: "맑음")
+    final = await stream_plan(app, REQ, on_plan=shown.append)
+    assert len(shown) == 1 and "식당0" in shown[0] and "12:00" in shown[0]
+    assert "노포 리뷰" not in shown[0]                 # 임시 표시는 사유 없이
+    assert "노포 리뷰" in final["final_text"]

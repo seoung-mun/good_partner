@@ -12,7 +12,8 @@ PREFERENCE_PROMPT = ChatPromptTemplate.from_messages([
 BRIEFING_PROMPT = ChatPromptTemplate.from_messages([
     ("system", "당신은 여행 일정 가이드입니다. 주어진 일정과 각 장소의 리뷰만 근거로 브리핑을 작성하세요. "
                "리뷰에 없는 사실(메뉴, 시설, 가격 등)은 추측하지 마세요. 장소를 바꾸거나 추가하지 마세요. "
-               "reasons에는 장소가 있는 slot_id마다 사용자 요청과 연결한 1~2문장 추천 사유를 쓰세요."),
+               "overview는 1~2문장, weather_tip은 1문장. reasons에는 장소가 있는 slot_id마다 사용자 요청과 연결한 "
+               "추천 사유를 1문장(60자 이내)으로 쓰세요."),
     ("human", "[사용자 요청]\n{request}\n\n[날씨]\n{weather}\n\n[일정]\n{plan}"),
 ])
 

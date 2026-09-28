@@ -1,7 +1,7 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
 from src.agent.edit_agent import build_edit_app, edit
-from src.agent.workflow import build_workflow, to_legacy_itinerary
+from src.agent.workflow import build_workflow, stream_plan, to_legacy_itinerary
 import re
 import asyncio
 from datetime import date, datetime
@@ -251,8 +251,9 @@ def build_request() -> dict:
             "detail": st.session_state.get("detail_preference", "")}
 
 
-async def create_plan():
-    out = await WORKFLOW.ainvoke({"request": build_request()})
+async def create_plan(placeholder=None):
+    """초안 생성. 시간표가 나오면 브리핑(LLM)을 기다리지 않고 placeholder에 일정부터 표시."""
+    out = await stream_plan(WORKFLOW, build_request(), on_plan=placeholder.markdown if placeholder else None)
     st.session_state.plan = {k: out.get(k) for k in ("request", "region", "items", "weather")}
     st.session_state.messages.append(AIMessage(content=out["final_text"]))
 
@@ -266,8 +267,9 @@ async def edit_plan(text: str):
 
 # --- 초기 실행: 초안 생성 ---
 if st.session_state.plan is None:
+    preview = st.empty()
     with st.spinner("여행 계획을 만드는 중입니다..."):
-        loop.run_until_complete(create_plan())
+        loop.run_until_complete(create_plan(preview))
     st.rerun()
 
 for msg in st.session_state.messages:

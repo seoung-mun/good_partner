@@ -38,3 +38,9 @@ def test_briefing_chain_grounded_prompt():
     out = build_briefing_chain(llm).invoke({"request": "- 동행: 친구", "weather": "맑음", "plan": "d1-s1 국밥집"})
     assert out.reasons[0].slot_id == "d1-s1"
     assert "리뷰에 없는" in llm.seen[0]          # 근거 밖 추측 금지 지시 포함
+
+
+def test_briefing_prompt_limits_output_length():
+    from src.agent.chains import BRIEFING_PROMPT
+    text = BRIEFING_PROMPT.format(request="r", weather="w", plan="p")
+    assert "60자" in text and "1문장" in text
