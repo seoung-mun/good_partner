@@ -1,11 +1,13 @@
 emoji==2.15.0
 fpdf2==2.8.5
 googlemaps==4.10.0
+langchain>=1.0,<2
+langchain-core>=1.1.0,<2
 langchain_community==0.4.1
-langchain_core==1.1.0
-langchain_google_genai==3.2.0
+langchain-openai>=1.0,<2
+langchain-ollama>=1.0,<2
 langchain_huggingface==1.1.0
-langgraph==1.0.4
+langgraph>=1.0.4,<2
 pandas==2.3.3
 python-dotenv==1.2.1
 Requests==2.32.5

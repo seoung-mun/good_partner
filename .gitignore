@@ -22,3 +22,12 @@ metadata_preview.csv
 
 venv/
 
+
+# 재임베딩 산출물
+.venv/
+data/
+review_faiss_mean*/
+review_faiss_limit*/
+.superpowers/
+.cache/
+eval/results/_smoke*
