@@ -11,7 +11,7 @@ def test_trip_to_request():
     r = trip_to_request(TRIP, date(2026, 10, 1))
     assert r == {"destination": "부산", "start_location": "부산역", "start_date": "2026-10-01", "days": 2,
                  "group_type": "친구", "style": "맛집 탐방", "detail": "노포",
-                 "mode": "transit", "start_time": "12:00", "end_time": "18:00"}
+                 "mode": "transit", "start_time": "12:00", "end_time": "20:00"}
 
 
 class App:

@@ -6,8 +6,8 @@ def trip_to_request(trip: dict, start: date) -> dict:
     return {"destination": trip["destination"], "start_location": trip.get("start_location", ""),
             "start_date": start.isoformat(), "days": trip["days"], "group_type": trip["group_type"],
             "style": trip["style"], "detail": trip.get("detail", ""),
-            # 서비스 기본값: 대중교통, 1일차 12시 도착, 마지막 날 18시 귀가 출발
-            "mode": trip.get("mode", "transit"), "start_time": "12:00", "end_time": "18:00"}
+            # 서비스 기본값: 대중교통, 1일차 12시 도착, 마지막 날 20시 귀가 출발(당일치기도 저녁 포함)
+            "mode": trip.get("mode", "transit"), "start_time": "12:00", "end_time": "20:00"}
 
 
 async def run_new_trip(app, trip: dict, start: date, callbacks: list | None = None) -> dict:
