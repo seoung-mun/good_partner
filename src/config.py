@@ -2,7 +2,8 @@
 import os
 import streamlit as st 
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
+from src.llm_factory import make_llm
+from src.maps_compat import RoutesCompatClient
 import googlemaps
 
 load_faiss_index_start_time = None 
@@ -12,12 +13,12 @@ load_dotenv()
 current_dir = os.path.dirname(os.path.abspath(__file__))
 review_faiss = os.path.join(os.path.dirname(current_dir), "review_faiss") 
 
-LLM = ChatGoogleGenerativeAI(model='gemini-2.5-flash', temperature=0.0)
+LLM = make_llm()
 
 GMAPS_API_KEY = os.getenv("GMAPS_API_KEY")
 GMAPS_CLIENT = None
 if GMAPS_API_KEY:
-    GMAPS_CLIENT = googlemaps.Client(key=GMAPS_API_KEY)
+    GMAPS_CLIENT = RoutesCompatClient(key=GMAPS_API_KEY)
 else:
     print("경고: .env 파일에 GMAPS_API_KEY가 설정되지 않았습니다.")
 
@@ -49,7 +50,8 @@ def load_faiss_index():
 import os
 import streamlit as st 
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
+from src.llm_factory import make_llm
+from src.maps_compat import RoutesCompatClient
 import googlemaps
 
 load_faiss_index_start_time = None 
@@ -59,12 +61,12 @@ load_dotenv()
 current_dir = os.path.dirname(os.path.abspath(__file__))
 review_faiss = os.path.join(os.path.dirname(current_dir), "review_faiss") 
 
-LLM = ChatGoogleGenerativeAI(model='gemini-2.5-flash', temperature=0.0)
+LLM = make_llm()
 
 GMAPS_API_KEY = os.getenv("GMAPS_API_KEY")
 GMAPS_CLIENT = None
 if GMAPS_API_KEY:
-    GMAPS_CLIENT = googlemaps.Client(key=GMAPS_API_KEY)
+    GMAPS_CLIENT = RoutesCompatClient(key=GMAPS_API_KEY)
 else:
     print("경고: .env 파일에 GMAPS_API_KEY가 설정되지 않았습니다.")
 
