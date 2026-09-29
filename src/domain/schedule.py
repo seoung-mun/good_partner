@@ -12,7 +12,8 @@ from src.domain.models import ItineraryItem, Place, Slot
 _FIRST = [("식당", "점심"), ("관광지", None), ("카페", None), ("식당", "저녁")]
 _MIDDLE = [("식당", "아침"), ("관광지", None), ("식당", "점심"), ("관광지", None), ("카페", None), ("식당", "저녁")]
 _LAST = [("식당", "아침"), ("관광지", None), ("식당", "점심")]
-DAY_START = "09:00"          # 2일차부터 하루 시작(아침 식사)
+DAY_START = "09:00"          # 2일차부터 하루 시작(숙소 출발)
+BREAKFAST_KEYWORDS = ["아침", "해장국", "브런치"]   # 아침 식사 슬롯 검색어 (초안·수정 공통)
 
 
 def build_slots(days: int) -> list[Slot]:

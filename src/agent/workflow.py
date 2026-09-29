@@ -22,7 +22,7 @@ from src.agent.chains import build_briefing_chain, build_preference_chain
 from src.agent.render import render_markdown, request_text
 from src.domain.models import Briefing, ItineraryItem, Place, Slot, StepError, TripPreferences
 from src.domain.region import resolve_destination
-from src.domain.schedule import MAX_KM, assign_places, assign_times, build_slots
+from src.domain.schedule import BREAKFAST_KEYWORDS, MAX_KM, assign_places, assign_times, build_slots
 from src.errors import ExternalServiceError, LLMOutputError, RegionNotFoundError, VectorStoreUnavailableError
 from src.logging_config import get_logger
 from src.retrieval.retriever import search_candidates
@@ -31,7 +31,6 @@ log = get_logger(__name__)
 
 GEOCODE_TOP = 50          # 카테고리별 상위 몇 곳까지 좌표를 구할지 (지오코딩은 디스크 캐시 — 장소당 평생 1회)
 GEOCODE_CONCURRENCY = 8
-BREAKFAST_KEYWORDS = ["아침", "해장국", "브런치"]
 
 
 class PlanState(TypedDict, total=False):

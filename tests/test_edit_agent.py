@@ -113,3 +113,38 @@ def test_swap_place_replaces_and_drops_it_from_alternatives():
     out = swap_place(items, "d1-s2", new)
     assert out[1].place.name == "대안카페" and out[1].alternatives == [] and out[1].reason == ""
     assert out[0] is items[0]
+
+
+def _app(db, *msgs):
+    return build_edit_app(llm=ToolFake(messages=iter(list(msgs))), load_db=lambda: db, route_fn=route)
+
+
+def _it(sid, day, order, cat, name, region="부산광역시 중구", meal=None):
+    return ItineraryItem(slot=Slot(slot_id=sid, day=day, order=order, category=cat, meal=meal),
+                         place=Place(name=name, region=region, category=cat))
+
+
+async def test_replacing_breakfast_searches_breakfast_places():
+    db = make_db([meta("고깃집", "부산광역시 중구", "식당", "삼겹살"), meta("해장국집", "부산광역시 중구", "식당", "해장")],
+                 {"삼겹살": [0.0, 0, 0, 0], "해장": [1.0, 0, 0, 0], "아침 해장국 브런치 좋은 맛집": [1.0, 0, 0, 0]})
+    items = [_it("d2-s1", 2, 1, "식당", "옛아침집", meal="아침")]
+    out = await edit(_app(db, call("replace_slot", {"slot_id": "d2-s1", "query": ""}), AIMessage("바꿨어요")),
+                     {**STATE, "items": items}, "둘째 날 아침 바꿔줘")
+    assert out["items"][0].place.name == "해장국집"            # 일반 검색 1위(고깃집)가 아니라 아침 검색
+
+
+async def test_replacement_prefers_same_district_as_neighbors():
+    db = make_db([meta("중구카페", "부산광역시 중구", "카페", "a"), meta("해운대카페", "부산광역시 해운대구", "카페", "b")])
+    items = [_it("d1-s1", 1, 1, "식당", "해운대식당", "부산광역시 해운대구"),
+             _it("d1-s2", 1, 2, "카페", "옛카페", "부산광역시 해운대구")]
+    out = await edit(_app(db, call("replace_slot", {"slot_id": "d1-s2", "query": ""}), AIMessage("바꿨어요")),
+                     {**STATE, "region": "부산광역시", "items": items}, "카페 바꿔줘")
+    assert out["items"][1].place.name == "해운대카페"
+
+
+async def test_added_sight_goes_before_dinner():
+    db = make_db([meta("명소", "부산광역시 중구", "관광지", "a")])
+    items = [_it("d1-s1", 1, 1, "식당", "점심집", meal="점심"), _it("d1-s4", 1, 4, "식당", "저녁집", meal="저녁")]
+    out = await edit(_app(db, call("add_slot", {"day": 1, "category": "관광지", "query": ""}), AIMessage("추가")),
+                     {**STATE, "items": items}, "관광지 하나 더")
+    assert [i.place.name for i in out["items"]] == ["점심집", "명소", "저녁집"]

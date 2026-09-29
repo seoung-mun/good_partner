@@ -8,7 +8,7 @@ from langgraph.types import Command
 from pydantic import BaseModel, Field
 
 from src.domain.models import ItineraryItem, Slot
-from src.domain.schedule import swap_place
+from src.domain.schedule import BREAKFAST_KEYWORDS, swap_place
 from src.retrieval.retriever import search_candidates
 
 
@@ -44,13 +44,25 @@ def _result(runtime: ToolRuntime, name: str, ok: bool, items=None, dropped=None,
 
 def make_edit_tools(load_db):
     """수정 tool 3종을 만든다. load_db는 벡터 스토어 로더(테스트에서 주입)."""
-    def find(runtime: ToolRuntime, category: str, query: str):
-        """현재 일정에 없고 사용자가 뺀 적도 없는 후보 중 첫 번째 (없으면 None)."""
+    def find(runtime: ToolRuntime, category: str, query: str, meal: str | None = None, near: set[str] | None = None):
+        """현재 일정에 없고 사용자가 뺀 적도 없는 후보 중 가장 알맞은 곳 (없으면 None).
+
+        meal='아침'이면 아침 식사 검색어를 더하고, near(이웃 장소의 시군구)가 있으면 같은 시군구 후보를 먼저.
+        """
         items: list[ItineraryItem] = runtime.state["items"]
         used = {(i.place.name, i.place.region) for i in items if i.place}
         used |= {tuple(k) for k in runtime.state.get("rejected") or []}
-        cands = search_candidates(load_db(), runtime.state["region"], [category], query.split(), k=50)[category]
-        return next((p for p in cands if (p.name, p.region) not in used), None)
+        words = (BREAKFAST_KEYWORDS if meal == "아침" else []) + query.split()
+        cands = search_candidates(load_db(), runtime.state["region"], [category], words, k=50)[category]
+        cands = [p for p in cands if (p.name, p.region) not in used]
+        cands.sort(key=lambda p: bool(near) and p.region not in near)       # 안정 정렬: 같은 시군구 → 검색 순위
+        return cands[0] if cands else None
+
+    def neighbors(items: list[ItineraryItem], idx: int) -> set[str]:
+        """idx 앞뒤(같은 날) 장소의 시군구 — 교체·추가 후보를 동선 안에서 찾기 위함."""
+        day = items[idx].slot.day if idx < len(items) else items[idx - 1].slot.day
+        return {items[j].place.region for j in (idx - 1, idx + 1)
+                if 0 <= j < len(items) and items[j].place and items[j].slot.day == day}
 
     @tool("replace_slot", args_schema=ReplaceSlotInput, description=(
         "일정의 특정 슬롯에 배정된 장소를 같은 종류(식당/카페/관광지)의 다른 장소로 교체한다. "
@@ -63,7 +75,7 @@ def make_edit_tools(load_db):
         idx = next((n for n, i in enumerate(items) if i.slot.slot_id == slot_id), None)
         if idx is None:
             return _result(runtime, "replace_slot", False, error=f"없는 slot_id: {slot_id}")
-        place = find(runtime, items[idx].slot.category, query)
+        place = find(runtime, items[idx].slot.category, query, meal=items[idx].slot.meal, near=neighbors(items, idx))
         if place is None:
             return _result(runtime, "replace_slot", False, error="조건에 맞는 다른 장소가 없습니다")
         return _result(runtime, "replace_slot", True, swap_place(items, slot_id, place), dropped=items[idx].place,
@@ -83,22 +95,24 @@ def make_edit_tools(load_db):
                        dropped=removed, data={"slot_id": slot_id})
 
     @tool("add_slot", args_schema=AddSlotInput, description=(
-        "지정한 일차의 마지막에 새 장소를 하나 추가한다. 사용자가 '하나 더', '추가해줘' 처럼 장소 추가를 요청할 때 사용. "
+        "지정한 일차에 새 장소를 하나 추가한다(관광지·카페는 저녁 식사 앞, 식당은 끝). 사용자가 '하나 더', '추가해줘' 처럼 장소 추가를 요청할 때 사용. "
         "category는 식당·카페·관광지 중 하나, 조건이 있으면 query에 짧은 키워드. "
         "결과 JSON: 성공 {ok:true, data:{slot_id, place}}, 실패 {ok:false, error}."))
     def add_slot(day: int, category: str, query: str, runtime: ToolRuntime) -> Command:
-        """일차 끝에 조건에 맞는 미사용 후보를 추가."""
+        """그날 일정에 조건에 맞는 미사용 후보를 추가 (관광지·카페는 저녁 앞, 식당은 끝)."""
         items: list[ItineraryItem] = runtime.state["items"]
         same_day = [i for i in items if i.slot.day == day]
         if not same_day:
             return _result(runtime, "add_slot", False, error=f"일정에 {day}일차가 없습니다")
-        place = find(runtime, category, query)
+        # 관광지·카페는 그날 저녁 식사 앞에 (저녁 뒤 밤늦게 붙지 않게), 식당은 그날 끝에
+        dinner = next((i for i in same_day if i.slot.meal == "저녁"), None)
+        pos = items.index(dinner) if dinner and category != "식당" else items.index(same_day[-1]) + 1
+        place = find(runtime, category, query, near={items[pos - 1].place.region} if pos and items[pos - 1].place else None)
         if place is None:
             return _result(runtime, "add_slot", False, error="조건에 맞는 장소가 없습니다")
         order = max(i.slot.order for i in same_day) + 1
         new_item = ItineraryItem(slot=Slot(slot_id=f"d{day}-s{order}", day=day, order=order, category=category),
                                  place=place)
-        pos = items.index(same_day[-1]) + 1
         return _result(runtime, "add_slot", True, [*items[:pos], new_item, *items[pos:]],
                        data={"slot_id": new_item.slot.slot_id, "place": place.name})
 
