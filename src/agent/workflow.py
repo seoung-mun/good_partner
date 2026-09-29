@@ -18,7 +18,7 @@ from typing import Annotated, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from src.agent.chains import build_briefing_chain, build_preference_chain, format_plan_for_briefing
+from src.agent.chains import build_briefing_chain, build_preference_chain
 from src.agent.render import render_markdown, request_text
 from src.domain.models import Briefing, ItineraryItem, Place, Slot, StepError, TripPreferences
 from src.domain.region import resolve_destination
@@ -274,7 +274,7 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
         try:
             briefing = await asyncio.wait_for(brief_chain.ainvoke({"request": request_text(req),
                                                                    "weather": state.get("weather") or "정보 없음",
-                                                                   "plan": format_plan_for_briefing(items)}), llm_timeout)
+                                                                   "items": items}), llm_timeout)
             return {"briefing": briefing}
         except Exception as e:
             log.warning("브리핑 실패 → 사유 없이 렌더: %s", e)

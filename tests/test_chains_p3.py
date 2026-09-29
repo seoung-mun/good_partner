@@ -35,15 +35,30 @@ def test_format_plan_includes_slot_ids_and_reviews():
 def test_briefing_chain_grounded_prompt():
     b = Briefing(overview="o", weather_tip="w", reasons=[SlotReason(slot_id="d1-s1", reason="r")])
     llm = FakeLLM(b)
-    out = build_briefing_chain(llm).invoke({"request": "- 동행: 친구", "weather": "맑음", "plan": "d1-s1 국밥집"})
+    out = build_briefing_chain(llm).invoke({"request": "- 동행: 친구", "weather": "맑음", "items": [item("d1-s1", "국밥집")]})
     assert out.reasons[0].slot_id == "d1-s1"
     assert "리뷰에 없는" in llm.seen[0]          # 근거 밖 추측 금지 지시 포함
 
 
-def test_briefing_prompt_limits_output_length():
-    from src.agent.chains import BRIEFING_PROMPT
-    text = BRIEFING_PROMPT.format(request="r", weather="w", plan="p")
-    assert "60자" in text and "1문장" in text
+def test_briefing_requires_a_reason_for_every_placed_slot():
+    schemas, seen = [], []
+
+    class SchemaLLM:
+        def with_structured_output(self, schema, **kw):
+            schemas.append(schema)
+
+            def run(pv):
+                seen.append(pv.to_string())
+                return schema(overview="o", weather_tip="w", reasons={"s1": "국물이 진해요.", "s2": "조용해요."})
+            return RunnableLambda(run)
+    empty = ItineraryItem(slot=Slot(slot_id="d1-s2", day=1, order=2, category="카페"))
+    items = [item("d1-s1", "국밥집"), empty, item("d1-s3", "카페집")]
+    out = build_briefing_chain(SchemaLLM()).invoke({"request": "r", "weather": "w", "items": items})
+    js = schemas[0].model_json_schema()
+    reasons_def = next(v for v in js["$defs"].values() if "s1" in v.get("properties", {}))
+    assert set(reasons_def["required"]) == {"s1", "s2"}            # 장소 있는 슬롯마다 필수 → 문법이 누락을 막음
+    assert [(r.slot_id, r.reason) for r in out.reasons] == [("d1-s1", "국물이 진해요."), ("d1-s3", "조용해요.")]
+    assert "s2 (Day 1, 식당): 카페집" in seen[0] and "1~2문장" in seen[0]
 
 
 def test_preference_schema_bounds_list_length():
