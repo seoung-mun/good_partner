@@ -9,10 +9,35 @@ from pydantic import BaseModel, Field, create_model
 from src.domain.models import Briefing, ItineraryItem, SlotReason, TripPreferences
 
 PREFERENCE_PROMPT = ChatPromptTemplate.from_messages([
-    ("system", "여행 요청에서 리뷰 검색에 쓸 취향 키워드를 뽑으세요. 키워드는 리뷰에 실제로 나올 법한 짧은 한국어 "
-               "형용사·명사 1~4개(예: 조용한, 바다뷰, 노포, 아이와). 지역명·카테고리명(맛집, 카페, 관광지)은 넣지 마세요."),
+    ("system", "여행 요청에서 리뷰 검색에 쓸 취향 키워드를 장소 종류별로 뽑으세요. food(식당: 음식·분위기, 예: 흑돼지, 해산물, 노포), "
+               "cafe(카페: 예: 바다뷰, 조용한, 디저트), sight(관광지: 예: 야경, 산책, 아이와) 각각 0~3개. "
+               "리뷰에 실제로 나올 법한 짧은 한국어 명사·형용사만 쓰고, 지역명·동행(연인, 친구)·장소 종류(맛집, 카페)는 넣지 마세요. "
+               "해당 없으면 빈 목록."),
     ("human", "동행: {group_type}\n스타일: {style}\n상세 요청: {detail}"),
 ])
+
+
+class PreferenceOutput(BaseModel):
+    """취향 추출 LLM 출력 스키마: 카테고리별 필수 목록 (문법이 세 목록을 모두 채우게 함)."""
+    food: list[str] = Field(max_length=3, description="식당 리뷰 검색 키워드 0~3개")
+    cafe: list[str] = Field(max_length=3, description="카페 리뷰 검색 키워드 0~3개")
+    sight: list[str] = Field(max_length=3, description="관광지 리뷰 검색 키워드 0~3개")
+    avoid: list[str] = Field(max_length=3, description="피하고 싶은 것 (없으면 빈 목록)")
+
+
+# 검색어로 쓸모없는 단어: 장소 종류·동행 (쿼리 템플릿과 요청 문맥이 이미 담당)
+STOP_WORDS = {"맛집", "식당", "음식점", "카페", "관광지", "명소", "여행", "장소", "관광", "여행지",
+              "친구", "연인", "커플", "가족", "혼자", "부모님", "아이", "동행"}
+
+
+def clean_keywords(words: list[str], limit: int = 3) -> list[str]:
+    """LLM 키워드 정제: 한글 2~10자, 불용어·중복 제거. 소형 모델이 섞는 동행·카테고리·잡문자열을 걸러낸다."""
+    out = []
+    for w in (x.strip() for x in words):
+        if re.fullmatch(r"[가-힣 ]{2,10}", w) and w not in STOP_WORDS and w not in out:
+            out.append(w)
+    return out[:limit]
+
 
 BRIEFING_PROMPT = ChatPromptTemplate.from_messages([
     ("system", "당신은 여행 일정 가이드입니다. 주어진 일정과 각 장소의 리뷰만 근거로 브리핑을 작성하세요. "
@@ -26,34 +51,46 @@ BRIEFING_PROMPT = ChatPromptTemplate.from_messages([
 PREFERENCE_MAX_TOKENS = 128   # 정상 출력은 수십 토큰. 폭주 생성(관측: 1,300토큰·45초)을 짧게 끊는다
 
 
-def salvage_keywords(text: str, limit: int = 4) -> list[str]:
-    """깨진 구조화 출력에서 keywords 목록만 복구. 소형 모델이 따옴표를 잘못 닫고 잡담을 이어 붙이는 경우 대비."""
-    m = re.search(r'"keywords"\s*:\s*\[(.*?)(?:\]|<|\n|$)', text, re.S)
+def salvage_keywords(text: str, limit: int = 4, key: str = "keywords") -> list[str]:
+    """깨진 구조화 출력에서 key 목록만 복구. 소형 모델이 따옴표를 잘못 닫고 잡담을 이어 붙이는 경우 대비."""
+    m = re.search(rf'"{key}"\s*:\s*\[(.*?)(?:\]|<|\n|$)', text, re.S)
     if not m:
         return []
     return re.findall(r'["\']([^"\'\[\],]{1,15})["\']', m.group(1))[:limit]
 
 
+def _to_preferences(food: list[str], cafe: list[str], sight: list[str], avoid: list[str],
+                    keywords: list[str] | None = None) -> TripPreferences:
+    """정제한 카테고리별 목록 → TripPreferences (공통 keywords = 합집합, UI 칩·인용 강조용)."""
+    food, cafe, sight = clean_keywords(food), clean_keywords(cafe), clean_keywords(sight)
+    common = clean_keywords(keywords or [], 4) or clean_keywords(food + cafe + sight, 4)
+    return TripPreferences(keywords=common, food=food, cafe=cafe, sight=sight, avoid=clean_keywords(avoid))
+
+
 def _preferences_or_salvage(result) -> TripPreferences:
-    """include_raw 결과 → 파싱 성공이면 그대로, 실패면 원문에서 키워드 복구, 그래도 없으면 예외(호출부가 StepError 기록)."""
+    """include_raw 결과 → 파싱 성공이면 정제, 실패면 원문에서 목록 복구, 그래도 없으면 예외(호출부가 StepError 기록)."""
     if isinstance(result, TripPreferences):
-        return result
-    if result.get("parsed") is not None:
-        return result["parsed"]
+        return _to_preferences(result.food, result.cafe, result.sight, result.avoid, result.keywords)
+    if isinstance(result, PreferenceOutput):
+        return _to_preferences(result.food, result.cafe, result.sight, result.avoid)
+    parsed = result.get("parsed")
+    if isinstance(parsed, (PreferenceOutput, TripPreferences)):
+        return _preferences_or_salvage(parsed) if isinstance(parsed, TripPreferences) else \
+            _to_preferences(parsed.food, parsed.cafe, parsed.sight, parsed.avoid)
     raw = getattr(result.get("raw"), "content", "") or ""
-    keywords = salvage_keywords(raw if isinstance(raw, str) else str(raw))
-    if not keywords:
+    raw = raw if isinstance(raw, str) else str(raw)
+    lists = {k: salvage_keywords(raw, key=k) for k in ("food", "cafe", "sight", "keywords")}
+    prefs = _to_preferences(lists["food"], lists["cafe"], lists["sight"], [], lists["keywords"])
+    if not prefs.keywords:
         raise ValueError(f"취향 파싱 실패: {result.get('parsing_error')}")
-    return TripPreferences(keywords=keywords, avoid=[])
-
-
+    return prefs
 
 
 def build_preference_chain(llm):
     """여행 요청 → TripPreferences(취향 키워드) 체인. 출력 토큰 상한을 이 체인에만 더 낮게 걸고, 깨진 출력은 복구."""
     if getattr(llm, "num_predict", None):
         llm = llm.model_copy(update={"num_predict": PREFERENCE_MAX_TOKENS})
-    structured = llm.with_structured_output(TripPreferences, include_raw=True)
+    structured = llm.with_structured_output(PreferenceOutput, include_raw=True)
     return PREFERENCE_PROMPT | structured | RunnableLambda(_preferences_or_salvage)
 
 

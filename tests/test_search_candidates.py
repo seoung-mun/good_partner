@@ -64,3 +64,11 @@ def test_place_carries_review_count_and_keyword_quote():
     assert out["유명"].n_reviews == 21 and out["유명"].score > 0
     assert out["유명"].quote == "노포 분위기"               # 키워드가 들어간 리뷰를 인용
     assert out["무명"].quote == "그냥"                      # 없으면 가장 가까운 리뷰
+
+
+def test_per_category_keywords_only_go_to_their_category_query():
+    db = make_db([meta("A", "부산광역시 중구", "식당", "ra"), meta("B", "부산광역시 중구", "카페", "rb")])
+    search_candidates(db, "부산광역시 중구", ["식당", "카페"], {"식당": ["흑돼지"], "카페": ["바다뷰"]})
+    texts = db.embedding_function.calls[0]
+    assert "흑돼지 좋은 맛집" in texts and "바다뷰 좋은 카페" in texts
+    assert not any("흑돼지" in t and "카페" in t for t in texts)

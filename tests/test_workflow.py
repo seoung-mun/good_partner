@@ -2,6 +2,7 @@ from langchain_core.runnables import RunnableLambda
 
 from src.agent.workflow import build_workflow, to_legacy_itinerary
 from src.domain.models import Briefing, ItineraryItem, Place, Slot, SlotReason, TripPreferences
+from src.agent.chains import PreferenceOutput
 from src.domain.schedule import assign_times
 from tests.fakes import make_db, meta
 
@@ -41,8 +42,8 @@ class LLM:
     def with_structured_output(self, schema, **kw):
         def run(_):
             self.calls += 1
-            if schema is TripPreferences:
-                return TripPreferences(keywords=["노포"], avoid=[])
+            if schema is PreferenceOutput:
+                return PreferenceOutput(food=["노포"], cafe=[], sight=[], avoid=[])
             return Briefing(overview="좋은 여행", weather_tip="우산", reasons=[SlotReason(slot_id="d1-s1", reason="노포 리뷰")])
         return RunnableLambda(run)
 
@@ -191,7 +192,7 @@ async def test_stream_plan_shows_itinerary_before_briefing():
             inner = super().with_structured_output(schema)
 
             async def run(x):
-                if schema is not TripPreferences:
+                if schema is not PreferenceOutput:
                     await asyncio.sleep(0.3)            # 브리핑이 경로보다 늦게 끝남
                     brief_done.append(True)
                 return inner.invoke(x)
@@ -357,3 +358,9 @@ async def test_each_day_starts_with_travel_from_lodging_or_arrival_point():
     assert out[0].start == "11:25" and out[0].move_min == 25 and out[0].from_lodging     # 도착 11:00 + 이동 25분
     assert out[1].start == "09:25" and out[1].from_lodging                                # 숙소 09:00 출발
     assert [x["type"] for x in to_legacy_itinerary(out)] == ["관광지", "식당"]            # 동선 지표용 move엔 안 넣음
+
+
+async def test_workflow_uses_per_category_keywords_from_preference_llm():
+    out = await build_workflow(geocode_fn=no_geo, llm=LLM(), load_db=lambda: DB(), route_fn=route,
+                               weather_fn=lambda d, t: "맑음").ainvoke({"request": REQ})
+    assert out["preferences"].by_category()["식당"] == ["노포"] and not out.get("errors")

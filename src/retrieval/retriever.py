@@ -51,16 +51,18 @@ def _quote(reviews: list[str], keywords: list[str]) -> str:
     return next((r for r in reviews if any(k in r for k in keywords)), reviews[0] if reviews else "")
 
 
-def search_candidates(db, region: str, categories: list[str], keywords: list[str],
+def search_candidates(db, region: str, categories: list[str], keywords: list[str] | dict[str, list[str]],
                       k: int = CHUNKS_PER_QUERY) -> dict[str, list[Place]]:
     """카테고리별 후보 장소(순위순). 모든 쿼리를 한 번에 배치 임베딩(CPU 서빙 기준 최적) — LLM 호출 없음.
 
     순위: 취향 쿼리 결과 먼저, 기본 쿼리에만 걸린 장소는 뒤에. score = 1/(60 + 순위) — 거리와 맞바꿀 때 쓰는 순위 점수.
     (RRF로 기본 쿼리·인기 순위를 동등하게 섞으면 취향 신호가 희석돼 실버 nDCG가 떨어짐 — docs/eval/p5.md)
+    keywords: 모든 카테고리 공통 목록, 또는 카테고리별 dict(식당 키워드가 카페 검색에 섞이지 않게).
     k: 쿼리당 지역 안에서 가져올 리뷰 청크 수.
     """
     cat_ = get_catalog(db)
-    plan = {c: _queries(c, keywords) for c in categories}
+    kw_of = keywords if isinstance(keywords, dict) else {c: keywords for c in categories}
+    plan = {c: _queries(c, kw_of.get(c, [])) for c in categories}
     texts = list(dict.fromkeys(q for qs in plan.values() for q in qs))
     vectors = dict(zip(texts, db.embedding_function.embed_documents(texts)))
 
@@ -77,6 +79,6 @@ def search_candidates(db, region: str, categories: list[str], keywords: list[str
             reviews = [r for r in (cat_.meta[i].get("리뷰") for i in rows) if isinstance(r, str)]
             places.append(Place(name=key[0], region=key[1], category=c, address=st.address, rating=st.rating,
                                 reviews=reviews, n_reviews=st.n_reviews, score=1 / (RANK_K + rank),
-                                quote=_quote(reviews + st.reviews, keywords)))
+                                quote=_quote(reviews + st.reviews, kw_of.get(c, []))))
         out[c] = places
     return out

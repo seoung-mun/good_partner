@@ -46,10 +46,19 @@ class ItineraryItem(BaseModel):
 
 
 class TripPreferences(BaseModel):
-    """LLM이 추출한 취향 키워드 (검색 쿼리에 사용)."""
+    """취향 키워드 (검색 쿼리에 사용). 카테고리별 목록이 있으면 그것만, 모두 비었으면 공통 목록을 쓴다."""
     # maxItems: 구조화 출력 문법이 목록 길이를 강제 → 소형 모델이 키워드를 끝없이 생성하는 것을 막음
     keywords: list[str] = Field(max_length=4, description="리뷰 검색에 쓸 취향 키워드 1~4개 (예: 조용한, 바다뷰, 노포)")
     avoid: list[str] = Field(max_length=4, description="피하고 싶은 것 (없으면 빈 목록)")
+    food: list[str] = Field(default_factory=list, max_length=3)
+    cafe: list[str] = Field(default_factory=list, max_length=3)
+    sight: list[str] = Field(default_factory=list, max_length=3)
+
+    def by_category(self) -> dict[str, list[str]]:
+        """카테고리 → 검색 키워드. '흑돼지'가 카페 검색에 섞이지 않게 카테고리별 목록을 우선."""
+        if self.food or self.cafe or self.sight:
+            return {"식당": self.food, "카페": self.cafe, "관광지": self.sight}
+        return {"식당": self.keywords, "카페": self.keywords, "관광지": self.keywords}
 
 
 class SlotReason(BaseModel):

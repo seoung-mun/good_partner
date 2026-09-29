@@ -96,7 +96,7 @@ def test_preference_chain_recovers_from_parse_failure():
             assert include_raw
             return RunnableLambda(lambda _: {"raw": AIMessage(BROKEN), "parsed": None, "parsing_error": ValueError("bad")})
     out = build_preference_chain(Raw()).invoke({"style": "s", "detail": "d", "group_type": "g"})
-    assert out.keywords == ["친구", "시장", "노포", "맛집"]
+    assert out.keywords == ["시장", "노포"]                  # 복구 후 동행·카테고리 단어는 정제
 
 
 def test_preference_chain_raises_when_nothing_recoverable():
@@ -108,3 +108,22 @@ def test_preference_chain_raises_when_nothing_recoverable():
             return RunnableLambda(lambda _: {"raw": AIMessage("???"), "parsed": None, "parsing_error": ValueError("bad")})
     with pytest.raises(ValueError):
         build_preference_chain(Raw()).invoke({"style": "s", "detail": "d", "group_type": "g"})
+
+
+def test_clean_keywords_drops_category_group_and_garbage_words():
+    from src.agent.chains import clean_keywords
+    assert clean_keywords(["흑돼지", "카페", "연인", "nquan", "조용한", "흑돼지", "아주아주아주아주긴키워드입니다", "뷰"]) \
+        == ["흑돼지", "조용한"]
+
+
+def test_preferences_route_keywords_per_category():
+    p = TripPreferences(keywords=["흑돼지", "바다뷰"], food=["흑돼지"], cafe=["바다뷰"], sight=[], avoid=[])
+    assert p.by_category() == {"식당": ["흑돼지"], "카페": ["바다뷰"], "관광지": []}
+    legacy = TripPreferences(keywords=["노포"], avoid=[])                    # 카테고리별이 비면 공통 목록
+    assert legacy.by_category() == {"식당": ["노포"], "카페": ["노포"], "관광지": ["노포"]}
+
+
+def test_preference_chain_cleans_model_output():
+    llm = FakeLLM(TripPreferences(keywords=["연인", "야경"], food=["맛집", "해산물"], cafe=["카페"], sight=["야경"], avoid=[]))
+    out = build_preference_chain(llm).invoke({"style": "s", "detail": "d", "group_type": "연인"})
+    assert out.by_category() == {"식당": ["해산물"], "카페": [], "관광지": ["야경"]} and out.keywords == ["야경"]

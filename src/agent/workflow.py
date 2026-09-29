@@ -204,7 +204,7 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
         try:
             prefs = await asyncio.wait_for(pref_chain.ainvoke({"group_type": req["group_type"], "style": req["style"],
                                                                "detail": req.get("detail", "")}), llm_timeout)
-            log.info("취향 키워드: %s", prefs.keywords)
+            log.info("취향 키워드: %s", prefs.by_category())
             return {"preferences": prefs}
         except Exception as e:
             log.warning("취향 파싱 실패 → 키워드 없이 진행: %s", e)
@@ -223,7 +223,7 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
             log.error("벡터 인덱스 로드 실패: %s", e)
             return {"candidates": {}, "errors": [StepError.from_error("search", VectorStoreUnavailableError(str(e)))]}
         cats = list(dict.fromkeys(s.category for s in state["slots"]))
-        kws = state["preferences"].keywords
+        kws = state["preferences"].by_category()
 
         def run():
             out = search_candidates(db, state["region"], cats, kws)
