@@ -36,7 +36,8 @@ class ItineraryItem(BaseModel):
     place: Place | None = None
     start: str | None = None                      # "HH:MM"
     end: str | None = None
-    move_min: int | None = None                   # 직전 장소에서 이동 시간
+    move_min: int | None = None                   # 직전 장소(from_lodging이면 숙소·도착지)에서 이동 시간
+    from_lodging: bool = False                    # 하루 첫 장소: 숙소(첫날은 도착지)에서 출발
     move_detail: str | None = None
     reason: str = ""                              # 추천 사유 (브리핑)
     alternatives: list[Place] = []                # 교체 후보 (같은 권역 차순위)

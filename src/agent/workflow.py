@@ -58,7 +58,8 @@ def _where(item: ItineraryItem) -> str:
 
 async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None = None, trim: bool = True
                      ) -> tuple[list[ItineraryItem], list[StepError]]:
-    """같은 날 연속한 장소 쌍 + 매일 마지막 장소→숙소(마지막 날 제외) 경로를 병렬 조회하고 시간표를 다시 계산.
+    """경로를 병렬 조회하고 시간표를 다시 계산: 같은 날 연속한 장소 쌍, 매일 숙소(첫날은 도착지)→첫 장소,
+    매일 마지막 장소→숙소(마지막 날 제외).
 
     request의 mode(transit|driving)·start_time(1일차 도착)·end_time(마지막 날 귀가 출발)·days·start_location(숙소)을 반영.
     실패한 구간은 기본 이동 시간.
@@ -68,7 +69,7 @@ async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None 
     req = request or {}
     mode, days = req.get("mode") or "transit", req.get("days")
     lodging = f"{req.get('destination', '')} {req['start_location']}".strip() if req.get("start_location") else None
-    pairs, prev, last_of_day = [], None, {}
+    pairs, prev, first_of_day, last_of_day = [], None, {}, {}
     for it in items:
         if prev is not None and prev.slot.day != it.slot.day:
             prev = None
@@ -76,10 +77,13 @@ async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None 
             if prev is not None:
                 pairs.append((it.slot.slot_id, prev, it))
             prev = it
+            first_of_day.setdefault(it.slot.day, it)
             last_of_day[it.slot.day] = it
     home = [(d, it) for d, it in last_of_day.items() if lodging and days and d < days]
+    start = [it for it in first_of_day.values() if lodging]
     results = await asyncio.gather(*[route_fn(_where(a), _where(b), mode=mode) for _, a, b in pairs],
                                    *[route_fn(_where(it), lodging, mode=mode) for _, it in home],
+                                   *[route_fn(lodging, _where(it), mode=mode) for it in start],
                                    return_exceptions=True)
     legs, failures = {}, []
     for (sid, _, _), r in zip(pairs, results):
@@ -89,15 +93,18 @@ async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None 
             failures.append(f"{sid}: {type(r).__name__}: {r}")
     home_legs = {it.slot.slot_id: (r["duration_value"] // 60, " ➡️ ".join(r.get("steps", [])))
                  for (_, it), r in zip(home, results[len(pairs):]) if isinstance(r, dict)}
+    first_legs = {it.slot.slot_id: (r["duration_value"] // 60, " ➡️ ".join(r.get("steps", [])))
+                  for it, r in zip(start, results[len(pairs) + len(home):]) if isinstance(r, dict)}
     errors = []
     if failures:
         log.warning("경로 조회 실패 %d/%d건: %s", len(failures), len(pairs), failures[:3])
         errors.append(StepError.from_error("plan_routes", ExternalServiceError("Google Maps", "; ".join(failures[:3]))))
-    reset = [i.model_copy(update={"move_min": None, "move_detail": None, "lodging_min": None, "lodging_detail": None})
+    reset = [i.model_copy(update={"move_min": None, "move_detail": None, "lodging_min": None, "lodging_detail": None,
+                                  "from_lodging": False})
              for i in items]
     end = req.get("end_time")
     timed = assign_times(reset, legs, first_start=req.get("start_time") or "12:00", last_end=end if trim else None,
-                         last_day=days, prune=trim)
+                         last_day=days, prune=trim, first_legs=first_legs)
     kept = {i.slot.slot_id for i in timed}
     if trim:
         for d in sorted({i.slot.day for i in items if i.place}):
@@ -126,7 +133,7 @@ def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
     for it in items:
         if it.place is None:
             continue
-        if it.move_min is not None:
+        if it.move_min is not None and not it.from_lodging:   # 숙소·도착지 출발 구간은 동선(장소 간) 지표에서 제외
             out.append({"type": "move", "duration_min": it.move_min, "day": it.slot.day,
                         "transport_detail": it.move_detail or "", "transport": it.move_detail or "이동",
                         "duration_text": f"약 {it.move_min}분"})

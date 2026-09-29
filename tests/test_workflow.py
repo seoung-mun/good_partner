@@ -204,7 +204,7 @@ async def test_stream_plan_shows_itinerary_before_briefing():
         done_at_preview.append(bool(brief_done))
     app = build_workflow(geocode_fn=no_geo, llm=SlowBriefLLM(), load_db=lambda: DB(), route_fn=route, weather_fn=lambda d, t: "맑음")
     final = await stream_plan(app, REQ, on_plan=on_plan)
-    assert len(shown) == 1 and "식당0" in shown[0] and "12:00" in shown[0]
+    assert len(shown) == 1 and "식당0" in shown[0] and "12:15" in shown[0]   # 부산역 도착 12:00 + 이동 15분
     assert done_at_preview == [False]                  # 브리핑이 끝나기 전에 사용자에게 보여야 의미가 있다
     assert "노포 리뷰" not in shown[0]                 # 임시 표시는 사유 없이
     assert "노포 리뷰" in final["final_text"]
@@ -341,3 +341,19 @@ async def test_reschedule_tells_user_when_a_day_ends_up_empty():
     out, errors = await reschedule(_day1("12:00"), route, {"days": 1, "start_time": "12:00", "end_time": "12:30"})
     assert out == []
     assert any("Day 1" in e.message and "시간" in e.message for e in errors)
+
+
+async def test_each_day_starts_with_travel_from_lodging_or_arrival_point():
+    from src.agent.workflow import reschedule, to_legacy_itinerary
+    asked = []
+
+    async def r(a, b, mode="transit", departure_time=None):
+        asked.append((a, b))
+        return {"duration_value": 1500, "steps": ["[버스] 1"]}
+    items = [_meal("d1-s1", 1, 1, "관광지", "명소"), _meal("d2-s1", 2, 1, "식당", "아침집", "아침")]
+    out, _ = await reschedule(items, r, {"destination": "제주", "start_location": "제주공항", "days": 2,
+                                         "start_time": "11:00", "end_time": "20:00"})
+    assert ("제주 제주공항", "r 명소") in asked and ("제주 제주공항", "r 아침집") in asked
+    assert out[0].start == "11:25" and out[0].move_min == 25 and out[0].from_lodging     # 도착 11:00 + 이동 25분
+    assert out[1].start == "09:25" and out[1].from_lodging                                # 숙소 09:00 출발
+    assert [x["type"] for x in to_legacy_itinerary(out)] == ["관광지", "식당"]            # 동선 지표용 move엔 안 넣음

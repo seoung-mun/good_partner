@@ -313,7 +313,8 @@ for day in [day] if day else []:
                     continue
                 n += 1
                 if it.move_min is not None:
-                    move_line(it.move_min, it.move_detail)
+                    where = ("도착지에서 · " if day == 1 else "숙소에서 · ") if it.from_lodging else ""
+                    move_line(it.move_min, it.move_detail, label=where)
                 reviews = catalog.places.get((it.place.name, it.place.region)).reviews if catalog else it.place.reviews
                 picked = place_card(n, it, plan.get("keywords") or [], reviews, taken)
                 if picked:

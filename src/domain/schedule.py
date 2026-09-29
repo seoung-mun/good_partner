@@ -119,14 +119,17 @@ def _next_meal(items: list[ItineraryItem], idx: int) -> ItineraryItem | None:
 
 def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | None]], default_move: int = 30,
                  first_start: str = "12:00", last_end: str | None = None, last_day: int | None = None,
-                 prune: bool = False) -> list[ItineraryItem]:
+                 prune: bool = False, first_legs: dict[str, tuple[int, str | None]] | None = None
+                 ) -> list[ItineraryItem]:
     """일차별 시작(1일차 first_start, 이후 DAY_START)부터 체류·이동 시간을 누적. legs: slot_id → (이동 분, 교통편).
 
     식사는 MEAL_WINDOW 시작 전이면 그때까지 기다린다(10시 도착해도 점심은 11:30).
     prune(초안 생성): 시간대를 놓친 식사, 넣으면 다음 식사가 시간대를 넘기는 관광·카페, DAY_END 이후 장소를 뺀다.
     last_day의 장소 중 last_end(귀가 출발 시각)를 넘겨 끝나는 곳부터 그날 나머지를 뺀다.
     사용자 수정 뒤(prune=False)에는 장소를 지우지 않는다.
+    first_legs: 하루 첫 장소의 숙소(첫날은 도착지)→장소 이동. 하루 시작 시각은 숙소 출발 시각이다.
     """
+    first_legs = first_legs or {}
     out, cursor, day, prev_placed, closed = [], None, None, False, False
     for idx, it in enumerate(items):
         if it.slot.day != day:
@@ -142,6 +145,10 @@ def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | No
             mv, detail = legs.get(it.slot.slot_id, (default_move, None))
             at = cursor + timedelta(minutes=mv)
             update.update(move_min=mv, move_detail=detail)
+        elif it.slot.slot_id in first_legs:
+            mv, detail = first_legs[it.slot.slot_id]
+            at = cursor + timedelta(minutes=mv)
+            update.update(move_min=mv, move_detail=detail, from_lodging=True)
         window = MEAL_WINDOW.get(it.slot.meal)
         if window:
             at = max(at, _at(window[0]))

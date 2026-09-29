@@ -31,7 +31,8 @@ def render_markdown(req: dict, items: list[ItineraryItem], briefing: Briefing | 
             out.append(f"- ({it.slot.meal or it.slot.category}) 조건에 맞는 장소를 찾지 못했어요")
             continue
         if it.move_min is not None:
-            out.append(f"   ⬇️ 이동: {it.move_detail or '이동'} (약 {it.move_min}분)")
+            where = ("도착지에서 " if it.slot.day == 1 else "숙소에서 ") if it.from_lodging else ""
+            out.append(f"   ⬇️ {where}이동: {it.move_detail or '이동'} (약 {it.move_min}분)")
         out.append(f"- **[{it.start}] {it.place.name}** ({it.place.category})")
         if it.reason:
             out.append(f"  > 💡 {it.reason}")
