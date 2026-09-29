@@ -6,11 +6,13 @@ from src.domain.models import ItineraryItem, Place, Slot
 
 
 # 슬롯 템플릿 (각 날 끝은 숙소 복귀). 당일치기는 첫날, 1박 2일은 첫날+마지막 날, 2박 이상은 중간 날 반복.
-#   첫날: 도착 후 점심 → 관광 → 카페 → 저녁
-#   중간 날: 아침 → 관광 → 점심 → 관광 → 카페 → 저녁
+#   첫날: 도착 후 점심 → 관광 → 카페 → 저녁 → (밤 관광)
+#   중간 날: 아침 → 관광 → 점심 → 관광 → 카페 → 저녁 → (밤 관광)
+#   (밤 관광)은 밤에 가야 좋은 곳(timefit)이 근처에 있을 때만 남는다
 #   마지막 날: 아침 → 관광 → 점심 → 귀가 (귀가 시각을 넘기면 잘림)
-_FIRST = [("식당", "점심"), ("관광지", None), ("카페", None), ("식당", "저녁")]
-_MIDDLE = [("식당", "아침"), ("관광지", None), ("식당", "점심"), ("관광지", None), ("카페", None), ("식당", "저녁")]
+_FIRST = [("식당", "점심"), ("관광지", None), ("카페", None), ("식당", "저녁"), ("관광지", "밤")]
+_MIDDLE = [("식당", "아침"), ("관광지", None), ("식당", "점심"), ("관광지", None), ("카페", None), ("식당", "저녁"),
+           ("관광지", "밤")]
 _LAST = [("식당", "아침"), ("관광지", None), ("식당", "점심")]
 DAY_START = "09:00"          # 2일차부터 하루 시작(숙소 출발)
 BREAKFAST_KEYWORDS = ["아침", "해장국", "브런치"]   # 아침 식사 슬롯 검색어 (초안·수정 공통)
@@ -21,8 +23,9 @@ def build_slots(days: int) -> list[Slot]:
     slots = []
     for d in range(1, days + 1):
         template = _FIRST if d == 1 else _LAST if d == days else _MIDDLE
-        for i, (cat, meal) in enumerate(template, start=1):
-            slots.append(Slot(slot_id=f"d{d}-s{i}", day=d, order=i, category=cat, meal=meal))
+        for i, (cat, tag) in enumerate(template, start=1):
+            when = tag if tag == "밤" else None
+            slots.append(Slot(slot_id=f"d{d}-s{i}", day=d, order=i, category=cat, meal=None if when else tag, when=when))
     return slots
 
 
@@ -34,6 +37,14 @@ N_ALTERNATIVES = 3
 def candidate_key(slot: Slot) -> str:
     """슬롯이 쓸 후보 목록 키: 아침 식사는 아침용 검색 결과('아침'), 나머지는 카테고리."""
     return "아침" if slot.meal == "아침" else slot.category
+
+
+def _fits_time(slot: Slot, p: Place) -> bool:
+    """밤 슬롯엔 밤에 가야 좋은 곳만, 낮 관광 슬롯엔 그런 곳을 넣지 않는다 (밤 슬롯 몫으로 남김)."""
+    night = p.time_fit.get("밤", 0.0) >= NIGHT_FIT
+    if slot.when == "밤":
+        return night
+    return not (night and slot.category == "관광지")
 
 
 def _km(a: tuple[float, float] | None, p: Place, unknown: float) -> float:
@@ -59,13 +70,16 @@ def assign_places(slots: list[Slot], candidates: dict[str, list[Place]],
             day = s.day
             prev = (anchors or {}).get(day)
         key = candidate_key(s) if candidate_key(s) in candidates else s.category
-        pool = [(i, p) for i, p in enumerate(candidates.get(key, [])) if (p.name, p.region) not in used]
+        pool = [(i, p) for i, p in enumerate(candidates.get(key, [])) if (p.name, p.region) not in used
+                and _fits_time(s, p)]
         if anchors is None:
             ranked = [p for _, p in pool]
         else:
             scored = sorted(((i * RANK_KM + _km(prev, p, max_km), _km(prev, p, max_km) <= max_km, p) for i, p in pool),
                             key=lambda x: (not x[1], x[0]))
             ranked = [p for *_, p in scored]
+        if s.when == "밤" and anchors is not None:     # 밤에는 멀리 가지 않는다 — 반경 안에 없으면 비움
+            ranked = [p for p in ranked if _km(prev, p, max_km) <= max_km]
         pick = ranked[0] if ranked else None
         picks[s.slot_id], alts[s.slot_id] = pick, ranked[1:1 + N_ALTERNATIVES]
         if pick:
@@ -97,7 +111,8 @@ def _refine(slots: list[Slot], candidates: dict[str, list[Place]], anchors: dict
         nxt = next((_xy(picks.get(x.slot_id)) for x in same[k + 1:] if _xy(picks.get(x.slot_id))), None)
         taken = {(p.name, p.region) for sid, p in picks.items() if p is not None and sid != s.slot_id}
         key = candidate_key(s) if candidate_key(s) in candidates else s.category
-        pool = [(i, p) for i, p in enumerate(candidates.get(key, [])) if (p.name, p.region) not in taken]
+        pool = [(i, p) for i, p in enumerate(candidates.get(key, [])) if (p.name, p.region) not in taken
+                and _fits_time(s, p)]
 
         def cost(i: int, p: Place) -> tuple[bool, float]:
             d_prev = _km(prev, p, max_km)
@@ -119,6 +134,9 @@ BREAKFAST_MIN = 60
 
 
 MEAL_WINDOW = {"아침": ("08:00", "10:00"), "점심": ("11:30", "14:00"), "저녁": ("17:30", "20:00")}  # 식사 시작 시각
+WHEN_WINDOW = {"밤": ("19:00", "21:00")}     # 밤 관광 시작 시각
+NIGHT_FIT = 0.10             # 밤 쪽 리뷰 비율이 이 이상이면 '밤에 가야 좋은 곳' (retrieval/timefit.py 검증값)
+NIGHT_MIN = 60
 DAY_END = "22:00"            # 이 시각을 넘겨 끝나는 장소는 넣지 않음 (초안 생성 시)
 
 
@@ -182,10 +200,11 @@ def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | No
             mv, detail = first_legs[it.slot.slot_id]
             at = cursor + timedelta(minutes=mv)
             update.update(move_min=mv, move_detail=detail, from_lodging=True)
-        window = MEAL_WINDOW.get(it.slot.meal)
+        window = MEAL_WINDOW.get(it.slot.meal) or WHEN_WINDOW.get(it.slot.when)
         if window:
             at = max(at, _at(window[0]))
-        stay = BREAKFAST_MIN if it.slot.meal == "아침" else STAY_MIN.get(it.slot.category, 90)
+        stay = BREAKFAST_MIN if it.slot.meal == "아침" else NIGHT_MIN if it.slot.when == "밤" \
+            else STAY_MIN.get(it.slot.category, 90)
         end = at + timedelta(minutes=stay)
         if prune:
             if window and at > _at(window[1]):

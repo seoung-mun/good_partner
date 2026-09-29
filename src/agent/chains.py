@@ -103,7 +103,8 @@ def _plan_with_keys(items: list[ItineraryItem]) -> tuple[str, dict[str, str]]:
         key = f"s{len(keys) + 1}"
         keys[key] = it.slot.slot_id
         reviews = " / ".join(r[:120] for r in it.place.reviews[:2])
-        lines.append(f"- {key} (Day {it.slot.day}, {it.slot.meal or it.slot.category}): {it.place.name} 리뷰: {reviews}")
+        when = it.slot.meal or ("밤 " + it.slot.category if it.slot.when else it.slot.category)
+        lines.append(f"- {key} (Day {it.slot.day}, {when}): {it.place.name} 리뷰: {reviews}")
     return "\n".join(lines), keys
 
 
@@ -143,7 +144,7 @@ def format_plan_for_briefing(items: list[ItineraryItem]) -> str:
     """브리핑·수정 에이전트 입력용 일정 텍스트 (slot_id, 장소, 근거 리뷰 2개)."""
     lines = []
     for it in items:
-        head = f"- {it.slot.slot_id} (Day {it.slot.day}, {it.slot.meal or it.slot.category})"
+        head = f"- {it.slot.slot_id} (Day {it.slot.day}, {it.slot.meal or ('밤 ' + it.slot.category if it.slot.when else it.slot.category)})"
         if it.place is None:
             lines.append(f"{head}: 비어 있음")
             continue

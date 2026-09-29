@@ -22,14 +22,14 @@ def test_resolve_destination(text, expected):
 
 def test_build_slots_template():
     s = build_slots(3)
-    assert [(x.day, x.category, x.meal) for x in s] == [
-        (1, "식당", "점심"), (1, "관광지", None), (1, "카페", None), (1, "식당", "저녁"),
+    assert [(x.day, x.category, x.meal or x.when) for x in s] == [
+        (1, "식당", "점심"), (1, "관광지", None), (1, "카페", None), (1, "식당", "저녁"), (1, "관광지", "밤"),
         (2, "식당", "아침"), (2, "관광지", None), (2, "식당", "점심"), (2, "관광지", None), (2, "카페", None),
-        (2, "식당", "저녁"),
+        (2, "식당", "저녁"), (2, "관광지", "밤"),
         (3, "식당", "아침"), (3, "관광지", None), (3, "식당", "점심")]
     assert s[0].slot_id == "d1-s1"
-    assert [x.category for x in build_slots(1)] == ["식당", "관광지", "카페", "식당"]     # 당일치기 = 첫날
-    assert [x.day for x in build_slots(2)] == [1] * 4 + [2] * 3                          # 1박 2일 = 첫날 + 마지막 날
+    assert [x.category for x in build_slots(1)] == ["식당", "관광지", "카페", "식당", "관광지"]  # 당일치기 = 첫날
+    assert [x.day for x in build_slots(2)] == [1] * 5 + [2] * 3                          # 1박 2일 = 첫날 + 마지막 날
 
 
 
@@ -40,3 +40,10 @@ def test_check_trip_times():
     assert check_trip_times(1, "12:00", "20:00") is None
     assert check_trip_times(2, "12:00", "09:30") is not None          # 마지막 날 아침도 못 먹고 떠남
     assert check_trip_times(2, "17:00", "11:00") is None
+
+
+def test_night_sightseeing_slot_after_dinner_except_last_day():
+    s = build_slots(3)
+    night = [(x.day, x.order) for x in s if x.when == "밤"]
+    assert night == [(1, 5), (2, 7)]
+    assert [x.when for x in build_slots(1)][-1] == "밤"          # 당일치기도 (귀가 시각이 허락하면)

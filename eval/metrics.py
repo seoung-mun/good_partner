@@ -48,6 +48,8 @@ def e2e_trip_metrics(itinerary: list[dict], trip: dict) -> dict:
     exp = expected_slots(trip["days"])
     by_day = defaultdict(list)
     for x in places:
+        if x.get("when") == "밤":           # 선택형 밤 관광 슬롯 — 템플릿 충족·초과 계산에서 제외
+            continue
         by_day[int(x.get("day", 1))].append(category_group(x.get("type", "")))
     total = sum(len(e) for e in exp)
     filled = adhered = overflow = 0

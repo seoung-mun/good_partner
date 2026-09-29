@@ -30,7 +30,8 @@ def place_card(n: int, it: ItineraryItem, keywords: list[str], all_reviews: list
     with st.container(border=True):
         head, badge = st.columns([4, 1])
         head.markdown(f"**{n}. {p.name}**  \n:gray[{it.start} – {it.end}]")
-        badge.markdown(f":{BADGE.get(p.category, 'gray')}-badge[{it.slot.meal or p.category}]")
+        badge.markdown(f":{'violet' if it.slot.when else BADGE.get(p.category, 'gray')}-badge"
+                       f"[{it.slot.meal or ('밤 ' + p.category if it.slot.when else p.category)}]")
         meta = [f"★ {p.rating:.1f}" if p.rating else "", f"리뷰 {p.n_reviews}개" if p.n_reviews else ""]
         st.caption(" · ".join(x for x in meta if x))
         if it.reason:                                   # 카드엔 LLM 소개만 — 리뷰 원문은 '리뷰 보기'를 열 때만

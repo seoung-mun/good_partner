@@ -58,3 +58,21 @@ def test_refinement_removes_zigzag_by_looking_at_both_neighbors():
              "관광지": [P("영도명소", "관광지", 34.95)], "카페": [P("영도카페", "카페", 34.945)]}
     picks, _ = assign_places(slots, cands, anchors={1: ANCHOR})
     assert picks["d1-s1"].name == "남포식당"
+
+
+def _night(name, fit, lat=35.0):
+    return Place(name=name, region="부산광역시 중구", category="관광지", lat=lat, lng=129.0, time_fit={"밤": fit})
+
+
+def test_night_spot_goes_to_night_slot_not_daytime_slot():
+    slots = [slot("d1-s2", 1, 2, "관광지"), Slot(slot_id="d1-s5", day=1, order=5, category="관광지", when="밤")]
+    cands = {"관광지": [_night("야경명소", 0.5), _night("공원", 0.0)]}
+    picks, alts = assign_places(slots, cands, anchors={1: ANCHOR})
+    assert picks["d1-s2"].name == "공원" and picks["d1-s5"].name == "야경명소"
+    assert all(a.time_fit.get("밤", 0) < 0.1 for a in alts["d1-s2"])
+
+
+def test_night_slot_stays_empty_without_a_night_spot():
+    slots = [Slot(slot_id="d1-s5", day=1, order=5, category="관광지", when="밤")]
+    picks, _ = assign_places(slots, {"관광지": [_night("공원", 0.0)]}, anchors={1: ANCHOR})
+    assert picks["d1-s5"] is None

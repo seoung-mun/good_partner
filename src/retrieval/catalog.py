@@ -16,6 +16,7 @@ class PlaceStats:
     address: str
     category: str
     reviews: list[str] = field(default_factory=list)
+    rows: list[int] = field(default_factory=list)      # 이 장소의 리뷰 청크 faiss 행 id (시간대 적합도 계산용)
 
     @property
     def n_reviews(self) -> int:
@@ -44,6 +45,7 @@ class Catalog:
                                                    category=md.get("카테고리", ""))
             if isinstance(md.get("리뷰"), str) and md["리뷰"]:  # 결측 리뷰는 NaN(float)
                 st.reviews.append(md["리뷰"])
+                st.rows.append(i)
         self._by_region = {k: np.array(v, dtype="int64") for k, v in by_region.items()}
         self._category = np.array([md.get("카테고리", "") for md in self.meta])
         self._region_cache: dict[tuple, np.ndarray] = {}

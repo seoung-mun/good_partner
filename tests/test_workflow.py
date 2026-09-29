@@ -364,3 +364,17 @@ async def test_workflow_uses_per_category_keywords_from_preference_llm():
     out = await build_workflow(geocode_fn=no_geo, llm=LLM(), load_db=lambda: DB(), route_fn=route,
                                weather_fn=lambda d, t: "맑음").ainvoke({"request": REQ})
     assert out["preferences"].by_category()["식당"] == ["노포"] and not out.get("errors")
+
+
+def test_night_slot_starts_after_seven_pm():
+    items = [_meal("d1-s4", 1, 4, "식당", "저녁집", "저녁"),
+             ItineraryItem(slot=Slot(slot_id="d1-s5", day=1, order=5, category="관광지", when="밤"),
+                           place=Place(name="야경", region="r", category="관광지"))]
+    out = assign_times(items, {}, first_start="16:00")
+    assert out[1].start >= "19:00" and out[1].end <= "22:00"
+
+
+async def test_empty_night_slot_is_dropped_from_plan():
+    out = await build_workflow(geocode_fn=no_geo, llm=LLM(), load_db=lambda: DB(), route_fn=route,
+                               weather_fn=lambda d, t: "맑음").ainvoke({"request": REQ})
+    assert not any(i.slot.when == "밤" and i.place is None for i in out["items"])

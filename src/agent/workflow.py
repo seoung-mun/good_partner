@@ -26,6 +26,7 @@ from src.domain.schedule import BREAKFAST_KEYWORDS, MAX_KM, MEAL_WINDOW, assign_
 from src.errors import ExternalServiceError, LLMOutputError, RegionNotFoundError, VectorStoreUnavailableError
 from src.logging_config import get_logger
 from src.retrieval.retriever import search_candidates
+from src.retrieval.timefit import attach_time_fit
 
 log = get_logger(__name__)
 
@@ -143,7 +144,7 @@ def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
                         "transport_detail": it.move_detail or "", "transport": it.move_detail or "이동",
                         "duration_text": f"약 {it.move_min}분"})
         out.append({"type": it.place.category, "name": it.place.name, "address": it.place.region,
-                    "day": it.slot.day, "category": it.place.category, "slot_id": it.slot.slot_id, "meal": it.slot.meal,
+                    "day": it.slot.day, "category": it.place.category, "slot_id": it.slot.slot_id, "meal": it.slot.meal, "when": it.slot.when,
                     "start": it.start, "end": it.end, "description": it.reason, "reviews": it.place.reviews,
                     "lodging_min": it.lodging_min})
     return out
@@ -232,6 +233,8 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
 
         def run():
             out = search_candidates(db, state["region"], cats, kws)
+            if "관광지" in out:   # 밤에 가야 좋은 곳인지 (리뷰 임베딩 × 시간대 대표 문장) — 좌표를 구할 상위 후보만
+                out["관광지"] = attach_time_fit(db, out["관광지"][:GEOCODE_TOP]) + out["관광지"][GEOCODE_TOP:]
             if any(s.meal == "아침" for s in state["slots"]):   # 아침 식사는 아침 메뉴 리뷰로 따로 검색
                 out["아침"] = search_candidates(db, state["region"], ["식당"], BREAKFAST_KEYWORDS)["식당"]
             return out
@@ -262,7 +265,8 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
         picks, alts = assign_places(slots, located_top, anchors, MAX_KM.get(req.get("mode", "transit"), MAX_KM["transit"]))
         log.info("배정: 슬롯 %d개 중 %d개 (좌표 %d/%d, 앵커 %s)", len(slots), sum(p is not None for p in picks.values()),
                  sum(p.lat is not None for p in located), len(located), "출발지" if start and anchor else anchor is not None)
-        return {"items": [ItineraryItem(slot=s, place=picks[s.slot_id], alternatives=alts[s.slot_id]) for s in slots]}
+        return {"items": [ItineraryItem(slot=s, place=picks[s.slot_id], alternatives=alts[s.slot_id]) for s in slots
+                           if not (s.when == "밤" and picks[s.slot_id] is None)]}   # 근처에 밤 명소가 없으면 밤 슬롯은 없앰
 
     async def plan_routes(state: PlanState) -> dict:
         """연속 장소 간 대중교통 경로(병렬)와 시간표."""

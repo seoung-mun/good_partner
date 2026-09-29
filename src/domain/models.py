@@ -13,6 +13,7 @@ class Slot(BaseModel):
     order: int
     category: Category
     meal: Literal["아침", "점심", "저녁"] | None = None
+    when: Literal["밤"] | None = None             # 시간대 슬롯 (밤 관광: 저녁 식사 뒤, 밤에 가야 좋은 곳만)
 
 
 class Place(BaseModel):
@@ -26,6 +27,7 @@ class Place(BaseModel):
     n_reviews: int = 0                            # 수집된 전체 리뷰 수
     quote: str = ""                               # 카드에 인용할 리뷰 한 줄 (취향 키워드 포함 우선)
     score: float = 0.0                            # 검색 순위 점수 (RRF)
+    time_fit: dict[str, float] = {}               # 시간대별 적합도: 그 시간대 쪽으로 기운 리뷰 비율 (예: {"밤": 0.4})
     lat: float | None = None                      # 좌표 (지오코딩 후)
     lng: float | None = None
 

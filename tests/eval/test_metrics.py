@@ -147,3 +147,13 @@ def test_route_metrics_legs_and_late_dinner():
     assert abs(m["leg_over60_rate"] - 1 / 3) < 1e-9
     assert m["late_dinner_rate"] == 0.5                     # meal 없는 옛 결과는 slot_id(d1-s4)로 판별
     assert m["move_per_trip"] == 75
+
+
+def test_optional_night_slot_is_not_counted_as_overflow():
+    from eval.metrics import e2e_trip_metrics
+    trip = {"days": 1, "gold_sido": "부산광역시", "gold_sigungu": None}
+    it = [{"type": t, "day": 1, "address": "부산광역시 중구", "name": n} for t, n in
+          [("식당", "a"), ("관광지", "b"), ("카페", "c"), ("식당", "d")]]
+    it.append({"type": "관광지", "day": 1, "address": "부산광역시 중구", "name": "야경", "when": "밤"})
+    m = e2e_trip_metrics(it, trip)
+    assert m["overflow"] == 0 and m["slot_fill"] == 1.0 and m["n_places"] == 5
