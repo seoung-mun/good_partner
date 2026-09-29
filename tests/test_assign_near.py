@@ -49,3 +49,12 @@ def test_breakfast_slot_uses_breakfast_candidates():
     cands = {"식당": [P("국수집", "식당"), P("해장국집", "식당")], "아침": [P("해장국집", "식당")]}
     picks, _ = assign_places(slots, cands)
     assert picks["d2-s1"].name == "해장국집" and picks["d2-s2"].name == "국수집"
+
+
+def test_refinement_removes_zigzag_by_looking_at_both_neighbors():
+    # 부산역(앵커)에서 북쪽 서면이 조금 더 가깝지만, 이후 장소가 모두 남쪽(영도)이면 남쪽 식당이 맞다
+    slots = [slot("d1-s1", 1, 1, "식당"), slot("d1-s2", 1, 2, "관광지"), slot("d1-s3", 1, 3, "카페")]
+    cands = {"식당": [P("서면식당", "식당", 35.03), P("x", "식당", 36.5), P("남포식당", "식당", 34.965)],
+             "관광지": [P("영도명소", "관광지", 34.95)], "카페": [P("영도카페", "카페", 34.945)]}
+    picks, _ = assign_places(slots, cands, anchors={1: ANCHOR})
+    assert picks["d1-s1"].name == "남포식당"

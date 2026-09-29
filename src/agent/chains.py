@@ -43,7 +43,7 @@ BRIEFING_PROMPT = ChatPromptTemplate.from_messages([
     ("system", "당신은 여행 일정 가이드입니다. 주어진 일정과 각 장소의 리뷰만 근거로 브리핑을 작성하세요. "
                "리뷰에 없는 사실(메뉴, 시설, 가격 등)은 추측하지 마세요. 장소를 바꾸거나 추가하지 마세요. "
                "overview는 1~2문장, weather_tip은 1문장. reasons에는 일정의 각 번호(s1, s2, …)마다 그 장소의 리뷰를 근거로 "
-               "사용자 요청과 연결한 추천 사유를 1~2문장으로 쓰세요."),
+               "사용자 요청과 연결한 추천 사유를 1문장(50자 안팎)으로 쓰세요."),
     ("human", "[사용자 요청]\n{request}\n\n[날씨]\n{weather}\n\n[일정]\n{plan}"),
 ])
 
@@ -110,7 +110,7 @@ def _plan_with_keys(items: list[ItineraryItem]) -> tuple[str, dict[str, str]]:
 def _briefing_schema(items: list[ItineraryItem], keys: dict[str, str]) -> type[BaseModel]:
     """이번 일정 전용 출력 스키마: 장소마다 필수 사유 필드 → 구조화 출력 문법이 사유 누락을 막는다."""
     names = {it.slot.slot_id: it.place.name for it in items if it.place}
-    reasons = create_model("SlotReasons", **{k: (str, Field(description=f"{names[sid]} 추천 사유 1~2문장"))
+    reasons = create_model("SlotReasons", **{k: (str, Field(description=f"{names[sid]} 추천 사유 1문장(50자 안팎)"))
                                              for k, sid in keys.items()})
     return create_model("PlanBriefing", overview=(str, Field(description="일정 전체를 소개하는 1~2문장")),
                         weather_tip=(str, Field(description="날씨 데이터를 한 문장으로 요약한 조언")),

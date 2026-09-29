@@ -58,7 +58,7 @@ def test_briefing_requires_a_reason_for_every_placed_slot():
     reasons_def = next(v for v in js["$defs"].values() if "s1" in v.get("properties", {}))
     assert set(reasons_def["required"]) == {"s1", "s2"}            # 장소 있는 슬롯마다 필수 → 문법이 누락을 막음
     assert [(r.slot_id, r.reason) for r in out.reasons] == [("d1-s1", "국물이 진해요."), ("d1-s3", "조용해요.")]
-    assert "s2 (Day 1, 식당): 카페집" in seen[0] and "1~2문장" in seen[0]
+    assert "s2 (Day 1, 식당): 카페집" in seen[0] and "1문장(50자" in seen[0]
 
 
 def test_preference_schema_bounds_list_length():

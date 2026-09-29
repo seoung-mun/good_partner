@@ -72,7 +72,39 @@ def assign_places(slots: list[Slot], candidates: dict[str, list[Place]],
             used.add((pick.name, pick.region))
             if pick.lat is not None:
                 prev = (pick.lat, pick.lng)
+    if anchors is not None:
+        _refine(slots, candidates, anchors, picks, max_km)
     return picks, alts
+
+
+def _xy(p: Place | None) -> tuple[float, float] | None:
+    return (p.lat, p.lng) if p is not None and p.lat is not None else None
+
+
+def _refine(slots: list[Slot], candidates: dict[str, list[Place]], anchors: dict[int, tuple[float, float]],
+            picks: dict[str, Place | None], max_km: float) -> None:
+    """지그재그 보정 (한 바퀴): 각 슬롯을 `순위×RANK_KM + 앞 이웃 거리 + 뒤 이웃 거리`가 최소인 후보로 다시 고른다.
+
+    탐욕 배정은 직전 장소만 봐서, 하루 첫 장소가 앵커 반대편(북쪽)에 뽑히고 나머지가 남쪽에 몰리는 식의 되돌아가기가 생긴다.
+    """
+    for n, s in enumerate(slots):
+        if picks.get(s.slot_id) is None:
+            continue
+        same = [x for x in slots if x.day == s.day]
+        k = same.index(s)
+        before = next((_xy(picks.get(x.slot_id)) for x in reversed(same[:k]) if _xy(picks.get(x.slot_id))), None)
+        prev = before or anchors.get(s.day)
+        nxt = next((_xy(picks.get(x.slot_id)) for x in same[k + 1:] if _xy(picks.get(x.slot_id))), None)
+        taken = {(p.name, p.region) for sid, p in picks.items() if p is not None and sid != s.slot_id}
+        key = candidate_key(s) if candidate_key(s) in candidates else s.category
+        pool = [(i, p) for i, p in enumerate(candidates.get(key, [])) if (p.name, p.region) not in taken]
+
+        def cost(i: int, p: Place) -> tuple[bool, float]:
+            d_prev = _km(prev, p, max_km)
+            return d_prev > max_km, i * RANK_KM + d_prev + (_km(nxt, p, max_km) if nxt else 0.0)
+        best = min(pool, key=lambda ip: cost(*ip), default=None)
+        if best is not None:
+            picks[s.slot_id] = best[1]
 
 
 def swap_place(items: list[ItineraryItem], slot_id: str, place: Place) -> list[ItineraryItem]:

@@ -33,10 +33,8 @@ def place_card(n: int, it: ItineraryItem, keywords: list[str], all_reviews: list
         badge.markdown(f":{BADGE.get(p.category, 'gray')}-badge[{it.slot.meal or p.category}]")
         meta = [f"★ {p.rating:.1f}" if p.rating else "", f"리뷰 {p.n_reviews}개" if p.n_reviews else ""]
         st.caption(" · ".join(x for x in meta if x))
-        if p.quote:
-            st.markdown(f"> {highlight(p.quote[:140], keywords)}")
-        if it.reason:
-            st.caption(f":material/lightbulb: {it.reason}")
+        if it.reason:                                   # 카드엔 LLM 소개만 — 리뷰 원문은 '리뷰 보기'를 열 때만
+            st.markdown(it.reason)
         alts = [a for a in it.alternatives if (a.name, a.region) not in taken]
         with st.popover("다른 곳으로 바꾸기", disabled=not alts):
             for k, a in enumerate(alts):
