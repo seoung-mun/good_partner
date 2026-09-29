@@ -97,7 +97,17 @@ async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None 
              for i in items]
     end = req.get("end_time")
     timed = assign_times(reset, legs, first_start=req.get("start_time") or "12:00", last_end=end if trim else None,
-                         last_day=days)
+                         last_day=days, prune=trim)
+    kept = {i.slot.slot_id for i in timed}
+    if trim and len(kept) < len(items):
+        # 뺀 장소가 있으면 새로 이웃한 장소끼리 경로를 다시 조회 (한 번만; 두 번째는 뺄 것이 거의 없다)
+        dropped_day1 = any(i.slot.day == 1 and i.slot.slot_id not in kept for i in items if i.place)
+        timed, errors2 = await reschedule([i for i in items if i.slot.slot_id in kept], route_fn, request, trim=False)
+        errors += errors2
+        if dropped_day1 and (req.get("start_time") or "12:00") >= "14:00":
+            errors.append(StepError(step="plan_routes", code="LATE_ARRIVAL",
+                                    message="도착이 늦어 첫날은 시간 안에 갈 수 있는 곳만 남겼어요."))
+        return timed, errors
     if not trim and end and any(i.slot.day == days and i.end and i.end > end for i in timed):
         errors.append(StepError(step="plan_routes", code="OVER_END_TIME",
                                 message=f"마지막 날 일정이 출발 시각({end})을 넘겨요. 장소를 하나 빼는 걸 추천해요."))
@@ -304,15 +314,15 @@ async def stream_plan(app, request: dict, on_plan=None, on_step=None) -> dict:
     """
     final, shown = {}, False
     async for mode, chunk in app.astream({"request": request}, stream_mode=["updates", "values"]):
-        if mode == "updates":
-            for node in chunk:
-                if on_step:
-                    on_step(node)
+        if mode == "values":
+            final = chunk
             continue
-        final = chunk
-        items = chunk.get("items") or []
-        if on_plan and not shown and not chunk.get("final_text") and any(i.start for i in items):
-            on_plan(render_markdown(request, items, None, chunk.get("weather", ""), chunk.get("errors", []))
-                    + "\n\n_추천 사유를 작성하고 있어요..._")
-            shown = True
+        for node, update in chunk.items():
+            if on_step:
+                on_step(node)
+            # 경로 노드의 update는 같은 단계의 브리핑(LLM)을 기다리지 않고 도착한다 — values는 단계가 끝나야 온다
+            if node == "plan_routes" and on_plan and not shown and (update or {}).get("items"):
+                on_plan(render_markdown(request, update["items"], None, final.get("weather", ""), final.get("errors", []))
+                        + "\n\n_추천 사유를 작성하고 있어요..._")
+                shown = True
     return final

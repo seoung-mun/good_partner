@@ -192,14 +192,20 @@ async def test_stream_plan_shows_itinerary_before_briefing():
 
             async def run(x):
                 if schema is not TripPreferences:
-                    await asyncio.sleep(0.2)            # 브리핑이 경로보다 늦게 끝남
+                    await asyncio.sleep(0.3)            # 브리핑이 경로보다 늦게 끝남
+                    brief_done.append(True)
                 return inner.invoke(x)
             return RunnableLambda(run)
 
-    shown = []
+    shown, brief_done, done_at_preview = [], [], []
+
+    def on_plan(md):
+        shown.append(md)
+        done_at_preview.append(bool(brief_done))
     app = build_workflow(geocode_fn=no_geo, llm=SlowBriefLLM(), load_db=lambda: DB(), route_fn=route, weather_fn=lambda d, t: "맑음")
-    final = await stream_plan(app, REQ, on_plan=shown.append)
+    final = await stream_plan(app, REQ, on_plan=on_plan)
     assert len(shown) == 1 and "식당0" in shown[0] and "12:00" in shown[0]
+    assert done_at_preview == [False]                  # 브리핑이 끝나기 전에 사용자에게 보여야 의미가 있다
     assert "노포 리뷰" not in shown[0]                 # 임시 표시는 사유 없이
     assert "노포 리뷰" in final["final_text"]
 
@@ -282,3 +288,49 @@ async def test_reschedule_after_edit_keeps_places_and_warns_instead_of_trimming(
     kept, errors = await reschedule(items, route, req, trim=False)
     assert len(trimmed) < 3 and len(kept) == 3                      # 수정 후에는 사용자가 고른 장소를 지우지 않음
     assert any("18:00" in e.message for e in errors)
+
+
+def _meal(sid, day, order, cat, name, meal=None):
+    return ItineraryItem(slot=Slot(slot_id=sid, day=day, order=order, category=cat, meal=meal),
+                         place=Place(name=name, region="r", category=cat))
+
+
+def _day1(start):
+    return [_meal("d1-s1", 1, 1, "식당", "점심집", "점심"), _meal("d1-s2", 1, 2, "관광지", "명소"),
+            _meal("d1-s3", 1, 3, "카페", "카페"), _meal("d1-s4", 1, 4, "식당", "저녁집", "저녁")]
+
+
+def test_meals_wait_for_their_time_window_when_early():
+    out = assign_times(_day1("10:00"), {}, first_start="10:00")
+    assert out[0].start == "11:30"                                   # 10시 도착해도 점심은 11:30
+    items = [_meal("d1-s1", 1, 1, "카페", "카페"), _meal("d1-s2", 1, 2, "식당", "저녁집", "저녁")]
+    assert assign_times(items, {}, first_start="14:00")[1].start == "17:30"   # 카페 뒤 저녁이 15시대로 당겨지지 않음
+
+
+def test_late_arrival_drops_missed_meal_and_slots_that_would_push_dinner_late():
+    out = assign_times(_day1("17:00"), {}, first_start="17:00", prune=True)
+    assert [i.place.name for i in out] == ["명소", "저녁집"]          # 점심 시간대 지남, 카페 넣으면 저녁 20시 넘김
+    assert out[1].start <= "20:00"
+
+
+def test_night_arrival_never_schedules_past_midnight():
+    out = assign_times(_day1("23:00"), {}, first_start="23:00", prune=True)
+    assert out == []
+
+
+def test_user_edits_are_not_pruned_only_meals_wait():
+    out = assign_times(_day1("17:00"), {}, first_start="17:00", prune=False)
+    assert len(out) == 4
+
+
+async def test_reschedule_prunes_late_arrival_reroutes_new_neighbors_and_tells_user():
+    from src.agent.workflow import reschedule
+    asked = []
+
+    async def r(a, b, mode="transit", departure_time=None):
+        asked.append((a, b))
+        return {"duration_value": 600, "steps": []}
+    out, errors = await reschedule(_day1("17:00"), r, {"days": 1, "start_time": "17:00", "end_time": "22:00"})
+    assert [i.place.name for i in out] == ["명소", "저녁집"]
+    assert ("r 명소", "r 저녁집") in asked and out[1].move_min == 10     # 뺀 뒤 새 이웃 구간을 실제로 조회
+    assert any("도착" in e.message for e in errors)

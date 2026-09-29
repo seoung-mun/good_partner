@@ -85,20 +85,41 @@ STAY_MIN = {"식당": 90, "카페": 60, "관광지": 120}
 BREAKFAST_MIN = 60
 
 
+MEAL_WINDOW = {"아침": ("08:00", "10:00"), "점심": ("11:30", "14:00"), "저녁": ("17:30", "20:00")}  # 식사 시작 시각
+DAY_END = "22:00"            # 이 시각을 넘겨 끝나는 장소는 넣지 않음 (초안 생성 시)
+
+
+def _at(hhmm: str) -> datetime:
+    """'HH:MM' → 기준일의 datetime (자정을 넘긴 시각과 비교할 수 있게)."""
+    return datetime(2000, 1, 1, *map(int, hhmm.split(":")))
+
+
+def _next_meal(items: list[ItineraryItem], idx: int) -> ItineraryItem | None:
+    """idx 다음, 같은 날의 첫 식사 슬롯."""
+    for it in items[idx + 1:]:
+        if it.slot.day != items[idx].slot.day:
+            return None
+        if it.place is not None and it.slot.meal in MEAL_WINDOW:
+            return it
+    return None
+
+
 def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | None]], default_move: int = 30,
-                 first_start: str = "12:00", last_end: str | None = None, last_day: int | None = None
-                 ) -> list[ItineraryItem]:
+                 first_start: str = "12:00", last_end: str | None = None, last_day: int | None = None,
+                 prune: bool = False) -> list[ItineraryItem]:
     """일차별 시작(1일차 first_start, 이후 DAY_START)부터 체류·이동 시간을 누적. legs: slot_id → (이동 분, 교통편).
 
-    last_day의 장소 중 last_end(귀가 출발 시각)를 넘겨 끝나는 곳은 일정에서 뺀다.
+    식사는 MEAL_WINDOW 시작 전이면 그때까지 기다린다(10시 도착해도 점심은 11:30).
+    prune(초안 생성): 시간대를 놓친 식사, 넣으면 다음 식사가 시간대를 넘기는 관광·카페, DAY_END 이후 장소를 뺀다.
+    last_day의 장소 중 last_end(귀가 출발 시각)를 넘겨 끝나는 곳부터 그날 나머지를 뺀다.
+    사용자 수정 뒤(prune=False)에는 장소를 지우지 않는다.
     """
-    h, m = map(int, first_start.split(":"))
     out, cursor, day, prev_placed, closed = [], None, None, False, False
-    for it in items:
+    for idx, it in enumerate(items):
         if it.slot.day != day:
-            day, prev_placed = it.slot.day, False
-            cursor = datetime(2000, 1, 1, h, m) if day == 1 else datetime(2000, 1, 1, *map(int, DAY_START.split(":")))
-        if closed and day == last_day:
+            day, prev_placed, closed = it.slot.day, False, False
+            cursor = _at(first_start) if day == 1 else _at(DAY_START)
+        if closed:
             continue
         if it.place is None:
             out.append(it)
@@ -108,9 +129,20 @@ def assign_times(items: list[ItineraryItem], legs: dict[str, tuple[int, str | No
             mv, detail = legs.get(it.slot.slot_id, (default_move, None))
             at = cursor + timedelta(minutes=mv)
             update.update(move_min=mv, move_detail=detail)
+        window = MEAL_WINDOW.get(it.slot.meal)
+        if window:
+            at = max(at, _at(window[0]))
         stay = BREAKFAST_MIN if it.slot.meal == "아침" else STAY_MIN.get(it.slot.category, 90)
         end = at + timedelta(minutes=stay)
-        if last_end and day == last_day and end.strftime("%H:%M") > last_end:
+        if prune:
+            if window and at > _at(window[1]):
+                continue                              # 식사 시간대를 놓침 (늦은 도착)
+            nxt = _next_meal(items, idx)
+            if not window and nxt and end + timedelta(minutes=default_move) > _at(MEAL_WINDOW[nxt.slot.meal][1]):
+                continue                              # 이걸 넣으면 다음 식사가 시간대를 넘김
+            if end > _at(DAY_END):
+                continue
+        if last_end and day == last_day and end > _at(last_end):
             closed = True                             # 귀가 시각을 넘김 → 이 장소부터 그날 나머지 제외
             continue
         update.update(start=at.strftime("%H:%M"), end=end.strftime("%H:%M"))
