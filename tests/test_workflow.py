@@ -334,3 +334,10 @@ async def test_reschedule_prunes_late_arrival_reroutes_new_neighbors_and_tells_u
     assert [i.place.name for i in out] == ["명소", "저녁집"]
     assert ("r 명소", "r 저녁집") in asked and out[1].move_min == 10     # 뺀 뒤 새 이웃 구간을 실제로 조회
     assert any("도착" in e.message for e in errors)
+
+
+async def test_reschedule_tells_user_when_a_day_ends_up_empty():
+    from src.agent.workflow import reschedule
+    out, errors = await reschedule(_day1("12:00"), route, {"days": 1, "start_time": "12:00", "end_time": "12:30"})
+    assert out == []
+    assert any("Day 1" in e.message and "시간" in e.message for e in errors)

@@ -99,7 +99,12 @@ async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None 
     timed = assign_times(reset, legs, first_start=req.get("start_time") or "12:00", last_end=end if trim else None,
                          last_day=days, prune=trim)
     kept = {i.slot.slot_id for i in timed}
-    if trim and len(kept) < len(items):
+    if trim:
+        for d in sorted({i.slot.day for i in items if i.place}):
+            if not any(i.slot.day == d and i.place for i in timed):
+                errors.append(StepError(step="plan_routes", code="EMPTY_DAY",
+                                        message=f"Day {d}은 도착·출발 시간 안에 넣을 수 있는 장소가 없어요. 시간을 조정해 주세요."))
+    if trim and len(kept) < len(items) and timed:
         # 뺀 장소가 있으면 새로 이웃한 장소끼리 경로를 다시 조회 (한 번만; 두 번째는 뺄 것이 거의 없다)
         dropped_day1 = any(i.slot.day == 1 and i.slot.slot_id not in kept for i in items if i.place)
         timed, errors2 = await reschedule([i for i in items if i.slot.slot_id in kept], route_fn, request, trim=False)

@@ -11,6 +11,7 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")
 import streamlit as st
 from datetime import date, time, timedelta
 from concurrent.futures import ThreadPoolExecutor
+from src.domain.schedule import check_trip_times
 from src.retrieval.store import load_faiss_index
 from src.logging_config import get_logger
 
@@ -90,8 +91,14 @@ detail_preference = st.text_area(
 
 st.markdown("---")
 
+time_error = check_trip_times((end_date - start_date).days + 1, arrive_time.strftime("%H:%M"), leave_time.strftime("%H:%M"))
+if time_error:
+    st.warning(time_error)
+
 if st.button("일정 만들기", type="primary", use_container_width=True):
-    if destination_input and start_date and end_date:
+    if time_error:
+        st.error(time_error)
+    elif destination_input and start_date and end_date:
         st.session_state.destination = destination_input
         st.session_state.start_location = start_location_input
         st.session_state.start_date = start_date

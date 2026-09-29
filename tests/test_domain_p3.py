@@ -31,3 +31,12 @@ def test_build_slots_template():
     assert [x.category for x in build_slots(1)] == ["식당", "관광지", "카페", "식당"]     # 당일치기 = 첫날
     assert [x.day for x in build_slots(2)] == [1] * 4 + [2] * 3                          # 1박 2일 = 첫날 + 마지막 날
 
+
+
+def test_check_trip_times():
+    from src.domain.schedule import check_trip_times
+    assert check_trip_times(1, "12:00", "12:30") is not None          # 당일치기인데 30분
+    assert check_trip_times(1, "14:00", "12:00") is not None          # 출발이 도착보다 이름
+    assert check_trip_times(1, "12:00", "20:00") is None
+    assert check_trip_times(2, "12:00", "09:30") is not None          # 마지막 날 아침도 못 먹고 떠남
+    assert check_trip_times(2, "17:00", "11:00") is None

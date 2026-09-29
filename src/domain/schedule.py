@@ -94,6 +94,19 @@ def _at(hhmm: str) -> datetime:
     return datetime(2000, 1, 1, *map(int, hhmm.split(":")))
 
 
+MIN_SAME_DAY_MIN = 90       # 당일치기: 도착~출발 사이에 장소 한 곳(식당 90분)은 들어가야 함
+
+
+def check_trip_times(days: int, start_time: str, end_time: str) -> str | None:
+    """입력 시각 검증. 일정이 통째로 비게 되는 조합이면 사용자에게 보여줄 안내, 아니면 None."""
+    if days == 1 and _at(end_time) < _at(start_time) + timedelta(minutes=MIN_SAME_DAY_MIN):
+        return f"당일치기는 출발 시각이 도착 시각보다 {MIN_SAME_DAY_MIN}분 이상 늦어야 일정을 넣을 수 있어요."
+    last_day_first_end = _at(DAY_START) + timedelta(minutes=BREAKFAST_MIN)
+    if days > 1 and _at(end_time) < last_day_first_end:
+        return f"마지막 날 출발이 {last_day_first_end:%H:%M} 이전이면 그날 일정을 넣을 수 없어요."
+    return None
+
+
 def _next_meal(items: list[ItineraryItem], idx: int) -> ItineraryItem | None:
     """idx 다음, 같은 날의 첫 식사 슬롯."""
     for it in items[idx + 1:]:
