@@ -42,6 +42,9 @@ def _result(runtime: ToolRuntime, name: str, ok: bool, items=None, dropped=None,
     return Command(update=update)
 
 
+NEAR_WITHIN_TOP = 10   # 같은 시군구 우선은 검색 관련도 상위 이 안에서만 (인근이라고 관련 없는 곳을 고르지 않게)
+
+
 def make_edit_tools(load_db):
     """수정 tool 3종을 만든다. load_db는 벡터 스토어 로더(테스트에서 주입)."""
     def find(runtime: ToolRuntime, category: str, query: str, meal: str | None = None, near: set[str] | None = None):
@@ -54,15 +57,13 @@ def make_edit_tools(load_db):
         used |= {tuple(k) for k in runtime.state.get("rejected") or []}
         words = (BREAKFAST_KEYWORDS if meal == "아침" else []) + query.split()
         cands = search_candidates(load_db(), runtime.state["region"], [category], words, k=50)[category]
-        cands = [p for p in cands if (p.name, p.region) not in used]
-        cands.sort(key=lambda p: bool(near) and p.region not in near)       # 안정 정렬: 같은 시군구 → 검색 순위
-        return cands[0] if cands else None
+        top = [p for p in cands if (p.name, p.region) not in used][:NEAR_WITHIN_TOP]
+        top.sort(key=lambda p: bool(near) and p.region not in near)   # 관련도 상위 안에서만 같은 시군구 우선 (안정 정렬)
+        return top[0] if top else None
 
-    def neighbors(items: list[ItineraryItem], idx: int) -> set[str]:
-        """idx 앞뒤(같은 날) 장소의 시군구 — 교체·추가 후보를 동선 안에서 찾기 위함."""
-        day = items[idx].slot.day if idx < len(items) else items[idx - 1].slot.day
-        return {items[j].place.region for j in (idx - 1, idx + 1)
-                if 0 <= j < len(items) and items[j].place and items[j].slot.day == day}
+    def day_regions(items: list[ItineraryItem], day: int, skip: str | None = None) -> set[str]:
+        """그날 다른 장소들의 시군구 — 교체·추가 후보를 그날 동선 안에서 찾기 위함."""
+        return {i.place.region for i in items if i.slot.day == day and i.place and i.slot.slot_id != skip}
 
     @tool("replace_slot", args_schema=ReplaceSlotInput, description=(
         "일정의 특정 슬롯에 배정된 장소를 같은 종류(식당/카페/관광지)의 다른 장소로 교체한다. "
@@ -75,7 +76,8 @@ def make_edit_tools(load_db):
         idx = next((n for n, i in enumerate(items) if i.slot.slot_id == slot_id), None)
         if idx is None:
             return _result(runtime, "replace_slot", False, error=f"없는 slot_id: {slot_id}")
-        place = find(runtime, items[idx].slot.category, query, meal=items[idx].slot.meal, near=neighbors(items, idx))
+        place = find(runtime, items[idx].slot.category, query, meal=items[idx].slot.meal,
+                     near=day_regions(items, items[idx].slot.day, skip=slot_id))
         if place is None:
             return _result(runtime, "replace_slot", False, error="조건에 맞는 다른 장소가 없습니다")
         return _result(runtime, "replace_slot", True, swap_place(items, slot_id, place), dropped=items[idx].place,
@@ -107,7 +109,7 @@ def make_edit_tools(load_db):
         # 관광지·카페는 그날 저녁 식사 앞에 (저녁 뒤 밤늦게 붙지 않게), 식당은 그날 끝에
         dinner = next((i for i in same_day if i.slot.meal == "저녁"), None)
         pos = items.index(dinner) if dinner and category != "식당" else items.index(same_day[-1]) + 1
-        place = find(runtime, category, query, near={items[pos - 1].place.region} if pos and items[pos - 1].place else None)
+        place = find(runtime, category, query, near=day_regions(items, day))
         if place is None:
             return _result(runtime, "add_slot", False, error="조건에 맞는 장소가 없습니다")
         order = max(i.slot.order for i in same_day) + 1

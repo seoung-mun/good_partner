@@ -22,7 +22,7 @@ from src.agent.chains import build_briefing_chain, build_preference_chain
 from src.agent.render import render_markdown, request_text
 from src.domain.models import Briefing, ItineraryItem, Place, Slot, StepError, TripPreferences
 from src.domain.region import resolve_destination
-from src.domain.schedule import BREAKFAST_KEYWORDS, MAX_KM, assign_places, assign_times, build_slots
+from src.domain.schedule import BREAKFAST_KEYWORDS, MAX_KM, MEAL_WINDOW, assign_places, assign_times, build_slots
 from src.errors import ExternalServiceError, LLMOutputError, RegionNotFoundError, VectorStoreUnavailableError
 from src.logging_config import get_logger
 from src.retrieval.retriever import search_candidates
@@ -119,6 +119,12 @@ async def reschedule(items: list[ItineraryItem], route_fn, request: dict | None 
             errors.append(StepError(step="plan_routes", code="LATE_ARRIVAL",
                                     message="도착이 늦어 첫날은 시간 안에 갈 수 있는 곳만 남겼어요."))
         return timed, errors
+    if not trim:   # 사용자 수정 뒤에는 지우지 않는 대신, 시간대를 벗어난 식사를 알린다
+        for i in timed:
+            w = MEAL_WINDOW.get(i.slot.meal)
+            if w and i.start and not (w[0] <= i.start <= w[1]):
+                errors.append(StepError(step="plan_routes", code="MEAL_OFF_WINDOW",
+                                        message=f"Day {i.slot.day} {i.slot.meal}이 {i.start}로 늦어져요. 장소를 하나 빼거나 바꾸는 걸 추천해요."))
     if not trim and end and any(i.slot.day == days and i.end and i.end > end for i in timed):
         errors.append(StepError(step="plan_routes", code="OVER_END_TIME",
                                 message=f"마지막 날 일정이 출발 시각({end})을 넘겨요. 장소를 하나 빼는 걸 추천해요."))

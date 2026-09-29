@@ -148,3 +148,25 @@ async def test_added_sight_goes_before_dinner():
     out = await edit(_app(db, call("add_slot", {"day": 1, "category": "관광지", "query": ""}), AIMessage("추가")),
                      {**STATE, "items": items}, "관광지 하나 더")
     assert [i.place.name for i in out["items"]] == ["점심집", "명소", "저녁집"]
+
+
+async def test_nearby_preference_never_beats_relevance_outside_top_candidates():
+    rows = [meta("해산물집", "부산광역시 금정구", "식당", "sea")]
+    rows += [meta(f"금정식당{i}", "부산광역시 금정구", "식당", f"g{i}") for i in range(10)]
+    rows += [meta("영도고깃집", "부산광역시 영도구", "식당", "far")]           # 같은 구지만 관련도 12위
+    table = {"sea": [0.0, 0, 0, 0], "해산물 좋은 맛집": [0.0, 0, 0, 0], "좋은 맛집": [0.0, 0, 0, 0],
+             **{f"g{i}": [1.0 + i * 0.1, 0, 0, 0] for i in range(10)}, "far": [9.0, 0, 0, 0]}
+    items = [_it("d1-s1", 1, 1, "카페", "영도카페", "부산광역시 영도구"), _it("d1-s2", 1, 2, "식당", "옛집", "부산광역시 영도구", "저녁")]
+    out = await edit(_app(make_db(rows, table), call("replace_slot", {"slot_id": "d1-s2", "query": "해산물"}),
+                          AIMessage("바꿨어요")), {**STATE, "region": "부산광역시", "items": items}, "저녁 해산물집으로")
+    assert out["items"][1].place.name == "해산물집"                     # 인근이라는 이유로 관련 없는 곳을 고르지 않음
+
+
+async def test_edit_that_pushes_dinner_late_warns_user():
+    db = make_db([meta("명소", "부산광역시 중구", "관광지", "a")])
+    items = [_it("d1-s1", 1, 1, "관광지", "긴명소"), _it("d1-s2", 1, 2, "관광지", "긴명소2"),
+             _it("d1-s3", 1, 3, "식당", "저녁집", meal="저녁")]
+    req = {**STATE["request"], "start_time": "15:00"}
+    out = await edit(_app(db, call("add_slot", {"day": 1, "category": "관광지", "query": ""}), AIMessage("추가")),
+                     {**STATE, "request": req, "items": items}, "관광지 하나 더")
+    assert any("저녁" in e.message for e in out["errors"])
