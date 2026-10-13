@@ -1,28 +1,30 @@
+import asyncio
+from datetime import date
+
 import streamlit as st
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
+
 from src.agent.edit_agent import build_edit_app, edit
-from src.agent.workflow import build_workflow, reschedule, stream_plan, to_legacy_itinerary
+from src.agent.workflow import build_workflow, reschedule, stream_plan
 from src.domain.schedule import swap_place
+from src.logging_config import get_logger
 from src.retrieval.catalog import get_catalog
+from src.retrieval.store import load_faiss_index
 from src.services.maps import get_detailed_route
 from src.ui.cards import chips, move_line, place_card
 from src.ui.map import day_map
-from src.ui.text import to_plain
-import re
-import asyncio
-from datetime import date, datetime
-from fpdf import FPDF
-import time
-import os
-from fpdf.enums import XPos, YPos
-from src.retrieval.store import load_faiss_index
-from src.logging_config import get_logger
+from src.ui.pdf import create_itinerary_pdf
 
 log = get_logger(__name__)
 
 with st.spinner("여행 데이터를 불러오는 중입니다..."):
-    DB = load_faiss_index()
-    log.info("1_trip_planner 페이지에서 DB 로드 확인 완료")
+    try:
+        DB = load_faiss_index()
+    except Exception as e:
+        log.exception("FAISS 인덱스 로드 실패")
+        st.error(f"장소 데이터베이스를 불러오지 못했어요: {type(e).__name__}: {e}")
+        st.stop()
+
 
 def normalize_to_string(content):
     if content is None:
@@ -30,179 +32,9 @@ def normalize_to_string(content):
     if isinstance(content, str):
         return content
     if isinstance(content, list):
-        texts = []
-        for item in content:
-            if isinstance(item, dict):
-                texts.append(str(item.get('text', '')))
-            else:
-                texts.append(str(item))
-        return "\n".join(texts)
+        return "\n".join(str(i.get("text", "")) if isinstance(i, dict) else str(i) for i in content)
     return str(content)
 
-def translate_category_to_korean(category):
-    """카테고리를 한글로 변환"""
-    if not category:
-        return "활동"
-
-    category_lower = str(category).lower()
-
-    if 'activity' in category_lower:
-        return "활동"
-    elif 'restaurant' in category_lower or 'food' in category_lower:
-        return "식당"
-    elif 'cafe' in category_lower or 'coffee' in category_lower:
-        return "카페"
-    elif 'tourist' in category_lower or 'attraction' in category_lower:
-        return "관광지"
-    elif 'move' in category_lower or 'transport' in category_lower:
-        return "이동"
-
-    return category
-
-def _normalize_itinerary_for_pdf(itinerary, total_days=None):
-    norm = []
-    for item in itinerary:
-        if not isinstance(item, dict):
-            continue
-        it = item.copy()
-        
-        day = it.get('day', 1)
-        if isinstance(day, str):
-            m = re.search(r'(\d+)', day)
-            try:
-                day = int(m.group(1)) if m else 1
-            except:
-                day = 1
-        else:
-            try: day = int(day)
-            except: day = 1
-            
-        if total_days:
-            try:
-                td = int(total_days)
-                if day < 1: day = 1
-                if day > td: day = td
-            except: pass
-            
-        it['day'] = day
-        if 'description' not in it: it['description'] = it.get('description', '')
-        if 'type' not in it and 'category' in it: it['type'] = it.get('category')
-        if 'name' not in it: it['name'] = it.get('장소명', it.get('name', '이름 없음'))
-        if 'reviews' not in it: it['reviews'] = [] 
-        
-        norm.append(it)
-    return norm
-
-def create_itinerary_pdf(itinerary, destination, dates, weather, final_routes, total_days, start_location=None):
-    pdf = FPDF()
-    pdf.add_page()
-
-    font_path = 'NanumGothic.ttf'
-    bold_font_path = 'NanumGothicBold.ttf'
-
-    has_korean_font = False
-    try:
-        if os.path.exists(font_path):
-            pdf.add_font('NanumGothic', '', font_path)
-            if os.path.exists(bold_font_path):
-                pdf.add_font('NanumGothic', 'B', bold_font_path)
-            else:
-                pdf.add_font('NanumGothic', 'B', font_path)
-
-            pdf.set_font('NanumGothic', '', 12)
-            has_korean_font = True
-        else:
-            pdf.set_font('Arial', '', 12)
-    except Exception as e:
-        log.warning(f" [PDF 생성] 폰트 로드 에러: {e}")
-        pdf.set_font('Arial', '', 12)
-
-    pdf.set_font_size(24)
-    pdf.cell(0, 20, text=f"{destination} 여행 계획", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-
-    pdf.set_font_size(12)
-    pdf.cell(0, 10, text=f"기간: {dates}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-
-    if start_location:
-        pdf.set_font_size(11)
-        pdf.cell(0, 8, text=f"출발지/숙소: {start_location}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-
-    if weather and weather.strip() and weather != '정보 없음':
-        pdf.set_font_size(10)
-        pdf.multi_cell(0, 5, text=f"날씨: {to_plain(weather)}", align='C')
-
-    pdf.ln(10)
-
-    normalized_itinerary = _normalize_itinerary_for_pdf(itinerary, total_days)
-    try:
-        sorted_itinerary = sorted(enumerate(normalized_itinerary), key=lambda x: (int(x[1].get('day', 1)), x[1].get('start', '00:00') or '00:00', x[0]))
-        sorted_itinerary = [item[1] for item in sorted_itinerary]
-    except:
-        sorted_itinerary = normalized_itinerary
-
-    for day_num in range(1, total_days + 1):
-        if day_num > 1: pdf.ln(15) 
-
-        pdf.set_font_size(18)
-        if has_korean_font: pdf.set_font('NanumGothic', 'B', 18)
-        pdf.cell(0, 15, text=f"Day {day_num}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-        pdf.set_font_size(11)
-        if has_korean_font: pdf.set_font('NanumGothic', '', 11)
-
-        items_today = [item for item in sorted_itinerary if int(item.get('day', 1)) == day_num]
-
-        if not items_today:
-            pdf.cell(0, 10, text="  - 계획된 일정이 없습니다.", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-            pdf.ln(10)
-            continue
-
-        for item in items_today:
-            item_type = item.get('type', 'activity')
-
-            if item_type == 'move':
-                pdf.set_text_color(100, 100, 100)
-                pdf.set_font_size(10)
-                move_text = f"      |  {item.get('duration_text', '')} : {to_plain(item.get('transport', '이동'))}"
-                pdf.cell(0, 8, text=move_text, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                pdf.set_text_color(0, 0, 0)
-                pdf.set_font_size(11)
-
-            else:
-                time_info = f"[{item.get('start', '시간 미정')}-{item.get('end', '')}]" if item.get('start') else "[시간 미정]"
-
-                if has_korean_font: pdf.set_font('NanumGothic', 'B', 12)
-                category_text = translate_category_to_korean(item.get('category', item_type))
-                main_text = f"  ● {time_info} {to_plain(item.get('name', '이름 없음'))} ({category_text})"
-                pdf.cell(0, 8, text=main_text, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-                if item.get('description'):
-                    if has_korean_font: pdf.set_font('NanumGothic', '', 10)
-                    pdf.set_x(20)
-                    pdf.multi_cell(0, 5, text=to_plain(item['description']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                    pdf.ln(2)
-
-                reviews = item.get('reviews', [])
-                if reviews and isinstance(reviews, list):
-                    if has_korean_font: pdf.set_font('NanumGothic', '', 9)
-                    for review in reviews:
-                        if isinstance(review, str): review_text = review
-                        elif isinstance(review, dict): review_text = review.get('text', str(review))
-                        else: review_text = str(review)
-                        # 매 줄 왼쪽 여백에서 시작 — 기본값(new_x=RIGHT)이면 두 번째 리뷰부터 쓸 공간이 없어 예외
-                        pdf.set_x(20)
-                        pdf.multi_cell(0, 4, text=f"  • {to_plain(review_text)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                    pdf.ln(2)
-
-        pdf.ln(10)
-        pdf.line(pdf.get_x(), pdf.get_y(), pdf.get_x() + 190, pdf.get_y())
-        pdf.ln(5)
-        pdf.set_font_size(14)
-        if has_korean_font: pdf.set_font('NanumGothic', '', 14)
-        pdf.cell(0, 10, text="메모:", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-        pdf.ln(20)
-
-    return bytes(pdf.output())
 
 st.set_page_config(page_title="AI 여행 플래너", layout="wide")
 
@@ -283,7 +115,7 @@ if st.session_state.plan is None:
 
 plan = st.session_state.plan
 req, items, briefing = plan["request"], plan["items"], plan.get("briefing")
-catalog = get_catalog(DB) if DB is not None else None
+catalog = get_catalog(DB)
 
 st.title(f"{req['destination']} {req['days']}일 여행")
 chips([req["group_type"], req["style"], "자동차" if req.get("mode") == "driving" else "대중교통",
@@ -331,11 +163,10 @@ for day in [day] if day else []:
 
 # --- PDF ---
 if items:
-    pdf_bytes = create_itinerary_pdf(to_legacy_itinerary(items), req["destination"], st.session_state.get("dates", ""),
-                                     plan.get("weather") or "날씨 정보 없음", "", req["days"], req.get("start_location"))
-    if pdf_bytes:
-        st.download_button(label="여행 계획 PDF 다운로드", data=pdf_bytes, icon=":material/download:",
-                           file_name=f"{req['destination']}_여행계획.pdf", mime="application/pdf")
+    pdf_bytes = create_itinerary_pdf(items, req["destination"], st.session_state.get("dates", ""),
+                                     plan.get("weather") or "날씨 정보 없음", req["days"], req.get("start_location"))
+    st.download_button(label="여행 계획 PDF 다운로드", data=pdf_bytes, icon=":material/download:",
+                       file_name=f"{req['destination']}_여행계획.pdf", mime="application/pdf")
 
 # --- 수정 요청: 에이전트 ---
 st.divider()

@@ -27,8 +27,8 @@ def warm_up_task():
     try:
         load_faiss_index() 
         log.info("백그라운드 DB 로딩 완료")
-    except Exception as e:
-        log.warning(f"로딩 실패: {e}")
+    except Exception:
+        log.exception("백그라운드 DB 로딩 실패 (일정 페이지에서 다시 시도하며 오류를 표시함)")
 
 if "db_loading_submitted" not in st.session_state:
     st.session_state.executor.submit(warm_up_task)

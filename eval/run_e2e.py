@@ -46,7 +46,8 @@ async def main(args):
     import src.agent.workflow as WF
     from eval.metadata import ungrounded_rate
     from eval.new_adapter import run_new_trip as run_trip
-    from src.config import LLM
+    from src.config import get_llm
+    LLM = get_llm()
     from src.services.maps_client import RoutesCompatClient
     search_acc = {"t": 0.0, "n": 0}
     WF.search_candidates = timed_sync(WF.search_candidates, search_acc)  # 배치 임베딩+FAISS 시간 계측

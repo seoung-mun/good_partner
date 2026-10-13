@@ -31,3 +31,6 @@ review_faiss_limit*/
 .superpowers/
 .cache/
 eval/results/_smoke*
+
+# 리뷰 원본 로그 (사용자 데이터)
+reviews_log.csv

@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
-from src.rag_updater import update_vector_db_if_needed 
+from src.errors import AppError
+from src.rag_updater import update_vector_db_if_needed
 from src.logging_config import get_logger
 
 log = get_logger(__name__)
@@ -41,12 +42,18 @@ if submitted:
                 new_df.to_csv(NEW_REVIEWS_FILE, mode='a', header=False, index=False, encoding="utf-8-sig")
                 
             st.success(f"'{place_name}' 리뷰가 성공적으로 저장되었습니다. 감사합니다!")
-            
-            update_status = update_vector_db_if_needed(NEW_REVIEWS_FILE)
-            log.info(update_status) 
-
         except Exception as e:
             st.error(f"리뷰 저장 중 오류 발생: {e}")
+            st.stop()
+
+        try:
+            st.toast(update_vector_db_if_needed(NEW_REVIEWS_FILE))
+        except AppError as e:
+            log.exception("리뷰 인덱스 반영 실패")
+            st.error(f"{e.user_message} ({e.detail})")
+        except Exception as e:
+            log.exception("리뷰 인덱스 반영 실패")
+            st.error(f"리뷰를 검색 데이터에 반영하지 못했어요. 기존 데이터는 그대로예요: {type(e).__name__}: {e}")
 
 try:
     if os.path.exists(NEW_REVIEWS_FILE):

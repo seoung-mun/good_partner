@@ -16,7 +16,8 @@ KEYS = ["empty", "returned", "region_acc", "region_hit1", "category_acc", "diver
 async def main(args):
     load_dotenv(".env")
     cache_state = configure_caches(args.no_cache)
-    from src.config import LLM
+    from src.config import get_llm
+    LLM = get_llm()
     from eval.legacy_adapter import doc_to_cand, legacy_retrieve
     counter = LLMCallCounter()
     attach_counter(LLM, counter)

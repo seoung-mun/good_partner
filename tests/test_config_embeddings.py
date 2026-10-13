@@ -4,10 +4,13 @@ from pathlib import Path
 from src.retrieval.store import pick_device
 
 
-def test_config_has_single_definitions():
+def test_config_builds_llm_lazily():
+    """config import만으로 LLM을 만들지 않는다 (모듈 최상위에 make_llm() 호출 없음)."""
     tree = ast.parse(Path("src/config.py").read_text())
-    llm_assigns = [n for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", "") == "LLM" for t in n.targets)]
-    assert len(llm_assigns) == 1
+    top_calls = [n for stmt in tree.body if not isinstance(stmt, ast.FunctionDef)
+                 for n in ast.walk(stmt) if isinstance(n, ast.Call) and getattr(n.func, "id", "") == "make_llm"]
+    assert top_calls == []
+    assert [n.name for n in tree.body if isinstance(n, ast.FunctionDef)].count("get_llm") == 1
     store = ast.parse(Path("src/retrieval/store.py").read_text())
     assert [n.name for n in store.body if isinstance(n, ast.FunctionDef)].count("load_faiss_index") == 1
 

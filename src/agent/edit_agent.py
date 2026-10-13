@@ -6,7 +6,7 @@ from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitM
 from langchain_core.messages import HumanMessage
 from langgraph.graph import END, START, StateGraph
 
-from src.agent.chains import format_plan_for_briefing
+from src.agent.chains import DATA_RULE, format_plan_for_briefing
 from src.agent.edit_tools import make_edit_tools
 from src.agent.render import render_markdown
 from src.agent.workflow import reschedule
@@ -14,7 +14,7 @@ from src.domain.models import ItineraryItem, StepError
 
 SYSTEM = ("당신은 여행 일정 편집자입니다. 사용자의 수정 요청을 replace_slot·remove_slot·add_slot 도구로 반영하세요. "
           "슬롯은 반드시 [현재 일정]에 있는 slot_id로 지정하세요. 도구 결과의 ok가 false면 이유를 사용자에게 알리세요. "
-          "요청을 반영했으면 무엇을 바꿨는지 한두 문장으로 답하고 끝내세요.")
+          "요청을 반영했으면 무엇을 바꿨는지 한두 문장으로 답하고 끝내세요. " + DATA_RULE)
 
 
 def _tool_error(error: Exception, request) -> str:
@@ -36,7 +36,8 @@ class EditState(AgentState):
 def build_edit_app(llm=None, load_db=None, route_fn=None):
     """수정 그래프: 에이전트(tool calling) → 시간표 재계산·렌더. 의존성 주입 가능."""
     if llm is None:
-        from src.config import LLM as llm
+        from src.config import get_llm
+        llm = get_llm()
     if load_db is None:
         from src.retrieval.store import load_faiss_index as load_db
     if route_fn is None:

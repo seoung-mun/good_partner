@@ -150,19 +150,21 @@ def to_legacy_itinerary(items: list[ItineraryItem]) -> list[dict]:
     return out
 
 
-async def locate_places(places: list[Place], geocode_fn) -> list[Place]:
-    """장소 좌표를 병렬(동시 GEOCODE_CONCURRENCY) 조회. 실패한 곳은 좌표 없이 그대로."""
+async def locate_places(places: list[Place], geocode_fn) -> tuple[list[Place], list[str]]:
+    """장소 좌표를 병렬(동시 GEOCODE_CONCURRENCY) 조회 → (장소들, 조회 오류 목록). 실패한 곳은 좌표 없이 그대로."""
     sem = asyncio.Semaphore(GEOCODE_CONCURRENCY)
+    failures: list[str] = []
 
     async def one(p: Place) -> Place:
         async with sem:
             try:
                 lat, lng = await geocode_fn(p.address or f"{p.region} {p.name}")
             except Exception as e:
-                log.debug("지오코딩 실패 %s: %s", p.name, e)
+                log.warning("지오코딩 실패 %s: %s", p.name, e)
+                failures.append(f"{p.name}: {type(e).__name__}: {e}")
                 lat = lng = None
         return p.model_copy(update={"lat": lat, "lng": lng}) if lat is not None else p
-    return list(await asyncio.gather(*[one(p) for p in places]))
+    return list(await asyncio.gather(*[one(p) for p in places])), failures
 
 
 def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resolve_fallback=None,
@@ -173,7 +175,8 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
     """
     llm_timeout = llm_timeout or float(os.getenv("LLM_TIMEOUT_S", "90"))
     if llm is None:
-        from src.config import LLM as llm
+        from src.config import get_llm
+        llm = get_llm()
     if load_db is None:
         from src.retrieval.store import load_faiss_index as load_db
     if route_fn is None:
@@ -223,8 +226,6 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
             return {"candidates": {}}
         try:
             db = load_db()
-            if db is None:
-                raise FileNotFoundError("load_faiss_index returned None")
         except Exception as e:
             log.error("벡터 인덱스 로드 실패: %s", e)
             return {"candidates": {}, "errors": [StepError.from_error("search", VectorStoreUnavailableError(str(e)))]}
@@ -248,13 +249,14 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
         top = {c: v[:GEOCODE_TOP] for c, v in cands.items()}
         flat = [p for v in top.values() for p in v]
         start = (req.get("start_location") or "").strip()
-        located, anchor = await locate_places(flat, geocode_fn), None
+        (located, failures), anchor = await locate_places(flat, geocode_fn), None
         if start:
             try:
                 lat, lng = await geocode_fn(f"{state['region']} {start}")
                 anchor = (lat, lng) if lat is not None else None
             except Exception as e:
                 log.warning("출발지 지오코딩 실패: %s", e)
+                failures.append(f"출발지 {start}: {type(e).__name__}: {e}")
         n, located_top = 0, {}
         for c, v in top.items():
             located_top[c], n = located[n:n + len(v)], n + len(v)
@@ -265,8 +267,11 @@ def build_workflow(llm=None, load_db=None, route_fn=None, weather_fn=None, resol
         picks, alts = assign_places(slots, located_top, anchors, MAX_KM.get(req.get("mode", "transit"), MAX_KM["transit"]))
         log.info("배정: 슬롯 %d개 중 %d개 (좌표 %d/%d, 앵커 %s)", len(slots), sum(p is not None for p in picks.values()),
                  sum(p.lat is not None for p in located), len(located), "출발지" if start and anchor else anchor is not None)
-        return {"items": [ItineraryItem(slot=s, place=picks[s.slot_id], alternatives=alts[s.slot_id]) for s in slots
-                           if not (s.when == "밤" and picks[s.slot_id] is None)]}   # 근처에 밤 명소가 없으면 밤 슬롯은 없앰
+        out = {"items": [ItineraryItem(slot=s, place=picks[s.slot_id], alternatives=alts[s.slot_id]) for s in slots
+                         if not (s.when == "밤" and picks[s.slot_id] is None)]}   # 근처에 밤 명소가 없으면 밤 슬롯은 없앰
+        if failures:   # 좌표 없는 장소는 동선 계산에서 빠지므로 사용자에게 알린다
+            out["errors"] = [StepError.from_error("locate", ExternalServiceError("지도 좌표", "; ".join(failures)))]
+        return out
 
     async def plan_routes(state: PlanState) -> dict:
         """연속 장소 간 대중교통 경로(병렬)와 시간표."""
